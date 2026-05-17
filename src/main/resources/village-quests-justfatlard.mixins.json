@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "package": "justfatlard.village_quests.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "VillagerEntityMixin",
+    "VillagerMovementMixin",
+    "VillagerDamageMixin",
+    "BlockBreakMixin",
+    "ContainerAccessMixin",
+    "FireUseMixin",
+    "ZombieDoorBreakMixin",
+    "ZombieVillagerCureMixin"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

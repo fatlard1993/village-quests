@@ -1,0 +1,25 @@
+# Gradle
+.gradle/
+build/
+
+# Development runtime
+run/
+run_output.txt
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Fabric
+remappedSrc/
