@@ -1,5 +1,5 @@
 plugins {
-	id 'net.fabricmc.fabric-loom' version '1.15.5'
+	id 'net.fabricmc.fabric-loom' version '1.17.12'
 	id 'maven-publish'
 }
 
@@ -15,12 +15,18 @@ repositories {
 }
 
 loom {
-    splitEnvironmentSourceSets()
-
 	mods {
 		"village-quests" {
 			sourceSet sourceSets.main
-			sourceSet sourceSets.client
+		}
+	}
+	// Pass -PvillageExport to enable the castle export server:
+	//   ./gradlew runServer -PvillageExport
+	if (project.hasProperty('villageExport')) {
+		runs {
+			server {
+				vmArg '-Dvillagecastles.exportall=true'
+			}
 		}
 	}
 }
@@ -30,6 +36,8 @@ dependencies {
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+	implementation files('../pandorical/build/libs/pandorical-1.0.0.jar')
 }
 
 processResources {
@@ -56,6 +64,29 @@ jar {
 		rename { "${it}_${project.base.archivesName.get()}"}
 	}
 }
+
+// Fail fast if stale project JARs are in run/mods/ — they shadow the dev classpath
+// and cause old code to run silently. Run: ./gradlew validateRunMods
+tasks.register('validateRunMods') {
+    group = 'verification'
+    description = 'Fails if village-quests or pandorical JARs are in run/mods/ (they conflict with the dev classpath).'
+    doLast {
+        def modsDir = file('run/mods')
+        if (!modsDir.exists()) return
+        def conflicts = modsDir.listFiles().findAll { f ->
+            f.name.startsWith('village-quests') || f.name.startsWith('pandorical')
+        }
+        if (conflicts) {
+            throw new GradleException(
+                "Stale JARs found in run/mods/ — remove them (they conflict with the dev classpath):\n" +
+                conflicts.collect { "  ${it.name}" }.join('\n')
+            )
+        }
+        logger.lifecycle('run/mods/ is clean — no conflicting JARs found.')
+    }
+}
+
+tasks.named('runServer').configure { dependsOn('validateRunMods') }
 
 publishing {
 	publications {

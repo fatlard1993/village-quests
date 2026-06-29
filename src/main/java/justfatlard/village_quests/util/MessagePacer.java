@@ -20,7 +20,7 @@ public class MessagePacer {
    private static final long ROUTINE_SUPPRESSION = 100L;
 
    public static void queueMessage(ServerPlayer player, Component message, MessagePriority priority) {
-      queueMessage(player, message, priority, false);
+      queueMessage(player, message, priority, true);
    }
 
    public static void queueMessage(ServerPlayer player, Component message, MessagePriority priority, boolean actionBar) {

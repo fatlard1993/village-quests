@@ -34,7 +34,8 @@ public class VillagerMoodManager {
             boolean isWorkHours = timeOfDay >= 2000L && timeOfDay < 12000L;
             if (isWorkHours) {
                VillagerProfession profession = (VillagerProfession)villager.getVillagerData().profession().value();
-               String professionId = BuiltInRegistries.VILLAGER_PROFESSION.getKey(profession).getPath();
+               net.minecraft.resources.Identifier _moodKey = BuiltInRegistries.VILLAGER_PROFESSION.getKey(profession);
+               String professionId = _moodKey != null ? _moodKey.getPath() : "none";
                boolean hasProfession = !"none".equals(professionId) && !"nitwit".equals(professionId);
                if (hasProfession && ThreadLocalRandom.current().nextDouble() < 0.3) {
                   return VillagerMoodManager.Mood.BUSY;

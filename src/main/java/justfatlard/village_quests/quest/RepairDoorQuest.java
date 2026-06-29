@@ -54,7 +54,7 @@ class RepairDoorQuest extends CreationQuest {
          this.victimName + " can sleep safely again.", "Door's solid. That'll hold.", "I keep opening and closing it. My wife thinks I've lost my mind."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), false);
+      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), true);
       this.scheduleAftermathLetter(
          player,
          new String[]{"The door closes properly now. Funny how much that matters.", "I caught myself testing the latch three times. Just to hear it click."}

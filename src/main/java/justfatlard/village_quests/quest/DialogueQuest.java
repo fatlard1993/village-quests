@@ -112,7 +112,8 @@ public class DialogueQuest extends VillagerQuest {
 
    public DialogueQuest withTargetHint(Villager target) {
       if (target != null) {
-         String profId = BuiltInRegistries.VILLAGER_PROFESSION.getKey((VillagerProfession)target.getVillagerData().profession().value()).getPath();
+         net.minecraft.resources.Identifier _dqKey = BuiltInRegistries.VILLAGER_PROFESSION.getKey((VillagerProfession)target.getVillagerData().profession().value());
+         String profId = _dqKey != null ? _dqKey.getPath() : "none";
 
          this.targetProfessionHint = switch (profId) {
             case "farmer" -> "usually near the fields";
@@ -269,7 +270,7 @@ public class DialogueQuest extends VillagerQuest {
          completionMessage = this.requesterName + ": \"Right. That's handled, then.\"";
       }
 
-      player.sendSystemMessage(Component.literal(completionMessage).withStyle(ChatFormatting.GREEN), false);
+      player.sendSystemMessage(Component.literal(completionMessage).withStyle(ChatFormatting.GREEN), true);
       if (this.dialogueType == DialogueQuest.DialogueType.DELIVER_MESSAGE || this.dialogueType == DialogueQuest.DialogueType.DELIVER_APOLOGY) {
          ServerLevel var10 = player.level();
          if (var10 instanceof ServerLevel) {

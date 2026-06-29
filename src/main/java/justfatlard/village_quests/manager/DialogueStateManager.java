@@ -29,24 +29,20 @@ public class DialogueStateManager {
 
    public static boolean isInDialogue(Villager villager) {
       UUID villagerUuid = villager.getUUID();
-      if (dialogueStartTimes.containsKey(villagerUuid)) {
-         long startTime = dialogueStartTimes.get(villagerUuid);
-         if (System.currentTimeMillis() - startTime > 30000L) {
-            endDialogue(villagerUuid);
-            return false;
-         }
+      Long startTime = dialogueStartTimes.get(villagerUuid);
+      if (startTime != null && System.currentTimeMillis() - startTime > 30000L) {
+         endDialogue(villagerUuid);
+         return false;
       }
 
       return villagersInDialogue.containsKey(villagerUuid);
    }
 
    public static boolean isInDialogue(UUID villagerUuid) {
-      if (dialogueStartTimes.containsKey(villagerUuid)) {
-         long startTime = dialogueStartTimes.get(villagerUuid);
-         if (System.currentTimeMillis() - startTime > 30000L) {
-            endDialogue(villagerUuid);
-            return false;
-         }
+      Long startTime = dialogueStartTimes.get(villagerUuid);
+      if (startTime != null && System.currentTimeMillis() - startTime > 30000L) {
+         endDialogue(villagerUuid);
+         return false;
       }
 
       return villagersInDialogue.containsKey(villagerUuid);

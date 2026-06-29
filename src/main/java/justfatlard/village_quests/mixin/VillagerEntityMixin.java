@@ -44,7 +44,7 @@ public abstract class VillagerEntityMixin extends AbstractVillager {
 
             ReputationBand band = ReputationBand.getBand(reputation);
             if (!band.canTrade()) {
-               serverPlayer.sendSystemMessage(Component.literal("The villager refuses to trade with you.").withStyle(ChatFormatting.AQUA), false);
+               serverPlayer.sendSystemMessage(Component.literal("The villager refuses to trade with you.").withStyle(ChatFormatting.AQUA), true);
                cir.setReturnValue(InteractionResult.SUCCESS);
                return;
             }

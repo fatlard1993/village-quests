@@ -10,7 +10,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.monster.Slime;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.monster.cubemob.Slime;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.phys.AABB;
 
@@ -38,7 +39,7 @@ class SlimeInvasionQuest extends MobEventQuest {
    public void spawnMobs(ServerLevel world) {
       if (!this.mobsSpawned) {
          BlockPos spawnPos = findSafeSpawnPos(world, this.eventLocation, 8, 20);
-         Slime slime = (Slime)EntityType.SLIME.create(world, EntitySpawnReason.MOB_SUMMONED);
+         Slime slime = (Slime)EntityTypes.SLIME.create(world, EntitySpawnReason.MOB_SUMMONED);
          if (slime != null) {
             slime.snapTo(
                spawnPos.getX() + 0.5, (double)spawnPos.getY(), spawnPos.getZ() + 0.5, world.getRandom().nextFloat() * 360.0F, 0.0F
@@ -63,14 +64,14 @@ class SlimeInvasionQuest extends MobEventQuest {
          player.sendSystemMessage(
             Component.literal("The green thing split into smaller green things. They bounced away eventually. My cart's still wrecked, though.")
                .withStyle(ChatFormatting.YELLOW),
-            false
+            true
          );
       } else {
          String[] msgs = new String[]{
             this.requesterName + ": \"It's gone? All of it? Even the little ones? *checks shoes* There's slime everywhere.\"",
             this.requesterName + ": \"I'm going to be cleaning green goo off my walls for a week. But at least it stopped bouncing.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
          this.scheduleAftermathLetter(
             player,
             new String[]{

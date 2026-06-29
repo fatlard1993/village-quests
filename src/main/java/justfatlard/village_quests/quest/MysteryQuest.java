@@ -252,21 +252,21 @@ public class MysteryQuest extends VillagerQuest {
       if (this.secretProtected) {
          this.handleSecretProtectionOutcome(player);
       } else if (this.accusationMade && this.accusedCorrectly) {
-         player.sendSystemMessage(Component.literal(this.requesterName + ": \"" + resolution + "\"").withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(this.requesterName + ": \"" + resolution + "\"").withStyle(ChatFormatting.GREEN), true);
          if (this.hasSecretCollision && this.secretConfiderUuid != null) {
             this.handleSecretBetrayalOutcome(player);
          }
       } else if (this.accusationMade && !this.accusedCorrectly) {
          String wrongName = this.accusationOptions[this.correctAccusationIndex == 0 ? 1 : 0];
-         player.sendSystemMessage(Component.literal(this.requesterName + ": \"" + resolution + "\"").withStyle(ChatFormatting.YELLOW), false);
+         player.sendSystemMessage(Component.literal(this.requesterName + ": \"" + resolution + "\"").withStyle(ChatFormatting.YELLOW), true);
          player.sendSystemMessage(
             Component.literal("*" + wrongName + " hasn't spoken to you since.*")
                .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            false
+            true
          );
          this.scheduleGuiltLetter(player, wrongName);
       } else {
-         player.sendSystemMessage(Component.literal(this.requesterName + ": \"" + resolution + "\"").withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(this.requesterName + ": \"" + resolution + "\"").withStyle(ChatFormatting.GREEN), true);
       }
 
       this.completed = true;
@@ -278,7 +278,7 @@ public class MysteryQuest extends VillagerQuest {
       player.sendSystemMessage(
          Component.literal(this.requesterName + ": \"...You know something. I can see it on your face. But you won't say.\"")
             .withStyle(ChatFormatting.YELLOW),
-         false
+         true
       );
       ScheduledMessages.schedule(
          player,

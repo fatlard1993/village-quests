@@ -30,6 +30,8 @@ import org.slf4j.LoggerFactory;
 
 public class QuestRarityManager {
    private static final Logger LOGGER = LoggerFactory.getLogger("VillageQuests");
+   private static final String KEY_BUILD_HOME = "build_home";
+   private static final String KEY_TYPE_PREFIX = "type_";
    private static final long REPAIR_DOOR_COOLDOWN = 259200000L;
    private static final long REPLACE_BEDS_COOLDOWN = 259200000L;
    private static final long BUILD_HOME_COOLDOWN = 259200000L;
@@ -104,7 +106,7 @@ public class QuestRarityManager {
          if (cooldowns == null) {
             return true;
          } else {
-            Long lastTime = cooldowns.get("type_" + questType);
+            Long lastTime = cooldowns.get(KEY_TYPE_PREFIX + questType);
             if (lastTime == null) {
                return true;
             } else {
@@ -121,7 +123,7 @@ public class QuestRarityManager {
 
    public static void recordQuestTypeCompletion(Village village, String questType) {
       if (village != null) {
-         villageCooldowns.computeIfAbsent(village.getId(), k -> new HashMap<>()).put("type_" + questType, System.currentTimeMillis());
+         villageCooldowns.computeIfAbsent(village.getId(), k -> new HashMap<>()).put(KEY_TYPE_PREFIX + questType, System.currentTimeMillis());
          markDirty();
       }
    }
@@ -146,7 +148,7 @@ public class QuestRarityManager {
       UUID villageId = village.getId();
       Map<String, Long> cooldowns = villageCooldowns.get(villageId);
       if (cooldowns != null) {
-         Long lastTime = cooldowns.get("build_home");
+         Long lastTime = cooldowns.get(KEY_BUILD_HOME);
          if (lastTime != null && System.currentTimeMillis() - lastTime < 259200000L) {
             return false;
          }
@@ -158,7 +160,7 @@ public class QuestRarityManager {
 
    public static void recordBuildHome(Village village) {
       UUID villageId = village.getId();
-      villageCooldowns.computeIfAbsent(villageId, k -> new HashMap<>()).put("build_home", System.currentTimeMillis());
+      villageCooldowns.computeIfAbsent(villageId, k -> new HashMap<>()).put(KEY_BUILD_HOME, System.currentTimeMillis());
       buildHomeCount.merge(villageId, 1, Integer::sum);
       markDirty();
    }

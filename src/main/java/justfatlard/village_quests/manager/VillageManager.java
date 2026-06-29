@@ -44,11 +44,11 @@ public class VillageManager {
    private static final int VILLAGE_SEARCH_RADIUS = 256;
    private static final int BED_CLUSTER_GRID_SIZE = 500;
    private final Map<UUID, Village> villages = new HashMap<>();
-   private final Map<ServerLevel, List<BlockPos>> bedClusterCache = new WeakHashMap<>();
-   private final Map<ServerLevel, Long> bedCacheTimestamps = new WeakHashMap<>();
+   private record BedClusterSnapshot(List<BlockPos> clusters, long refreshedAt) {}
+   private final Map<ServerLevel, BedClusterSnapshot> bedClusterCache = new WeakHashMap<>();
    private static final long BED_CACHE_DURATION_MS = 300000L;
    private static final SavedDataType<VillageManager.VillageData> VILLAGE_STATE_TYPE = new SavedDataType<>(
-      Identifier.parse("village_quests_villages"), VillageManager.VillageData::new, VillageManager.VillageData.CODEC, DataFixTypes.LEVEL
+      Identifier.parse(STORAGE_KEY), VillageManager.VillageData::new, VillageManager.VillageData.CODEC, DataFixTypes.LEVEL
    );
    private static final String[] PLAINS_VILLAGE_NAMES = new String[]{
       "Millhaven",
@@ -644,11 +644,6 @@ public class VillageManager {
       }
    }
 
-   public BlockPos findNearestVillageCenter(ServerLevel world, BlockPos pos) {
-      Village village = this.findNearestVillage(world, pos);
-      return village != null ? village.getCenter() : null;
-   }
-
    public Village getVillageById(UUID id) {
       return this.villages.get(id);
    }
@@ -678,7 +673,7 @@ public class VillageManager {
 
       try {
          Optional<BlockPos> nearest = world.getPoiManager()
-            .findAll(entry -> entry.is(PoiTypes.MEETING), candidate -> candidate.closerThan(pos, 256.0), pos, 256, Occupancy.ANY)
+            .findAll(entry -> entry.is(PoiTypes.MEETING), candidate -> candidate.closerThan(pos, 128.0), pos, 128, Occupancy.ANY)
             .min(Comparator.comparingDouble(p -> p.distSqr(pos)));
          return nearest.orElse(null);
       } catch (Exception var4) {
@@ -695,9 +690,9 @@ public class VillageManager {
    }
 
    private List<BlockPos> getCachedBedClusters(ServerLevel world, BlockPos searchCenter) {
-      Long lastRefresh = this.bedCacheTimestamps.get(world);
-      if (lastRefresh != null && System.currentTimeMillis() - lastRefresh < 300000L) {
-         return this.bedClusterCache.getOrDefault(world, Collections.emptyList());
+      BedClusterSnapshot snapshot = this.bedClusterCache.get(world);
+      if (snapshot != null && System.currentTimeMillis() - snapshot.refreshedAt() < BED_CACHE_DURATION_MS) {
+         return snapshot.clusters();
       } else {
          Map<BlockPos, Integer> bedClusters = new HashMap<>();
 
@@ -719,8 +714,7 @@ public class VillageManager {
          }
 
          List<BlockPos> result = bedClusters.entrySet().stream().filter(e -> e.getValue() >= 3).map(Entry::getKey).toList();
-         this.bedClusterCache.put(world, result);
-         this.bedCacheTimestamps.put(world, System.currentTimeMillis());
+         this.bedClusterCache.put(world, new BedClusterSnapshot(result, System.currentTimeMillis()));
          return result;
       }
    }
@@ -803,15 +797,9 @@ public class VillageManager {
       }
    }
 
-   public boolean isInVillage(ServerLevel world, BlockPos pos) {
-      BlockPos villageCenter = this.findNearestVillageCenter(world, pos);
-      return villageCenter == null ? false : pos.closerThan(villageCenter, 256.0);
-   }
-
    public void onServerStopping() {
       this.villages.clear();
       this.bedClusterCache.clear();
-      this.bedCacheTimestamps.clear();
    }
 
    public Collection<Village> getAllVillages() {

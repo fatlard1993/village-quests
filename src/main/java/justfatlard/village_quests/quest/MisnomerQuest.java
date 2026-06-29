@@ -38,6 +38,8 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.datafix.DataFixTypes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.entity.projectile.FireworkRocketEntity;
@@ -54,6 +56,7 @@ import net.minecraft.world.level.saveddata.SavedDataType;
 import net.minecraft.world.phys.AABB;
 
 public class MisnomerQuest extends VillagerQuest {
+   private static final Logger LOGGER = LoggerFactory.getLogger(MisnomerQuest.class);
    private final MisnomerQuest.MisnomerType misnomerType;
    private final String targetDescription;
    private final ItemStack requestedItem;
@@ -483,7 +486,7 @@ public class MisnomerQuest extends VillagerQuest {
       this.refusalTime = System.currentTimeMillis();
       this.recognitionDelay = getRandomRecognitionDelay();
       String reaction = this.getImmediateReaction();
-      player.sendSystemMessage(Component.literal(this.requesterName + ": " + reaction).withStyle(ChatFormatting.GRAY), false);
+      player.sendSystemMessage(Component.literal(this.requesterName + ": " + reaction).withStyle(ChatFormatting.GRAY), true);
       UUID playerId = player.getUUID();
       long recognitionTime = System.currentTimeMillis() + this.recognitionDelay;
       DELAYED_RECOGNITIONS.computeIfAbsent(playerId, k -> new HashMap<>())
@@ -497,7 +500,7 @@ public class MisnomerQuest extends VillagerQuest {
       this.refusalTime = System.currentTimeMillis();
       this.recognitionDelay = getRandomRecognitionDelay();
       String reaction = this.getColdImmediateReaction();
-      player.sendSystemMessage(Component.literal(this.requesterName + ": " + reaction).withStyle(ChatFormatting.RED), false);
+      player.sendSystemMessage(Component.literal(this.requesterName + ": " + reaction).withStyle(ChatFormatting.RED), true);
       UUID playerId = player.getUUID();
       long recognitionTime = System.currentTimeMillis() + this.recognitionDelay;
       DELAYED_RECOGNITIONS.computeIfAbsent(playerId, k -> new HashMap<>())
@@ -687,17 +690,17 @@ public class MisnomerQuest extends VillagerQuest {
 
       if (village != null) {
          if (this.wasRefusedColdly) {
-            int bonus = Math.max(1, (int)(VillageQuests.getReputationManager().getReputation(player, village) * 0.03));
-            VillageQuests.getReputationManager().modifyReputation(player, village, bonus);
-            String recognition = this.getColdRecognitionMessage();
-            player.sendSystemMessage(Component.literal(this.requesterName + ": " + recognition).withStyle(ChatFormatting.YELLOW), false);
-         } else {
             int currentRep = VillageQuests.getReputationManager().getReputation(player, village);
             int bonus = Math.max(1, (int)(currentRep * 0.07));
             bonus = Math.min(bonus, 10);
             VillageQuests.getReputationManager().modifyReputation(player, village, bonus);
+            String recognition = this.getColdRecognitionMessage();
+            player.sendSystemMessage(Component.literal(this.requesterName + ": " + recognition).withStyle(ChatFormatting.YELLOW), true);
+         } else {
+            int bonus = Math.max(1, (int)(VillageQuests.getReputationManager().getReputation(player, village) * 0.03));
+            VillageQuests.getReputationManager().modifyReputation(player, village, bonus);
             String recognition = this.getRecognitionMessage();
-            player.sendSystemMessage(Component.literal(this.requesterName + ": " + recognition).withStyle(ChatFormatting.GREEN), false);
+            player.sendSystemMessage(Component.literal(this.requesterName + ": " + recognition).withStyle(ChatFormatting.GREEN), true);
          }
       }
 
@@ -794,12 +797,11 @@ public class MisnomerQuest extends VillagerQuest {
                   "Somewhere nearby, a door closes.", "The village is quieter than it was.", this.requesterName + " won't look at anyone."
                };
                player.sendSystemMessage(
-                  Component.literal(violenceMsgs[ThreadLocalRandom.current().nextInt(violenceMsgs.length)]).withStyle(ChatFormatting.DARK_RED), false
-               );
+                  Component.literal(violenceMsgs[ThreadLocalRandom.current().nextInt(violenceMsgs.length)]).withStyle(ChatFormatting.DARK_RED), true               );
                player.sendSystemMessage(
                   Component.literal(this.requesterName + ": I didn't — it wasn't supposed to — oh no. Oh no.")
                      .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-                  false
+                  true
                );
                break;
             case SABOTAGE:
@@ -811,8 +813,7 @@ public class MisnomerQuest extends VillagerQuest {
                   "The sound of it breaking carried further than you expected."
                };
                player.sendSystemMessage(
-                  Component.literal(sabotageMsgs[ThreadLocalRandom.current().nextInt(sabotageMsgs.length)]).withStyle(ChatFormatting.AQUA), false
-               );
+                  Component.literal(sabotageMsgs[ThreadLocalRandom.current().nextInt(sabotageMsgs.length)]).withStyle(ChatFormatting.AQUA), true               );
                break;
             case THEFT:
                if (this.taughtSafely) {
@@ -825,7 +826,7 @@ public class MisnomerQuest extends VillagerQuest {
                         + ": \"*takes the bread with both hands* I was going to steal. You know that, right? And you just... brought us food instead.\"",
                      this.requesterName + ": \"*voice breaks* The kids can eat tonight. Without me doing something I can't take back. Thank you.\""
                   };
-                  player.sendSystemMessage(Component.literal(feedMsgs[feedRng.nextInt(feedMsgs.length)]).withStyle(ChatFormatting.GREEN), false);
+                  player.sendSystemMessage(Component.literal(feedMsgs[feedRng.nextInt(feedMsgs.length)]).withStyle(ChatFormatting.GREEN), true);
                   ScheduledMessages.schedule(
                      player,
                      Component.literal(
@@ -850,8 +851,7 @@ public class MisnomerQuest extends VillagerQuest {
                      this.requesterName + ": \"Good. *tucks it away* " + this.targetDescription + " won't even notice. Probably.\""
                   };
                   player.sendSystemMessage(
-                     Component.literal(theftMsgs[ThreadLocalRandom.current().nextInt(theftMsgs.length)]).withStyle(ChatFormatting.AQUA), false
-                  );
+                     Component.literal(theftMsgs[ThreadLocalRandom.current().nextInt(theftMsgs.length)]).withStyle(ChatFormatting.AQUA), true                  );
                }
                break;
             case PANIC:
@@ -863,8 +863,7 @@ public class MisnomerQuest extends VillagerQuest {
                   "The fire's out. What's left doesn't look like corruption. Just someone's things."
                };
                player.sendSystemMessage(
-                  Component.literal(panicMsgs[ThreadLocalRandom.current().nextInt(panicMsgs.length)]).withStyle(ChatFormatting.AQUA), false
-               );
+                  Component.literal(panicMsgs[ThreadLocalRandom.current().nextInt(panicMsgs.length)]).withStyle(ChatFormatting.AQUA), true               );
                break;
             case SUBSTANCE:
                InventoryHelper.removeItem(player.getInventory(), Items.GLOWSTONE_DUST, 4);
@@ -877,7 +876,7 @@ public class MisnomerQuest extends VillagerQuest {
                };
                player.sendSystemMessage(
                   Component.literal(substanceMsgs[ThreadLocalRandom.current().nextInt(substanceMsgs.length)]).withStyle(ChatFormatting.GOLD),
-                  false
+                  true
                );
                ScheduledMessages.schedule(
                   player,
@@ -896,7 +895,7 @@ public class MisnomerQuest extends VillagerQuest {
                      this.requesterName + ": \"It's not a boom. It's a... a sky boom?\" *watches with mouth open* \"Do it again. Do it again!\"",
                      this.requesterName + ": \"*jumping up and down* THAT'S BETTER THAN TNT! Can I have another one? Please? PLEASE?\""
                   };
-                  player.sendSystemMessage(Component.literal(fwMsgs[fwRng.nextInt(fwMsgs.length)]).withStyle(ChatFormatting.GREEN), false);
+                  player.sendSystemMessage(Component.literal(fwMsgs[fwRng.nextInt(fwMsgs.length)]).withStyle(ChatFormatting.GREEN), true);
                   ServerLevel skyBox = player.level();
                   if (skyBox instanceof ServerLevel) {
                      AABB skyBoxx = new AABB(player.blockPosition()).inflate(48.0);
@@ -921,7 +920,7 @@ public class MisnomerQuest extends VillagerQuest {
                   player.sendSystemMessage(
                      Component.literal(this.requesterName + " grabs it with both hands. \"THANK YOU!\" They're already running.")
                         .withStyle(ChatFormatting.AQUA),
-                     false
+                     true
                   );
                   this.scheduleChildTntConsequence(player, village, world);
                }
@@ -936,7 +935,7 @@ public class MisnomerQuest extends VillagerQuest {
                      this.requesterName + ": \"Wait — you're letting me light it? With you here?\" *hands shaking with excitement* \"This is the best day.\"",
                      this.requesterName + ": \"*stares at the campfire* It's warm. I made it warm.\" *looks up at you* \"Thank you for not just saying no.\""
                   };
-                  player.sendSystemMessage(Component.literal(safeMsgs[safeRng.nextInt(safeMsgs.length)]).withStyle(ChatFormatting.GREEN), false);
+                  player.sendSystemMessage(Component.literal(safeMsgs[safeRng.nextInt(safeMsgs.length)]).withStyle(ChatFormatting.GREEN), true);
                   ScheduledMessages.schedule(
                      player,
                      Component.literal(
@@ -952,7 +951,7 @@ public class MisnomerQuest extends VillagerQuest {
                   player.sendSystemMessage(
                      Component.literal(this.requesterName + " snatches it and runs. \"I'M GONNA MAKE THE BIGGEST FIRE!\"")
                         .withStyle(ChatFormatting.AQUA),
-                     false
+                     true
                   );
                   this.scheduleChildFireConsequence(player, village, world);
                }
@@ -967,8 +966,7 @@ public class MisnomerQuest extends VillagerQuest {
                   "The potato changes hands. " + this.requesterName + " is already walking away. They don't look back."
                };
                player.sendSystemMessage(
-                  Component.literal(poisonMsgs[ThreadLocalRandom.current().nextInt(poisonMsgs.length)]).withStyle(ChatFormatting.DARK_RED), false
-               );
+                  Component.literal(poisonMsgs[ThreadLocalRandom.current().nextInt(poisonMsgs.length)]).withStyle(ChatFormatting.DARK_RED), true               );
                ScheduledMessages.schedule(
                   player,
                   Component.literal(
@@ -1325,7 +1323,7 @@ public class MisnomerQuest extends VillagerQuest {
                   player.sendSystemMessage(
                      Component.literal("Smoke. The smell hits you before you see it. Something's burning near the village.")
                         .withStyle(ChatFormatting.DARK_RED),
-                     false
+                     true
                   );
                   ScheduledMessages.schedule(
                      player,
@@ -1460,8 +1458,7 @@ public class MisnomerQuest extends VillagerQuest {
                         );
                      } else {
                         playerx.sendSystemMessage(
-                           Component.literal(letter).withStyle(new ChatFormatting[]{ChatFormatting.DARK_RED, ChatFormatting.ITALIC}), false
-                        );
+                           Component.literal(letter).withStyle(new ChatFormatting[]{ChatFormatting.DARK_RED, ChatFormatting.ITALIC}), true                        );
                      }
                   }
                }
@@ -1568,6 +1565,7 @@ public class MisnomerQuest extends VillagerQuest {
                      MisnomerQuest.MisnomerType type = MisnomerQuest.MisnomerType.valueOf(typeName);
                      recMap.put(villagerId, new MisnomerQuest.DelayedRecognition(recognitionTime, type, villagerName, coldRefusal));
                   } catch (IllegalArgumentException var17) {
+                     LOGGER.warn("[VQ] Skipping misnomer recognition with unknown type '{}' for villager {}", typeName, villagerId);
                   }
                }
             }

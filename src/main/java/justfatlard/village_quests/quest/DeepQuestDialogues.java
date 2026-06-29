@@ -26,6 +26,7 @@ import net.minecraft.world.entity.animal.golem.IronGolem;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -48,7 +49,7 @@ public class DeepQuestDialogues {
          onFinish.run();
       }
 
-      player.sendSystemMessage(messages[0], false);
+      player.sendSystemMessage(messages[0], true);
       int[] cumulativeDelays = new int[]{60, 120, 180};
 
       for (int i = 0; i < Math.min(messages.length - 1, cumulativeDelays.length); i++) {
@@ -303,17 +304,17 @@ public class DeepQuestDialogues {
             String problem = problems.get(rng.nextInt(problems.size()));
 
             return switch (problem) {
-               case "dark_paths" -> pickVariant(
+               case DialogueManager.OBS_DARK_PATHS -> pickVariant(
                   "There's dark spots on the path. I walk them every night. I know where they are.",
                   "Nobody fixes the lights until someone gets hurt. I've been saying this.",
                   "I counted the dark patches on the path last night. Seven. That's too many."
                );
-               case "broken_fences" -> pickVariant(
+               case DialogueManager.OBS_BROKEN_FENCES -> pickVariant(
                   "The fence is broken. I'd fix it myself but... *looks at hands* ...these don't do what I want them to.",
                   "Something got through the fence gap again last night. I heard it. Didn't see what it was.",
                   "The animals keep getting out. Through the gap. I tried to stand in it. Didn't work."
                );
-               case "unlit_houses" -> pickVariant(
+               case DialogueManager.OBS_UNLIT_HOUSES -> pickVariant(
                   "One of the houses has no light inside. I can see it from the path. Dark window.",
                   "Someone's sleeping in the dark. I know because I walk past every night. No light.",
                   "The house with no candle. I worry about that one."
@@ -1027,7 +1028,7 @@ public class DeepQuestDialogues {
                      + ": \"Don't give it to me. Put it somewhere I can see it. In a frame. By a window. I want to look at it when I'm ready.\""
                )
                .withStyle(ChatFormatting.GRAY),
-            false
+            true
          );
       }
 
@@ -1524,12 +1525,12 @@ public class DeepQuestDialogues {
             player.sendSystemMessage(
                Component.literal(this.requesterName + " hands you a sapling. Carefully.")
                   .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-               false
+               true
             );
             player.sendSystemMessage(
                Component.literal(this.requesterName + ": \"Somewhere open. Where the sun hits. You'll know the spot.\"")
                   .withStyle(ChatFormatting.GRAY),
-               false
+               true
             );
          }
       }
@@ -1862,7 +1863,7 @@ public class DeepQuestDialogues {
    public static class PhantomNightmareQuest extends DeepQuest {
       public PhantomNightmareQuest(String requesterName, UUID villagerUuid) {
          super(requesterName, villagerUuid);
-         this.requiredItem = Items.WHITE_WOOL;
+         this.requiredItem = Items.WOOL.pick(DyeColor.WHITE);
          this.requiredAmount = 3;
       }
 
@@ -2234,7 +2235,7 @@ public class DeepQuestDialogues {
          player.sendSystemMessage(
             Component.literal(this.requesterName + " takes the bread. Sits down. Doesn't eat it.")
                .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            false
+            true
          );
          ScheduledMessages.schedule(
             player,
@@ -2332,12 +2333,12 @@ public class DeepQuestDialogues {
             player.sendSystemMessage(
                Component.literal(this.requesterName + " points east, toward the hills.")
                   .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-               false
+               true
             );
             player.sendSystemMessage(
                Component.literal("Somewhere high. Around sunset.")
                   .withStyle(new ChatFormatting[]{ChatFormatting.RED, ChatFormatting.ITALIC}),
-               false
+               true
             );
          }
       }
@@ -2552,7 +2553,7 @@ public class DeepQuestDialogues {
          } else if (InventoryHelper.countItem(player.getInventory(), Items.STRING) >= 2) {
             this.broughtWrongItem = false;
             return true;
-         } else if (InventoryHelper.countItem(player.getInventory(), Items.WHITE_WOOL) < 1
+         } else if (InventoryHelper.countItem(player.getInventory(), Items.WOOL.pick(DyeColor.WHITE)) < 1
             && InventoryHelper.countItem(player.getInventory(), Items.LEAD) < 1
             && InventoryHelper.countItem(player.getInventory(), Items.FISHING_ROD) < 1) {
             return false;

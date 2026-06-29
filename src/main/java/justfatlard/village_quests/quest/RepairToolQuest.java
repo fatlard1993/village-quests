@@ -56,7 +56,7 @@ class RepairToolQuest extends CreationQuest {
       );
       player.sendSystemMessage(
          Component.literal(this.requesterName + ": \"It's like new again. My grandfather would be proud.\"").withStyle(ChatFormatting.GREEN),
-         false
+         true
       );
       this.scheduleAftermathLetter(
          player,

@@ -15,8 +15,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ColorCollection;
 
 public class MemorialQuest extends VillagerQuest {
    private static final Map<UUID, List<MemorialQuest.MemorialSite>> VILLAGE_MEMORIALS = new ConcurrentHashMap<>();
@@ -176,22 +178,22 @@ public class MemorialQuest extends VillagerQuest {
 
    private static boolean isCandleOrLight(Block block) {
       return block == Blocks.CANDLE
-         || block == Blocks.WHITE_CANDLE
-         || block == Blocks.ORANGE_CANDLE
-         || block == Blocks.MAGENTA_CANDLE
-         || block == Blocks.LIGHT_BLUE_CANDLE
-         || block == Blocks.YELLOW_CANDLE
-         || block == Blocks.LIME_CANDLE
-         || block == Blocks.PINK_CANDLE
-         || block == Blocks.GRAY_CANDLE
-         || block == Blocks.LIGHT_GRAY_CANDLE
-         || block == Blocks.CYAN_CANDLE
-         || block == Blocks.PURPLE_CANDLE
-         || block == Blocks.BLUE_CANDLE
-         || block == Blocks.BROWN_CANDLE
-         || block == Blocks.GREEN_CANDLE
-         || block == Blocks.RED_CANDLE
-         || block == Blocks.BLACK_CANDLE
+         || block == Blocks.DYED_CANDLE.pick(DyeColor.WHITE)
+         || block == Blocks.DYED_CANDLE.pick(DyeColor.ORANGE)
+         || block == Blocks.DYED_CANDLE.pick(DyeColor.MAGENTA)
+         || block == Blocks.DYED_CANDLE.pick(DyeColor.LIGHT_BLUE)
+         || block == Blocks.DYED_CANDLE.pick(DyeColor.YELLOW)
+         || block == Blocks.DYED_CANDLE.pick(DyeColor.LIME)
+         || block == Blocks.DYED_CANDLE.pick(DyeColor.PINK)
+         || block == Blocks.DYED_CANDLE.pick(DyeColor.GRAY)
+         || block == Blocks.DYED_CANDLE.pick(DyeColor.LIGHT_GRAY)
+         || block == Blocks.DYED_CANDLE.pick(DyeColor.CYAN)
+         || block == Blocks.DYED_CANDLE.pick(DyeColor.PURPLE)
+         || block == Blocks.DYED_CANDLE.pick(DyeColor.BLUE)
+         || block == Blocks.DYED_CANDLE.pick(DyeColor.BROWN)
+         || block == Blocks.DYED_CANDLE.pick(DyeColor.GREEN)
+         || block == Blocks.DYED_CANDLE.pick(DyeColor.RED)
+         || block == Blocks.DYED_CANDLE.pick(DyeColor.BLACK)
          || block == Blocks.TORCH
          || block == Blocks.WALL_TORCH
          || block == Blocks.LANTERN
@@ -220,7 +222,7 @@ public class MemorialQuest extends VillagerQuest {
       Component thanksLine = Component.literal(this.requesterName + ": \"Thank you. For doing what I couldn't.\"").withStyle(ChatFormatting.GRAY);
       Component beatLine = Component.literal("*Neither of you says anything for a while.*")
          .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC});
-      player.sendSystemMessage(actionLine, false);
+      player.sendSystemMessage(actionLine, true);
       ScheduledMessages.schedule(player, responseLine, 60);
       ScheduledMessages.schedule(player, thanksLine, 120);
       ScheduledMessages.schedule(player, beatLine, 180);

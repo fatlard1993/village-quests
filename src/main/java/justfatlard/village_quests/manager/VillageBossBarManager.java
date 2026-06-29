@@ -42,8 +42,11 @@ public class VillageBossBarManager {
 
    public void markPlayerLeftVillage(ServerPlayer player, long currentTick) {
       UUID playerUuid = player.getUUID();
-      if (this.playerBossBars.containsKey(playerUuid)) {
-         this.playerLeftVillageTick.put(playerUuid, currentTick);
+      // Single get avoids TOCTOU between containsKey and putIfAbsent on separate maps.
+      // putIfAbsent: only record the tick they FIRST left — don't reset it every tick,
+      // or the 60-tick grace period would never elapse.
+      if (this.playerBossBars.get(playerUuid) != null) {
+         this.playerLeftVillageTick.putIfAbsent(playerUuid, currentTick);
       }
    }
 

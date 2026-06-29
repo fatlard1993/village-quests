@@ -29,6 +29,13 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 
 public class ContextualLoreManager {
+   private static final long OBSERVATION_RECENT_MS = 30_000L;
+   private static final long OBSERVATION_FADING_MS = 60_000L;
+   private static final long INACTIVITY_RESET_MS = 600_000L;
+   private static final long MC_NIGHT_START_TICKS = 13_000L;
+   private static final long MC_NIGHT_END_TICKS = 23_000L;
+   private static final String PATTERN_KEY_TRADING = "trading";
+   private static final String PATTERN_KEY_TALKING = "talking";
    private static final Map<UUID, Set<String>> SACRED_LINES_SPOKEN = new ConcurrentHashMap<>();
    private static final Map<UUID, Map<UUID, Long>> LAST_INTERACTION = new ConcurrentHashMap<>();
    private static final Map<UUID, Map<String, Integer>> REPETITION_COUNTS = new ConcurrentHashMap<>();
@@ -41,7 +48,7 @@ public class ContextualLoreManager {
       Map<UUID, Long> playerInteractions = LAST_INTERACTION.computeIfAbsent(villagerId, k -> new HashMap<>());
       Long lastInteraction = playerInteractions.get(playerId);
       long currentTime = System.currentTimeMillis();
-      if (lastInteraction != null && currentTime - lastInteraction > 600000L) {
+      if (lastInteraction != null && currentTime - lastInteraction > INACTIVITY_RESET_MS) {
          String absenceReaction = getAbsenceReaction(villager, reputation, currentTime - lastInteraction);
          playerInteractions.put(playerId, currentTime);
          if (absenceReaction != null) {
@@ -211,8 +218,8 @@ public class ContextualLoreManager {
       if (timeSince > 120000L) {
          return null;
       } else {
-         boolean isRecent = timeSince < 30000L;
-         boolean isFading = timeSince < 60000L;
+         boolean isRecent = timeSince < OBSERVATION_RECENT_MS;
+         boolean isFading = timeSince < OBSERVATION_FADING_MS;
          switch (action.type) {
             case RETURNED_FROM_NETHER:
                if (!isFading) {
@@ -313,7 +320,7 @@ public class ContextualLoreManager {
          return null;
       } else {
          long timeOfDay = world.getOverworldClockTime() % 24000L;
-         boolean isNight = timeOfDay >= 13000L && timeOfDay < 23000L;
+         boolean isNight = timeOfDay >= MC_NIGHT_START_TICKS && timeOfDay < MC_NIGHT_END_TICKS;
          boolean isDusk = timeOfDay >= 12000L && timeOfDay < 13000L;
          boolean isDawn = timeOfDay >= 23000L || timeOfDay < 1000L;
          if (isNight) {
@@ -705,7 +712,7 @@ public class ContextualLoreManager {
    }
 
    private static String getAbsenceReaction(Villager villager, int reputation, long absenceTime) {
-      if (absenceTime < 600000L) {
+      if (absenceTime < INACTIVITY_RESET_MS) {
          return null;
       } else {
          boolean veryLongAbsence = absenceTime > 1800000L;
@@ -818,8 +825,8 @@ public class ContextualLoreManager {
       }
 
       if (player.getInventory().countItem(Items.EMERALD) > 10) {
-         int tradePattern = patterns.getOrDefault("trading", 0);
-         patterns.put("trading", tradePattern + 1);
+         int tradePattern = patterns.getOrDefault(PATTERN_KEY_TRADING, 0);
+         patterns.put(PATTERN_KEY_TRADING, tradePattern + 1);
          if (tradePattern > 3) {
             String[] tradeWeariness = new String[]{
                "This feels familiar.",
@@ -834,8 +841,8 @@ public class ContextualLoreManager {
          }
       }
 
-      int talkPattern = patterns.getOrDefault("talking", 0);
-      patterns.put("talking", talkPattern + 1);
+      int talkPattern = patterns.getOrDefault(PATTERN_KEY_TALKING, 0);
+      patterns.put(PATTERN_KEY_TALKING, talkPattern + 1);
       if (talkPattern > 5) {
          String[] talkWeariness = new String[]{
             "Words circle back.",

@@ -12,6 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.monster.zombie.ZombieVillager;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.phys.AABB;
@@ -51,7 +52,7 @@ class ZombieVillagerQuest extends MobEventQuest {
    public void spawnMobs(ServerLevel world) {
       if (!this.mobsSpawned) {
          BlockPos spawnPos = findSafeSpawnPos(world, this.eventLocation, 10, 25);
-         ZombieVillager zombie = (ZombieVillager)EntityType.ZOMBIE_VILLAGER.create(world, EntitySpawnReason.MOB_SUMMONED);
+         ZombieVillager zombie = (ZombieVillager)EntityTypes.ZOMBIE_VILLAGER.create(world, EntitySpawnReason.MOB_SUMMONED);
          if (zombie != null) {
             zombie.snapTo(
                spawnPos.getX() + 0.5, (double)spawnPos.getY(), spawnPos.getZ() + 0.5, world.getRandom().nextFloat() * 360.0F, 0.0F
@@ -101,14 +102,14 @@ class ZombieVillagerQuest extends MobEventQuest {
                   this.deceasedName + " wandered back into the dark. " + this.requesterName + " stood at the edge watching until they couldn't see anymore."
                )
                .withStyle(ChatFormatting.YELLOW),
-            false
+            true
          );
       } else if (this.wasCured) {
          String[] msgs = new String[]{
             this.requesterName + ": \"" + this.deceasedName + "? *reaches out, then pulls back* Is it really...?\"",
             this.requesterName + ": \"Their eyes. Their eyes are clear. *starts crying* It's them.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.LIGHT_PURPLE), false);
+         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.LIGHT_PURPLE), true);
          this.scheduleAftermathLetter(
             player,
             new String[]{
@@ -121,7 +122,7 @@ class ZombieVillagerQuest extends MobEventQuest {
             this.requesterName + ": \"It's done. *won't look at the spot* That wasn't them anymore. I know that.\"",
             this.requesterName + ": \"Thank you. I couldn't have — *long pause* I'm going to go sit down.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GRAY), false);
+         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GRAY), true);
          this.scheduleAftermathLetter(
             player,
             new String[]{

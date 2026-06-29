@@ -44,7 +44,7 @@ public class PlotPurchaseQuest {
             "Welcome home. *hands you a key that doesn't go to anything specific* It's symbolic.",
             "The elders agreed. You've been here long enough. It's yours."
          };
-         player.sendSystemMessage(Component.literal(welcomeMessages[rng.nextInt(welcomeMessages.length)]).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(welcomeMessages[rng.nextInt(welcomeMessages.length)]).withStyle(ChatFormatting.GREEN), true);
          ServerLevel world = player.level();
          PlotManager.Plot plot = plotManager.getVillagePlots(world, this.villageCenter)
             .stream()
@@ -53,7 +53,7 @@ public class PlotPurchaseQuest {
             .orElse(null);
          if (plot != null) {
             plotManager.visualizePlot(world, plot);
-            player.sendSystemMessage(Component.literal("The edges should be visible for a moment.").withStyle(ChatFormatting.YELLOW), false);
+            player.sendSystemMessage(Component.literal("The edges should be visible for a moment.").withStyle(ChatFormatting.YELLOW), true);
          }
 
          return true;

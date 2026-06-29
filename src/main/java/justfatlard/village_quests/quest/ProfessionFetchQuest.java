@@ -55,7 +55,7 @@ class ProfessionFetchQuest extends FetchItemQuest {
             } else {
                player.sendSystemMessage(
                   Component.literal(this.requesterName + ": \"Good. I can finish now. Don't ask what it is.\"").withStyle(ChatFormatting.GREEN),
-                  false
+                  true
                );
                InventoryHelper.removeItem(player.getInventory(), this.requiredItem, this.requiredAmount);
                this.completed = true;
@@ -117,7 +117,7 @@ class ProfessionFetchQuest extends FetchItemQuest {
          line = this.requesterName + ": Good. One less thing between me and the harvest.";
       }
 
-      player.sendSystemMessage(Component.literal(line).withStyle(ChatFormatting.GREEN), false);
+      player.sendSystemMessage(Component.literal(line).withStyle(ChatFormatting.GREEN), true);
       InventoryHelper.removeItem(player.getInventory(), this.requiredItem, this.requiredAmount);
       this.completed = true;
    }
@@ -134,7 +134,7 @@ class ProfessionFetchQuest extends FetchItemQuest {
          player.sendSystemMessage(
             Component.literal(this.requesterName + ": " + rainLines[ThreadLocalRandom.current().nextInt(rainLines.length)])
                .withStyle(ChatFormatting.GREEN),
-            false
+            true
          );
          ServerLevel village = player.level();
          if (village instanceof ServerLevel) {
@@ -150,7 +150,7 @@ class ProfessionFetchQuest extends FetchItemQuest {
          player.sendSystemMessage(
             Component.literal(this.requesterName + ": " + dryLines[ThreadLocalRandom.current().nextInt(dryLines.length)])
                .withStyle(ChatFormatting.GREEN),
-            false
+            true
          );
       }
 
@@ -166,17 +166,15 @@ class ProfessionFetchQuest extends FetchItemQuest {
       };
       player.sendSystemMessage(
          Component.literal(this.requesterName + ": " + lines[ThreadLocalRandom.current().nextInt(lines.length)]).withStyle(ChatFormatting.GREEN),
-         false
+         true
       );
       if (ThreadLocalRandom.current().nextDouble() < 0.4) {
          String loreText = this.pickRandomLibrarianLore();
          if (loreText != null) {
             player.sendSystemMessage(
-               Component.literal(this.requesterName + ": Since you asked... *pulls out a worn book*").withStyle(ChatFormatting.GRAY), false
-            );
+               Component.literal(this.requesterName + ": Since you asked... *pulls out a worn book*").withStyle(ChatFormatting.GRAY), true            );
             player.sendSystemMessage(
-               Component.literal("  \"" + loreText + "\"").withStyle(new ChatFormatting[]{ChatFormatting.DARK_AQUA, ChatFormatting.ITALIC}), false
-            );
+               Component.literal("  \"" + loreText + "\"").withStyle(new ChatFormatting[]{ChatFormatting.DARK_AQUA, ChatFormatting.ITALIC}), true            );
          }
       }
 
@@ -192,7 +190,7 @@ class ProfessionFetchQuest extends FetchItemQuest {
       };
       player.sendSystemMessage(
          Component.literal(this.requesterName + ": " + lines[ThreadLocalRandom.current().nextInt(lines.length)]).withStyle(ChatFormatting.GREEN),
-         false
+         true
       );
       ItemStack mainHand = player.getMainHandItem();
       if (!mainHand.isEmpty() && mainHand.isDamageableItem()) {
@@ -204,7 +202,7 @@ class ProfessionFetchQuest extends FetchItemQuest {
             player.sendSystemMessage(
                Component.literal(this.requesterName + ": Your " + toolName + " has seen better days. Bring it by sometime.")
                   .withStyle(ChatFormatting.GRAY),
-               false
+               true
             );
          }
       }

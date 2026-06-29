@@ -102,7 +102,7 @@ class HealGolemQuest extends CreationQuest {
          player.sendSystemMessage(
             Component.literal(this.requesterName + ": \"You tried. We both did. ...It's not holding. The cracks came back overnight.\"")
                .withStyle(ChatFormatting.GREEN),
-            false
+            true
          );
       } else {
          String[] responses = new String[]{
@@ -111,13 +111,13 @@ class HealGolemQuest extends CreationQuest {
             "The children ran up to it this morning. It let them. *voice catches* It let them."
          };
          String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-         player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), true);
          String anticipation = this.getAnticipationLine();
          if (anticipation != null) {
             player.sendSystemMessage(
                Component.literal(this.requesterName + ": " + anticipation)
                   .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-               false
+               true
             );
          }
       }

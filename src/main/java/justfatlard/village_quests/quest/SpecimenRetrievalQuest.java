@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -135,8 +136,7 @@ public class SpecimenRetrievalQuest extends VillagerQuest {
       }
 
       player.sendSystemMessage(
-         Component.literal(this.requesterName + ": \"" + responses[rng.nextInt(responses.length)] + "\"").withStyle(ChatFormatting.GREEN), false
-      );
+         Component.literal(this.requesterName + ": \"" + responses[rng.nextInt(responses.length)] + "\"").withStyle(ChatFormatting.GREEN), true      );
       this.completed = true;
    }
 
@@ -195,10 +195,10 @@ public class SpecimenRetrievalQuest extends VillagerQuest {
       TROPICAL_FISH("tropical fish", "warm ocean", Items.TROPICAL_FISH_BUCKET, null, true),
       AXOLOTL("axolotl", "lush caves", Items.AXOLOTL_BUCKET, null, true),
       PUFFERFISH("pufferfish", "warm ocean", Items.PUFFERFISH_BUCKET, null, true),
-      FROG("frog", "swamp or mangrove swamp", null, EntityType.FROG, false),
-      RABBIT("rabbit", "meadows or flower forests", null, EntityType.RABBIT, false),
-      FOX("fox", "taiga", null, EntityType.FOX, false),
-      PARROT("parrot", "jungle", null, EntityType.PARROT, false),
+      FROG("frog", "swamp or mangrove swamp", null, EntityTypes.FROG, false),
+      RABBIT("rabbit", "meadows or flower forests", null, EntityTypes.RABBIT, false),
+      FOX("fox", "taiga", null, EntityTypes.FOX, false),
+      PARROT("parrot", "jungle", null, EntityTypes.PARROT, false),
       TURTLE_EGG("turtle egg", "beaches", Items.TURTLE_EGG, null, true),
       GLOW_INK_SAC("glow ink sac", "underground water or deep dark", Items.GLOW_INK_SAC, null, true);
 

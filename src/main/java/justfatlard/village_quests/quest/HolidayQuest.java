@@ -24,6 +24,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.animal.equine.SkeletonHorse;
@@ -151,7 +152,8 @@ public class HolidayQuest {
          return null;
       } else {
          String targetName = VillageQuests.getNameManager().getName(target);
-         String targetProf = BuiltInRegistries.VILLAGER_PROFESSION.getKey((VillagerProfession)target.getVillagerData().profession().value()).getPath();
+         net.minecraft.resources.Identifier _hqKey = BuiltInRegistries.VILLAGER_PROFESSION.getKey((VillagerProfession)target.getVillagerData().profession().value());
+         String targetProf = _hqKey != null ? _hqKey.getPath() : "none";
          Item giftItem;
          String giftName;
          switch (targetProf) {
@@ -236,7 +238,7 @@ public class HolidayQuest {
          }
       }
 
-      Sheep sheep = (Sheep)EntityType.SHEEP.create(world, EntitySpawnReason.MOB_SUMMONED);
+      Sheep sheep = (Sheep)EntityTypes.SHEEP.create(world, EntitySpawnReason.MOB_SUMMONED);
       UUID sheepUuid = null;
       if (sheep != null) {
          sheep.snapTo(
@@ -256,8 +258,8 @@ public class HolidayQuest {
       BlockPos center = village.getCenter();
       BlockPos spawnPos = MobEventQuest.findSafeSpawnPos(world, center, 5, 20);
       ThreadLocalRandom rng = ThreadLocalRandom.current();
-      EntityType<?> animalType = rng.nextBoolean() ? EntityType.COW : EntityType.PIG;
-      String animalWord = animalType == EntityType.COW ? "cow" : "pig";
+      EntityType<?> animalType = rng.nextBoolean() ? EntityTypes.COW : EntityTypes.PIG;
+      String animalWord = animalType == EntityTypes.COW ? "cow" : "pig";
       Entity animal = animalType.create(world, EntitySpawnReason.MOB_SUMMONED);
       UUID animalUuid = null;
       if (animal != null) {
@@ -280,7 +282,7 @@ public class HolidayQuest {
    private static VillagerQuest createToastBunnyQuest(String villagerName, UUID villagerUuid, Village village, ServerLevel world) {
       BlockPos center = village.getCenter();
       BlockPos spawnPos = MobEventQuest.findSafeSpawnPos(world, center, 5, 20);
-      Rabbit rabbit = (Rabbit)EntityType.RABBIT.create(world, EntitySpawnReason.MOB_SUMMONED);
+      Rabbit rabbit = (Rabbit)EntityTypes.RABBIT.create(world, EntitySpawnReason.MOB_SUMMONED);
       UUID rabbitUuid = null;
       if (rabbit != null) {
          rabbit.snapTo(
@@ -333,7 +335,7 @@ public class HolidayQuest {
       BlockPos center = village.getCenter();
       ThreadLocalRandom rng = ThreadLocalRandom.current();
       BlockPos spawnPos = MobEventQuest.findSafeSpawnPos(world, center, 5, 30);
-      Cat cat = (Cat)EntityType.CAT.create(world, EntitySpawnReason.MOB_SUMMONED);
+      Cat cat = (Cat)EntityTypes.CAT.create(world, EntitySpawnReason.MOB_SUMMONED);
       UUID catUuid = null;
       if (cat != null) {
          cat.snapTo(
@@ -397,7 +399,7 @@ public class HolidayQuest {
 
          for (int i = 0; i < count; i++) {
             BlockPos spawnPos = waterPositions.get(rng.nextInt(waterPositions.size()));
-            Squid squid = (Squid)EntityType.SQUID.create(world, EntitySpawnReason.MOB_SUMMONED);
+            Squid squid = (Squid)EntityTypes.SQUID.create(world, EntitySpawnReason.MOB_SUMMONED);
             if (squid != null) {
                squid.snapTo(spawnPos.getX() + 0.5, spawnPos.getY() + 0.5, spawnPos.getZ() + 0.5, rng.nextFloat() * 360.0F, 0.0F);
                squid.setCustomName(Component.literal(squidNames[i % squidNames.length]));
@@ -505,7 +507,7 @@ public class HolidayQuest {
             this.requesterName
                + ": \"*counting under breath* ...sixty-two, sixty-three, sixty-four. That's a stack. That's a forest. You just planted a forest.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
          ServerLevel v = player.level();
          if (v instanceof ServerLevel) {
             Village vx = VillageQuests.getVillageManager().findNearestVillage(v, player.blockPosition());
@@ -574,7 +576,7 @@ public class HolidayQuest {
             this.requesterName + ": \"A black cat. On Friday the 13th. And it's just... sitting there? Fine. Fine. I'm going inside.\"",
             this.requesterName + ": \"Did it look at you? It looked at me. Like it knew something. *shakes head* It's a cat. I'm being ridiculous.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
          ScheduledMessages.schedule(
             player,
             Component.literal("The black cat is sitting on " + this.requesterName + "'s windowsill. It lives there now, apparently.")
@@ -650,7 +652,7 @@ public class HolidayQuest {
                + this.animalWord
                + " looks confused. Everyone's confused. But at least gravity works again.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
          ScheduledMessages.schedule(
             player,
             Component.literal(
@@ -695,7 +697,7 @@ public class HolidayQuest {
       public void spawnMobs(ServerLevel world) {
          if (!this.mobsSpawned) {
             BlockPos spawnPos = findSafeSpawnPos(world, this.eventLocation, 30, 50);
-            SkeletonHorse horse = (SkeletonHorse)EntityType.SKELETON_HORSE.create(world, EntitySpawnReason.MOB_SUMMONED);
+            SkeletonHorse horse = (SkeletonHorse)EntityTypes.SKELETON_HORSE.create(world, EntitySpawnReason.MOB_SUMMONED);
             if (horse != null) {
                horse.snapTo(
                   spawnPos.getX() + 0.5, (double)spawnPos.getY(), spawnPos.getZ() + 0.5, world.getRandom().nextFloat() * 360.0F, 0.0F
@@ -704,7 +706,7 @@ public class HolidayQuest {
                horse.setPersistenceRequired();
                world.addFreshEntity(horse);
                this.spawnedMobUuids.add(horse.getUUID());
-               Skeleton skeleton = (Skeleton)EntityType.SKELETON.create(world, EntitySpawnReason.MOB_SUMMONED);
+               Skeleton skeleton = (Skeleton)EntityTypes.SKELETON.create(world, EntitySpawnReason.MOB_SUMMONED);
                if (skeleton != null) {
                   skeleton.snapTo(spawnPos.getX() + 0.5, (double)spawnPos.getY(), spawnPos.getZ() + 0.5, 0.0F, 0.0F);
                   skeleton.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.CARVED_PUMPKIN));
@@ -728,7 +730,7 @@ public class HolidayQuest {
                "The bone horse stopped coming. Nobody knows why. " + this.requesterName + " still checks the window every night.",
                "It hasn't been back in two days. " + this.requesterName + " says that's worse. The waiting."
             };
-            player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.YELLOW), false);
+            player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.YELLOW), true);
          } else {
             String[] msgs = new String[]{
                this.requesterName
@@ -737,7 +739,7 @@ public class HolidayQuest {
                   + ": \"I heard the bones hit the ground from inside my house. That's a sound I'll be hearing for a while. But it's over. Thank you.\"",
                this.requesterName + ": \"The kids wanted to keep the skull. I said absolutely not. *pause* ...Where did you put the skull?\""
             };
-            player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), false);
+            player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
             this.scheduleAftermathLetter(
                player,
                new String[]{
@@ -806,7 +808,7 @@ public class HolidayQuest {
          player.sendSystemMessage(
             Component.literal(this.requesterName + ": \"You got it down! How did you even — wait. Wait. Look at it.\"")
                .withStyle(ChatFormatting.GREEN),
-            false
+            true
          );
          ScheduledMessages.schedule(
             player,
@@ -945,7 +947,7 @@ public class HolidayQuest {
          };
          player.sendSystemMessage(
             Component.literal(this.requesterName + ": \"" + resolutions[rng.nextInt(resolutions.length)] + "\"").withStyle(ChatFormatting.GREEN),
-            false
+            true
          );
          ScheduledMessages.schedule(
             player,
@@ -1015,7 +1017,7 @@ public class HolidayQuest {
             this.requesterName + ": \"*can barely breathe* The SOUND they made. I'm going to remember that forever. You're terrible. Thank you.\"",
             this.requesterName + ": \"*wiping tears* They're going to be so mad. That was awful. That was the best thing I've seen all year.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
          ScheduledMessages.schedule(
             player,
             Component.literal("Word got around. Half the village thinks it's hilarious. The other half isn't speaking to you. Worth it.")
@@ -1103,8 +1105,7 @@ public class HolidayQuest {
             this.requesterName + ": \"Was it weird? Standing at their door? ...Yeah, it would've been worse if I did it. Thanks.\""
          };
          player.sendSystemMessage(
-            Component.literal(completions[ThreadLocalRandom.current().nextInt(completions.length)]).withStyle(ChatFormatting.GREEN), false
-         );
+            Component.literal(completions[ThreadLocalRandom.current().nextInt(completions.length)]).withStyle(ChatFormatting.GREEN), true         );
          ScheduledMessages.schedule(
             player,
             Component.literal(this.targetName + " is holding something. Turning it over in their hands. They keep looking around.")
@@ -1181,7 +1182,7 @@ public class HolidayQuest {
                + ": \"I'm not going to ask where they came from. I'm not going to ask why they had names. I'm just going to go inside and pretend this didn't happen.\"",
             this.requesterName + ": \"One of the kids adopted one. Named it. It already had a name. They renamed it. I can't anymore. Thank you.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
          ServerLevel squidBox = player.level();
          if (squidBox instanceof ServerLevel) {
             AABB squidBoxx = new AABB(this.villageCenter).inflate(48.0);
@@ -1251,7 +1252,7 @@ public class HolidayQuest {
                + ": \"Something about that rabbit. It just sits there, calm as anything. Like it belongs here. Like it was always supposed to be here.\"",
             this.requesterName + ": \"The kids are feeding it carrots. It won't eat from anyone else. Just them. *quiet* It's a good rabbit.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
          ScheduledMessages.schedule(
             player,
             Component.literal("Toast is still by the well. The children bring it flowers. It seems happy.")
@@ -1332,8 +1333,7 @@ public class HolidayQuest {
             this.requesterName + ": \"*quiet for a long time* ...Yeah. That's what this time of year is supposed to be about.\""
          };
          player.sendSystemMessage(
-            Component.literal(completions[ThreadLocalRandom.current().nextInt(completions.length)]).withStyle(ChatFormatting.GREEN), false
-         );
+            Component.literal(completions[ThreadLocalRandom.current().nextInt(completions.length)]).withStyle(ChatFormatting.GREEN), true         );
          VillagerMemory.recordMemory(this.villagerUuid, VillagerMemory.MemoryType.STRANGER_WARMED);
          ScheduledMessages.schedule(
             player,
@@ -1419,7 +1419,7 @@ public class HolidayQuest {
             this.requesterName + ": \"*barely containing it* Did they see you? No? Perfect. Now we wait. I've been waiting all year for this.\"",
             this.requesterName + ": \"*whispering* Beautiful. Just sitting there on the step. They're going to be so confused. Best day of the year.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
          ScheduledMessages.schedule(
             player,
             Component.literal(

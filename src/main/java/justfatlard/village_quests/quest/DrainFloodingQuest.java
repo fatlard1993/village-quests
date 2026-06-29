@@ -32,7 +32,7 @@ class DrainFloodingQuest extends CreationQuest {
       player.sendSystemMessage(
          Component.literal(this.requesterName + ": \"Here — I've been saving these. Place them where the water's worst.\"")
             .withStyle(ChatFormatting.YELLOW),
-         false
+         true
       );
    }
 
@@ -133,7 +133,7 @@ class DrainFloodingQuest extends CreationQuest {
                      + ": \"The water came back. I watched it fill up again this morning. But we bought the seedlings two more days. Some of them might make it.\""
                )
                .withStyle(ChatFormatting.GREEN),
-            false
+            true
          );
       } else {
          String[] responses = new String[]{
@@ -144,7 +144,7 @@ class DrainFloodingQuest extends CreationQuest {
             "Blaze it all, I thought the whole field was done for. But it's draining. It's actually draining."
          };
          String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-         player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), true);
          this.scheduleAftermathLetter(
             player, new String[]{"The seedlings are still alive. Barely, but alive.", "Mud everywhere. But it's drying. That's something."}
          );

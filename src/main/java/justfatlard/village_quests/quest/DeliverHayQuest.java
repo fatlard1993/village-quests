@@ -58,8 +58,7 @@ class DeliverHayQuest extends TimeSensitiveQuest {
             "Wet hay. Useless now. " + this.requesterName + " just stares at it."
          };
          player.sendSystemMessage(
-            Component.literal(expiryMsgs[ThreadLocalRandom.current().nextInt(expiryMsgs.length)]).withStyle(ChatFormatting.AQUA), false
-         );
+            Component.literal(expiryMsgs[ThreadLocalRandom.current().nextInt(expiryMsgs.length)]).withStyle(ChatFormatting.AQUA), true         );
          ConversationMemory.recordTopic(player.getUUID(), this.villagerUuid, ConversationMemory.ConversationTopic.QUEST_GIVEN);
          ServerLevel v = player.level();
          if (v instanceof ServerLevel) {
@@ -70,7 +69,7 @@ class DeliverHayQuest extends TimeSensitiveQuest {
          }
       } else {
          InventoryHelper.removeItem(player.getInventory(), Items.HAY_BLOCK, this.hayAmount);
-         player.sendSystemMessage(Component.literal(this.recipientName + ": \"Got it. Just in time, too.\"").withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(this.recipientName + ": \"Got it. Just in time, too.\"").withStyle(ChatFormatting.GREEN), true);
          ConversationMemory.recordTopic(player.getUUID(), this.villagerUuid, ConversationMemory.ConversationTopic.QUEST_GIVEN);
          ScheduledMessages.schedule(
             player, Component.literal(this.recipientName + " waved from the barn. The hay's stacked.").withStyle(ChatFormatting.GRAY), 600

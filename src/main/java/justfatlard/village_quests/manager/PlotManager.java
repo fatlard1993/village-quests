@@ -36,7 +36,7 @@ public class PlotManager {
    private static final Logger LOGGER = LoggerFactory.getLogger("VillageQuests");
    private static final String STORAGE_KEY = "village_quests_plots";
    private static final SavedDataType<PlotManager.PlotData> PLOT_STATE_TYPE = new SavedDataType<>(
-      Identifier.parse("village_quests_plots"), PlotManager.PlotData::new, PlotManager.PlotData.CODEC, DataFixTypes.LEVEL
+      Identifier.parse(STORAGE_KEY), PlotManager.PlotData::new, PlotManager.PlotData.CODEC, DataFixTypes.LEVEL
    );
 
    private PlotManager.PlotData getPlotData(ServerLevel world) {

@@ -109,7 +109,7 @@ class WarmTheVillageQuest extends CreationQuest {
          "My hands are warm for the first time in days. I forgot what that felt like."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), false);
+      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), true);
       this.scheduleAftermathLetter(
          player,
          new String[]{

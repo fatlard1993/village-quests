@@ -69,7 +69,7 @@ class VillageDevelopmentQuest extends VillagerQuest {
          "She came by to look at it. Didn't say anything. Just stood in the doorway. That was enough."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      player.sendSystemMessage(Component.literal(this.requesterName + ": \"" + response + "\"").withStyle(ChatFormatting.GREEN), false);
+      player.sendSystemMessage(Component.literal(this.requesterName + ": \"" + response + "\"").withStyle(ChatFormatting.GREEN), true);
       this.completed = true;
    }
 }

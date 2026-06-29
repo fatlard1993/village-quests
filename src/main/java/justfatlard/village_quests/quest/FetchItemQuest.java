@@ -72,27 +72,6 @@ class FetchItemQuest extends VillagerQuest {
       return this.requesterName + " needs " + itemName;
    }
 
-   private String numberToWord(int n) {
-      return switch (n) {
-         case 1 -> "one";
-         case 2 -> "two";
-         case 3 -> "three";
-         case 4 -> "four";
-         case 5 -> "five";
-         case 6 -> "six";
-         case 7 -> "seven";
-         case 8 -> "eight";
-         case 9 -> "nine";
-         case 10 -> "ten";
-         default -> n <= 20 ? String.valueOf(n) : (n < 30 ? "twenty-some" : (n < 50 ? "thirty or forty" : "a good pile"));
-         case 12 -> "a dozen";
-         case 16 -> "sixteen";
-         case 24 -> "two dozen";
-         case 32 -> "thirty-two or so";
-         case 64 -> "a stack";
-      };
-   }
-
    @Override
    public boolean checkCompletion(ServerPlayer player) {
       return InventoryHelper.countItem(player.getInventory(), this.requiredItem) >= this.requiredAmount;
@@ -102,10 +81,8 @@ class FetchItemQuest extends VillagerQuest {
    public void onComplete(ServerPlayer player) {
       InventoryHelper.removeItem(player.getInventory(), this.requiredItem, this.requiredAmount);
       if (this.placeOnCompleteBlock != null && this.placeNearVillagerUuid != null) {
-         ServerLevel response = player.level();
-         if (response instanceof ServerLevel) {
-            ServerLevel world = response;
-            Entity villagerEntity = response.getEntity(this.placeNearVillagerUuid);
+         if (player.level() instanceof ServerLevel world) {
+            Entity villagerEntity = world.getEntity(this.placeNearVillagerUuid);
             if (villagerEntity != null) {
                BlockPos villagerPos = villagerEntity.blockPosition();
                ThreadLocalRandom rng = ThreadLocalRandom.current();
@@ -130,11 +107,10 @@ class FetchItemQuest extends VillagerQuest {
       }
 
       if (this.requiredItem == Items.PAINTING && this.placeNearVillagerUuid != null) {
-         ServerLevel var13 = player.level();
-         if (var13 instanceof ServerLevel) {
-            Entity villagerEntity = var13.getEntity(this.placeNearVillagerUuid);
+         if (player.level() instanceof ServerLevel paintWorld) {
+            Entity villagerEntity = paintWorld.getEntity(this.placeNearVillagerUuid);
             if (villagerEntity != null) {
-               this.placePaintingNearVillager(var13, villagerEntity.blockPosition());
+               this.placePaintingNearVillager(paintWorld, villagerEntity.blockPosition());
             }
          }
       }
@@ -149,22 +125,21 @@ class FetchItemQuest extends VillagerQuest {
          "*nods* The work continues."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), false);
-      ServerLevel var17 = player.level();
-      if (var17 instanceof ServerLevel) {
+      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), true);
+      if (player.level() instanceof ServerLevel chainWorld) {
          if (this.placeOnCompleteBlock == Blocks.OAK_FENCE) {
-            QuestChainSeeds.plantFenceSavedAnimals(player, this.placeNearVillagerUuid, this.requesterName, var17);
+            QuestChainSeeds.plantFenceSavedAnimals(player, this.placeNearVillagerUuid, this.requesterName, chainWorld);
          }
 
          if (this.requiredItem == Items.HONEY_BOTTLE) {
             String desc = this.getDescription().toLowerCase();
             if (desc.contains("wife") || desc.contains("cough")) {
-               QuestChainSeeds.plantHoneyRecovery(player, this.villagerUuid, this.requesterName, var17);
+               QuestChainSeeds.plantHoneyRecovery(player, this.villagerUuid, this.requesterName, chainWorld);
             }
          }
 
-         if (QuestChainSeeds.isWoodenTool(this.requiredItem) && QuestChainSeeds.isChildNearby(var17, player.blockPosition())) {
-            QuestChainSeeds.plantToolsForChild(player, this.villagerUuid, this.requesterName, var17);
+         if (QuestChainSeeds.isWoodenTool(this.requiredItem) && QuestChainSeeds.isChildNearby(chainWorld, player.blockPosition())) {
+            QuestChainSeeds.plantToolsForChild(player, this.villagerUuid, this.requesterName, chainWorld);
          }
       }
 

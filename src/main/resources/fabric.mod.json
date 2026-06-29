@@ -8,14 +8,14 @@
   "license": "MIT",
   "environment": "*",
   "entrypoints": {
-    "main": ["justfatlard.village_quests.VillageQuests"],
-    "client": ["justfatlard.village_quests.VillageQuestsClient"]
+    "main": ["justfatlard.village_quests.VillageQuests"]
   },
   "mixins": ["village-quests-justfatlard.mixins.json"],
   "depends": {
-    "fabricloader": ">=0.18.0",
+    "fabricloader": ">=0.19.3",
     "fabric-api": "*",
     "minecraft": ">=26.1",
-    "java": ">=25"
+    "java": ">=25",
+    "pandorical": "*"
   }
 }

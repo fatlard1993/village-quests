@@ -26,7 +26,8 @@ import justfatlard.village_quests.data.Dialogue;
 import justfatlard.village_quests.gathering.VillagerGatheringSystem;
 import justfatlard.village_quests.integration.MailSystemIntegration;
 import justfatlard.village_quests.lore.ContextualLoreManager;
-import justfatlard.village_quests.network.DialoguePayload;
+import justfatlard.pandorical.api.PandoricalApi;
+import justfatlard.village_quests.pandorical.DialogueScreens;
 import justfatlard.village_quests.presence.AbsenceEventGenerator;
 import justfatlard.village_quests.presence.FirstEncounterTracker;
 import justfatlard.village_quests.presence.PresenceTracker;
@@ -46,7 +47,7 @@ import justfatlard.village_quests.quest.WitnessedDeathTracker;
 import justfatlard.village_quests.reputation.InteractionLimiter;
 import justfatlard.village_quests.reputation.ReputationBand;
 import justfatlard.village_quests.util.RandomKindnessHandler;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Plane;
@@ -103,6 +104,11 @@ public class DialogueManager {
    private static final Map<UUID, DialogueManager.SecretData> PLAYER_SECRETS = new ConcurrentHashMap<>();
    private static final long SECRET_EXPIRY_TICKS = 168000L;
    private static final Map<UUID, Set<String>> VILLAGE_OBSERVATIONS = new ConcurrentHashMap<>();
+   // Observation tag constants — used in both add/remove calls here and switch cases in DeepQuestDialogues
+   public static final String OBS_DARK_PATHS = "dark_paths";
+   public static final String OBS_BROKEN_FENCES = "broken_fences";
+   public static final String OBS_EMPTY_FIELDS = "empty_fields";
+   public static final String OBS_UNLIT_HOUSES = "unlit_houses";
    static final String OPEN_TRADE = "open_trade";
    static final String WORK_INQUIRY = "work_inquiry";
    static final String WORK_AVAILABLE_DIRECT = "work_available_direct";
@@ -134,6 +140,11 @@ public class DialogueManager {
 
    public static DialogueManager.SecretData consumePlayerSecret(UUID playerUuid) {
       return PLAYER_SECRETS.remove(playerUuid);
+   }
+
+   private static String professionName(VillagerProfession prof) {
+      Identifier key = BuiltInRegistries.VILLAGER_PROFESSION.getKey(prof);
+      return key != null ? key.getPath() : "none";
    }
 
    private static String stripNamePrefix(String text, String villagerName) {
@@ -326,11 +337,27 @@ public class DialogueManager {
       return this.getDialogue(greetingIds[ThreadLocalRandom.current().nextInt(greetingIds.length)]);
    }
 
+   public void openMoodRefusal(ServerPlayer player, Villager villager, String refusalText) {
+      DialogueStateManager.startDialogue(villager, player);
+      String villagerName = VillageQuests.getNameManager().getName(villager);
+      VillagerProfession prof = (VillagerProfession) villager.getVillagerData().profession().value();
+      String profName = villager.isBaby() ? "child" : professionName(prof);
+      int reputation = VillageQuests.getReputationManager()
+         .getReputation(player, VillageQuests.getVillageManager().findNearestVillage(player.level(), villager.blockPosition()));
+      String reputationBand = VillageQuests.getReputationManager().getReputationLevel(reputation);
+      String displayText = villagerName + " " + refusalText;
+      this.responseActionIds.put(player.getUUID(), new ArrayList<>(List.of("cancel")));
+      this.responseIndexMappings.put(player.getUUID(), List.of(-1));
+      PandoricalApi.screens().open(player,
+         DialogueScreens.buildScreen(villager.getUUID(), villagerName, profName, displayText, "mood_refusal", reputationBand, List.of("*leave them be*"))
+      );
+   }
+
    public void openTradeDirectly(ServerPlayer player, Villager villager) {
       DialogueStateManager.startDialogue(villager, player);
       String villagerName = VillageQuests.getNameManager().getName(villager);
       VillagerProfession prof = (VillagerProfession)villager.getVillagerData().profession().value();
-      String profName = BuiltInRegistries.VILLAGER_PROFESSION.getKey(prof).getPath();
+      String profName = professionName(prof);
       int reputation = VillageQuests.getReputationManager()
          .getReputation(player, VillageQuests.getVillageManager().findNearestVillage(player.level(), villager.blockPosition()));
       String reputationBand = VillageQuests.getReputationManager().getReputationLevel(reputation);
@@ -344,9 +371,8 @@ public class DialogueManager {
       List<String> actionIds = new ArrayList<>(List.of("open_trade", "cancel"));
       this.responseActionIds.put(player.getUUID(), actionIds);
       this.responseIndexMappings.put(player.getUUID(), List.of(-1, -1));
-      ServerPlayNetworking.send(
-         player,
-         new DialoguePayload(villager.getUUID(), villagerName, profName, greetingText, "trade_only", reputationBand, false, List.of(tradeText, cancelText))
+      PandoricalApi.screens().open(player,
+         DialogueScreens.buildScreen(villager.getUUID(), villagerName, profName, greetingText, "trade_only", reputationBand, List.of(tradeText, cancelText))
       );
    }
 
@@ -356,7 +382,7 @@ public class DialogueManager {
       Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
       Component overheardFragment = DeepQuestDialogues.getOverheardDialogue(player, village, world);
       if (overheardFragment != null) {
-         player.sendSystemMessage(overheardFragment, false);
+         player.sendSystemMessage(overheardFragment, true);
       }
 
       if (!this.progressActiveQuest(player, villager)) {
@@ -368,7 +394,21 @@ public class DialogueManager {
                DialogueStateManager.endDialogue(villager.getUUID());
             } else if (!this.handleAbsenceEvents(player, villager, village, world, villagerName)) {
                boolean isChild = villager.isBaby();
-               if (!RandomKindnessHandler.tryRandomKindness(player, villager, villagerName, reputation, isChild)) {
+               java.util.Optional<RandomKindnessHandler.KindnessResult> kindness = RandomKindnessHandler.tryRandomKindness(player, villager, villagerName, reputation, isChild);
+               if (kindness.isPresent()) {
+                  RandomKindnessHandler.KindnessResult k = kindness.get();
+                  VillagerProfession kindProf = (VillagerProfession) villager.getVillagerData().profession().value();
+                  String kindProfName = isChild ? "child" : professionName(kindProf);
+                  // Gift is given immediately — no accept/decline
+                  player.getInventory().add(k.gift().copy());
+                  net.minecraft.world.item.Item giftItem = k.gift().getItem();
+                  DialogueScreens.ItemHint giftHint = DialogueScreens.ItemHint.give(giftItem, k.gift().getCount());
+                  this.responseActionIds.put(player.getUUID(), new ArrayList<>(List.of("cancel")));
+                  this.responseIndexMappings.put(player.getUUID(), List.of(-1));
+                  PandoricalApi.screens().open(player,
+                     DialogueScreens.buildScreen(villager.getUUID(), villagerName, kindProfName, k.message(), "kindness_gift", reputationBand, List.of("Thank you."), giftHint)
+                  );
+               } else {
                   long timeOfDay = world.getOverworldClockTime() % 24000L;
                   boolean isNight = timeOfDay >= 13000L && timeOfDay < 23000L;
                   DialogueManager.GreetingResult greetingResult = this.selectGreeting(player, villager, village, world, reputation, isChild, isNight);
@@ -737,12 +777,9 @@ public class DialogueManager {
                   VillagerProfession profession = (VillagerProfession)villager.getVillagerData().profession().value();
                   Identifier profKey = BuiltInRegistries.VILLAGER_PROFESSION.getKey(profession);
                   String professionName = isChild ? "child" : (profKey != null ? profKey.getPath() : "none");
-                  LOGGER.info("[VQ] Sending DialoguePayload to {} for {}", player.getName().getString(), villagerName);
-                  ServerPlayNetworking.send(
-                     player,
-                     new DialoguePayload(
-                        villager.getUUID(), villagerName, professionName, dialogueText, greeting.getId(), reputationBand, hasQuests, responses.texts
-                     )
+                  LOGGER.info("[VQ] Sending dialogue screen to {} for {}", player.getName().getString(), villagerName);
+                  PandoricalApi.screens().open(player,
+                     DialogueScreens.buildScreen(villager.getUUID(), villagerName, professionName, dialogueText, greeting.getId(), reputationBand, responses.texts)
                   );
                   this.recordConversationTopic(
                      player.getUUID(), villager.getUUID(), firstMeeting, hadWeatherOverride, isNight, greeting.getId(), hasQuests
@@ -811,25 +848,17 @@ public class DialogueManager {
                String tName = VillageQuests.getNameManager().getName(villager);
                String profN = villager.isBaby()
                   ? "child"
-                  : BuiltInRegistries.VILLAGER_PROFESSION.getKey((VillagerProfession)villager.getVillagerData().profession().value()).getPath();
+                  : professionName((VillagerProfession)villager.getVillagerData().profession().value());
                int rep = VillageQuests.getReputationManager()
                   .getReputation(player, VillageQuests.getVillageManager().findNearestVillage(player.level(), villager.blockPosition()));
                String repBand = VillageQuests.getReputationManager().getReputationLevel(rep);
                String cancelText = this.getCancelText(player.level(), villager, rep);
                this.responseActionIds.put(player.getUUID(), new ArrayList<>(List.of("cancel")));
                this.responseIndexMappings.put(player.getUUID(), List.of(-1));
-               ServerPlayNetworking.send(
-                  player,
-                  new DialoguePayload(
-                     villager.getUUID(),
-                     tName,
-                     profN,
+               PandoricalApi.screens().open(player,
+                  DialogueScreens.buildScreen(villager.getUUID(), tName, profN,
                      "...Were you bringing something? Your hands are empty.",
-                     "delivery_empty",
-                     repBand,
-                     false,
-                     List.of(cancelText)
-                  )
+                     "delivery_empty", repBand, List.of(cancelText))
                );
                return true;
             }
@@ -843,15 +872,15 @@ public class DialogueManager {
             String reaction = dialogueQuest.getDeliveryReaction();
             String profN2 = villager.isBaby()
                ? "child"
-               : BuiltInRegistries.VILLAGER_PROFESSION.getKey((VillagerProfession)villager.getVillagerData().profession().value()).getPath();
+               : professionName((VillagerProfession)villager.getVillagerData().profession().value());
             int rep2 = VillageQuests.getReputationManager()
                .getReputation(player, VillageQuests.getVillageManager().findNearestVillage(player.level(), villager.blockPosition()));
             String repBand2 = VillageQuests.getReputationManager().getReputationLevel(rep2);
             String cancelText2 = this.getCancelText(player.level(), villager, rep2);
             this.responseActionIds.put(player.getUUID(), new ArrayList<>(List.of("cancel")));
             this.responseIndexMappings.put(player.getUUID(), List.of(-1));
-            ServerPlayNetworking.send(
-               player, new DialoguePayload(villager.getUUID(), targetName, profN2, reaction, "delivery_reaction", repBand2, false, List.of(cancelText2))
+            PandoricalApi.screens().open(player,
+               DialogueScreens.buildScreen(villager.getUUID(), targetName, profN2, reaction, "delivery_reaction", repBand2, List.of(cancelText2))
             );
             return true;
          }
@@ -875,7 +904,7 @@ public class DialogueManager {
          int reputation = VillageQuests.getReputationManager().getReputation(player, village);
          String reputationBand = VillageQuests.getReputationManager().getReputationLevel(reputation);
          VillagerProfession prof = (VillagerProfession)villager.getVillagerData().profession().value();
-         String profName = villager.isBaby() ? "child" : BuiltInRegistries.VILLAGER_PROFESSION.getKey(prof).getPath();
+         String profName = villager.isBaby() ? "child" : professionName(prof);
          boolean canComplete = activeQuest.checkCompletion(player);
          LoggerFactory.getLogger("VillageQuests")
             .debug(
@@ -917,9 +946,9 @@ public class DialogueManager {
             }
 
             Item needItemForPrompt = activeQuest.getSubmissionItem();
-            if (needItemForPrompt != null) {
-               promptText = promptText + needTag(needItemForPrompt, activeQuest.getSubmissionAmount());
-            }
+            DialogueScreens.ItemHint submitHint = needItemForPrompt != null
+               ? DialogueScreens.ItemHint.need(needItemForPrompt, activeQuest.getSubmissionAmount())
+               : null;
 
             String[] submitVariants;
             if (activeQuest instanceof DialogueQuest) {
@@ -931,11 +960,6 @@ public class DialogueManager {
             }
 
             String submitText = submitVariants[rng.nextInt(submitVariants.length)];
-            Item submissionItem = activeQuest.getSubmissionItem();
-            if (submissionItem != null) {
-               String itemId = BuiltInRegistries.ITEM.getKey(submissionItem).toString();
-               submitText = "[item:" + itemId + "]" + submitText;
-            }
 
             String cancelText = this.getCancelText(player.level(), villager, reputation);
             boolean isMisnomerSubmit = activeQuest instanceof MisnomerQuest;
@@ -951,11 +975,8 @@ public class DialogueManager {
             List<String> actionIds = new ArrayList<>(List.of("submit_quest_items", "abandon_quest", "cancel"));
             this.responseActionIds.put(player.getUUID(), actionIds);
             this.responseIndexMappings.put(player.getUUID(), List.of(-1, -1, -1));
-            ServerPlayNetworking.send(
-               player,
-               new DialoguePayload(
-                  villager.getUUID(), villagerName, profName, promptText, "quest_submit", reputationBand, false, List.of(submitText, quitText, cancelText)
-               )
+            PandoricalApi.screens().open(player,
+               DialogueScreens.buildScreen(villager.getUUID(), villagerName, profName, promptText, "quest_submit", reputationBand, List.of(submitText, quitText, cancelText), submitHint)
             );
             return true;
          } else {
@@ -1042,11 +1063,8 @@ public class DialogueManager {
             List<String> quitActionIds = new ArrayList<>(List.of("abandon_quest", "cancel"));
             this.responseActionIds.put(player.getUUID(), quitActionIds);
             this.responseIndexMappings.put(player.getUUID(), List.of(-1, -1));
-            ServerPlayNetworking.send(
-               player,
-               new DialoguePayload(
-                  villager.getUUID(), villagerName, profName, waitingText, "quest_waiting", reputationBand, false, List.of(quitText, cancelText)
-               )
+            PandoricalApi.screens().open(player,
+               DialogueScreens.buildScreen(villager.getUUID(), villagerName, profName, waitingText, "quest_waiting", reputationBand, List.of(quitText, cancelText))
             );
             return true;
          }
@@ -1090,8 +1108,8 @@ public class DialogueManager {
             String[] selectedSet = absenceResponses[rng.nextInt(absenceResponses.length)];
             Dialogue absenceDialogue = new Dialogue("absence_event", absenceText, -999, 999, Dialogue.DialogueType.GREETING)
                .addResponse(new Dialogue.DialogueResponse(selectedSet[0], 0))
-               .addResponse(new Dialogue.DialogueResponse(selectedSet[1], 0))
-               .addResponse(new Dialogue.DialogueResponse(selectedSet[2], 1));
+               .addResponse(new Dialogue.DialogueResponse(selectedSet[1], 1))
+               .addResponse(new Dialogue.DialogueResponse(selectedSet[2], 2));
             this.sendDialogue(player, villager, absenceDialogue);
             return true;
          }
@@ -1140,7 +1158,9 @@ public class DialogueManager {
 
          hasQuests = false;
       } else {
-         if (!FirstEncounterTracker.hasSeenTradeHint(player)) {
+         Set<UUID> playerMet = this.metVillagers.getOrDefault(player.getUUID(), java.util.Collections.emptySet());
+         boolean hasMetThisVillager = playerMet.contains(villager.getUUID());
+         if (!hasMetThisVillager) {
             greeting = this.getFirstEncounterGreeting();
          } else if (ownsPlot && rng.nextDouble() < 0.3) {
             greeting = this.getPlotOwnerGreeting();
@@ -1286,8 +1306,8 @@ public class DialogueManager {
          actionIds.add("cancel");
          return new DialogueManager.FilteredResponses(responseTexts, originalIndices, customOptionIds, actionIds);
       } else {
-         if (!isFirstEncounter && hasProfession && band.canTrade()) {
-            responseTexts.add(this.generateTradeText(villager, player, reputation));
+         if (hasProfession && band.canTrade()) {
+            responseTexts.add(DialogueContent.generateTradeText(villager, player, reputation));
             originalIndices.add(-1);
             actionIds.add("open_trade");
          }
@@ -1312,7 +1332,7 @@ public class DialogueManager {
             && !cooldownActive
             && !hasActiveQuest
             && !InteractionLimiter.hasUsedToday(player.getUUID(), villager.getUUID(), "work")) {
-            responseTexts.add(this.generateWorkInquiryText(villager, player, reputation, false, 0L));
+            responseTexts.add(DialogueContent.generateWorkInquiryText(villager, player, reputation, false, 0L));
             originalIndices.add(-1);
             actionIds.add("work_inquiry");
          }
@@ -1340,9 +1360,8 @@ public class DialogueManager {
                String teachLabel = misnomer.getTeachSafelyLabel();
                Item safetyItem = misnomer.getSafetyItem();
                if (safetyItem != null) {
-                  teachLabel = "[item:" + BuiltInRegistries.ITEM.getKey(safetyItem).toString() + "]" + teachLabel;
+                  teachLabel = teachLabel + " (" + safetyItem.getName(safetyItem.getDefaultInstance()).getString() + ")";
                }
-
                responseTexts.add(teachLabel);
                originalIndices.add(-1);
                actionIds.add("teach_safely");
@@ -1352,9 +1371,8 @@ public class DialogueManager {
                String deliverLabel = misnomer.getDeliverItemLabel();
                Item deliverItem = misnomer.getDeliveryItem();
                if (deliverItem != null) {
-                  deliverLabel = "[item:" + BuiltInRegistries.ITEM.getKey(deliverItem).toString() + "]" + deliverLabel;
+                  deliverLabel = deliverLabel + " (" + deliverItem.getName(deliverItem.getDefaultInstance()).getString() + ")";
                }
-
                responseTexts.add(deliverLabel);
                originalIndices.add(-1);
                actionIds.add("deliver_misnomer_item");
@@ -1366,7 +1384,7 @@ public class DialogueManager {
             if (careText != null) {
                Item careItem = this.pendingCareItem.get(player.getUUID());
                if (careItem != null) {
-                  careText = "[item:" + BuiltInRegistries.ITEM.getKey(careItem).toString() + "]" + careText;
+                  careText = careText + " (" + careItem.getName(careItem.getDefaultInstance()).getString() + ")";
                }
 
                responseTexts.add(careText);
@@ -1380,7 +1398,7 @@ public class DialogueManager {
             if (giftText != null) {
                Item giftItem = this.pendingGiftItem.get(player.getUUID());
                if (giftItem != null) {
-                  giftText = "[item:" + BuiltInRegistries.ITEM.getKey(giftItem).toString() + "]" + giftText;
+                  giftText = giftText + " (" + giftItem.getName(giftItem.getDefaultInstance()).getString() + ")";
                }
 
                responseTexts.add(giftText);
@@ -1440,6 +1458,13 @@ public class DialogueManager {
             return;
          }
 
+         if ("decline_work".equals(actionId)) {
+            DialogueStateManager.endDialogue(villager.getUUID());
+            this.customDialogueOptions.remove(player.getUUID());
+            this.responseIndexMappings.remove(player.getUUID());
+            return;
+         }
+
          if ("open_trade".equals(actionId)) {
             this.handleTradeResponse(player, villager);
             this.customDialogueOptions.remove(player.getUUID());
@@ -1474,40 +1499,33 @@ public class DialogueManager {
          }
 
          if ("abandon_quest".equals(actionId)) {
-            VillagerQuest aq = ActiveQuestManager.getActiveQuest(player);
-            if (aq != null && aq.getVillagerUuid().equals(villager.getUUID())) {
-               Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
-               String vName = VillageQuests.getNameManager().getName(villager);
-               if (aq instanceof MisnomerQuest misnomer && !misnomer.isCompleted()) {
-                  misnomer.refuse(player, "changed mind");
-                  ActiveQuestManager.abandonQuest(player, (Village)null);
-                  if (village != null) {
-                     QuestImpactTracker.recordMisnomerRefusal(village.getId());
-                  }
-
-                  ThreadLocalRandom abandonRng = ThreadLocalRandom.current();
-                  String[] misnomerAbandonMsgs = new String[]{
-                     vName + ": \"*quiet for a long time* ...Okay. Okay. Maybe that's the right call.\"",
-                     vName + ": \"You said yes. And now you're saying no. *exhales* ...Good. That's good.\"",
-                     vName + ": \"I thought you'd go through with it. I'm glad you didn't.\""
-                  };
-                  player.sendSystemMessage(
-                     Component.literal(misnomerAbandonMsgs[abandonRng.nextInt(misnomerAbandonMsgs.length)]).withStyle(ChatFormatting.GREEN), false
-                  );
-               } else {
-                  ActiveQuestManager.abandonQuest(player, village);
-                  ThreadLocalRandom abandonRng = ThreadLocalRandom.current();
-                  String[] normalAbandonMsgs = new String[]{
-                     vName + ": \"Alright. No hard feelings. I'll figure something out.\"",
-                     vName + ": \"*nods* It happens. Thanks for trying.\"",
-                     vName + ": \"Fair enough. I'll ask someone else.\""
-                  };
-                  player.sendSystemMessage(
-                     Component.literal(normalAbandonMsgs[abandonRng.nextInt(normalAbandonMsgs.length)]).withStyle(ChatFormatting.YELLOW), false
-                  );
-               }
+            Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
+            int currentRep = VillageQuests.getReputationManager().getReputation(player, village);
+            if (currentRep >= 50) {
+               String villagerName = VillageQuests.getNameManager().getName(villager);
+               String reputationBand = VillageQuests.getReputationManager().getReputationLevel(currentRep);
+               VillagerProfession prof = (VillagerProfession)villager.getVillagerData().profession().value();
+               String profName = professionName(prof);
+               String warnText = villagerName + " trusts you. Letting this go will leave a mark on that.";
+               List<String> warnResponses = List.of("Let it go anyway.", "You're right. I'll finish it.");
+               List<String> warnActions = new ArrayList<>(List.of("abandon_work_confirmed", "cancel"));
+               this.responseActionIds.put(player.getUUID(), warnActions);
+               this.responseIndexMappings.put(player.getUUID(), List.of(-1, -1));
+               PandoricalApi.screens().open(player,
+                  DialogueScreens.buildScreen(villager.getUUID(), villagerName, profName, warnText, "abandon_confirm", reputationBand, warnResponses)
+               );
+               this.customDialogueOptions.remove(player.getUUID());
+               return;
             }
+            this.doAbandonQuest(player, villager, world, village);
+            this.customDialogueOptions.remove(player.getUUID());
+            this.responseIndexMappings.remove(player.getUUID());
+            return;
+         }
 
+         if ("abandon_work_confirmed".equals(actionId)) {
+            Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
+            this.doAbandonQuest(player, villager, world, village);
             this.customDialogueOptions.remove(player.getUUID());
             this.responseIndexMappings.remove(player.getUUID());
             return;
@@ -1575,12 +1593,12 @@ public class DialogueManager {
                int clueNumber = mq.getCluesInvestigated() + 1;
                String clueLine = MysteryQuest.getClueDialogue(mq.getMysteryType(), clueNumber, mq.getTargetDescription(), mq.getCulpritName(), witnessName);
                mq.investigateClue();
-               player.sendSystemMessage(Component.literal(clueLine).withStyle(ChatFormatting.AQUA), false);
+               player.sendSystemMessage(Component.literal(clueLine).withStyle(ChatFormatting.AQUA), true);
                if (mq.getCluesInvestigated() >= 3) {
                   player.sendSystemMessage(
                      Component.literal(witnessName + ": \"That's all I know. Take it up with " + mq.getRequesterName() + ".\"")
                         .withStyle(ChatFormatting.YELLOW),
-                     false
+                     true
                   );
                }
             }
@@ -1627,7 +1645,7 @@ public class DialogueManager {
             String optionId = actionId.substring(7);
             Component result = DialogueRegistry.handleDialogueOption(villager, player, optionId);
             if (result != null) {
-               player.sendSystemMessage(result, false);
+               player.sendSystemMessage(result, true);
             }
 
             DialogueStateManager.endDialogue(villager.getUUID());
@@ -1663,7 +1681,7 @@ public class DialogueManager {
                String optionId = customIds.get(customIndex);
                Component response = DialogueRegistry.handleDialogueOption(villager, player, optionId);
                if (response != null) {
-                  player.sendSystemMessage(response, false);
+                  player.sendSystemMessage(response, true);
                }
 
                this.customDialogueOptions.remove(player.getUUID());
@@ -1735,25 +1753,36 @@ public class DialogueManager {
                   ThreadLocalRandom workRng = ThreadLocalRandom.current();
                   if (pendingQuest != null && originalIndex == 0) {
                      ActiveQuestManager.acceptQuest(player, pendingQuest, village);
-                     String[] acceptAcks = new String[]{
-                        vName + ": \"Good. I'll be here when you're done.\"",
-                        vName + ": \"*nods* I knew I could count on someone.\"",
-                        vName + ": \"Thank you. Really.\"",
-                        vName + ": \"Alright. Don't forget about me.\""
-                     };
-                     player.sendSystemMessage(Component.literal(acceptAcks[workRng.nextInt(acceptAcks.length)]).withStyle(ChatFormatting.GREEN), true);
-                  } else {
-                     String[] declineAcks = new String[]{
-                        vName + ": \"*nods slowly* Fair enough.\"",
-                        vName + ": \"Another time, then.\"",
-                        vName + ": \"I'll ask someone else. No hard feelings.\""
-                     };
-                     player.sendSystemMessage(Component.literal(declineAcks[workRng.nextInt(declineAcks.length)]).withStyle(ChatFormatting.GRAY), true);
                   }
                }
             } else {
                this.customDialogueOptions.remove(player.getUUID());
             }
+         }
+      }
+   }
+
+   private void doAbandonQuest(ServerPlayer player, Villager villager, ServerLevel world, Village village) {
+      VillagerQuest aq = ActiveQuestManager.getActiveQuest(player);
+      if (aq != null && aq.getVillagerUuid().equals(villager.getUUID())) {
+         String vName = VillageQuests.getNameManager().getName(villager);
+         if (aq instanceof MisnomerQuest misnomer && !misnomer.isCompleted()) {
+            misnomer.refuse(player, "changed mind");
+            ActiveQuestManager.abandonQuest(player, (Village)null);
+            if (village != null) {
+               QuestImpactTracker.recordMisnomerRefusal(village.getId());
+            }
+            ThreadLocalRandom abandonRng = ThreadLocalRandom.current();
+            String[] misnomerAbandonMsgs = new String[]{
+               vName + ": \"*quiet for a long time* ...Okay. Okay. Maybe that's the right call.\"",
+               vName + ": \"You said yes. And now you're saying no. *exhales* ...Good. That's good.\"",
+               vName + ": \"I thought you'd go through with it. I'm glad you didn't.\""
+            };
+            player.sendSystemMessage(
+               Component.literal(misnomerAbandonMsgs[abandonRng.nextInt(misnomerAbandonMsgs.length)]).withStyle(ChatFormatting.GREEN), true
+            );
+         } else {
+            ActiveQuestManager.abandonQuest(player, village);
          }
       }
    }
@@ -1850,15 +1879,14 @@ public class DialogueManager {
          String declineText = this.getSelfSufficientDecline(villagerName, reputation, villager.getUUID());
          String reputationBand = VillageQuests.getReputationManager().getReputationLevel(reputation);
          VillagerProfession prof = (VillagerProfession)villager.getVillagerData().profession().value();
-         String profName = BuiltInRegistries.VILLAGER_PROFESSION.getKey(prof).getPath();
+         String profName = professionName(prof);
          String cancelText = this.getCancelText(world, villager, reputation, false);
          VillagerMemory.recordMemory(villager.getUUID(), VillagerMemory.MemoryType.INDEPENDENCE_RESPECTED);
          List<String> actionIds = new ArrayList<>(List.of("cancel"));
          this.responseActionIds.put(player.getUUID(), actionIds);
          this.responseIndexMappings.put(player.getUUID(), List.of(-1));
-         ServerPlayNetworking.send(
-            player,
-            new DialoguePayload(villager.getUUID(), villagerName, profName, declineText, "no_work_available", reputationBand, false, List.of(cancelText))
+         PandoricalApi.screens().open(player,
+            DialogueScreens.buildScreen(villager.getUUID(), villagerName, profName, declineText, "no_work_available", reputationBand, List.of(cancelText))
          );
       } else {
          VillagerQuest quest;
@@ -1911,7 +1939,7 @@ public class DialogueManager {
 
             String cancelText = this.getCancelText(world, villager, reputation, false);
             VillagerProfession prof = (VillagerProfession)villager.getVillagerData().profession().value();
-            String profName = BuiltInRegistries.VILLAGER_PROFESSION.getKey(prof).getPath();
+            String profName = professionName(prof);
             boolean noWorkHasProfession = !"none".equals(profName) && !"nitwit".equals(profName);
             String repBand = VillageQuests.getReputationManager().getReputationLevel(reputation);
             List<String> noWorkButtons;
@@ -1930,19 +1958,11 @@ public class DialogueManager {
 
             this.responseActionIds.put(player.getUUID(), noWorkActionIds);
             this.responseIndexMappings.put(player.getUUID(), noWorkIndices);
-            ServerPlayNetworking.send(
-               player, new DialoguePayload(villager.getUUID(), villagerName, profName, noWorkText, "no_work_available", repBand, false, noWorkButtons)
+            PandoricalApi.screens().open(player,
+               DialogueScreens.buildScreen(villager.getUUID(), villagerName, profName, noWorkText, "no_work_available", repBand, noWorkButtons)
             );
          }
       }
-   }
-
-   private String generateTradeText(Villager villager, ServerPlayer player, int reputation) {
-      return DialogueContent.generateTradeText(villager, player, reputation);
-   }
-
-   private String generateWorkInquiryText(Villager villager, ServerPlayer player, int reputation, boolean isOnCooldown, long cooldownRemaining) {
-      return DialogueContent.generateWorkInquiryText(villager, player, reputation, isOnCooldown, cooldownRemaining);
    }
 
    private void sendMisnomerOffer(ServerPlayer player, Villager villager, MisnomerQuest misnomerQuest) {
@@ -1952,7 +1972,7 @@ public class DialogueManager {
       int reputation = VillageQuests.getReputationManager().getReputation(player, village);
       String reputationBand = VillageQuests.getReputationManager().getReputationLevel(reputation);
       VillagerProfession profession = (VillagerProfession)villager.getVillagerData().profession().value();
-      String professionName = BuiltInRegistries.VILLAGER_PROFESSION.getKey(profession).getPath();
+      String professionName = professionName(profession);
       String dialogueText = misnomerQuest.getDescription();
       ThreadLocalRandom rng = ThreadLocalRandom.current();
       String refuseLabel = MisnomerQuest.getMisnomerRefuseLabel(misnomerQuest.getMisnomerType(), rng);
@@ -1969,9 +1989,8 @@ public class DialogueManager {
          responseTexts = List.of(acceptLabel, refuseLabel, coldRefuseLabel);
       }
 
-      ServerPlayNetworking.send(
-         player,
-         new DialoguePayload(villager.getUUID(), villagerName, professionName, dialogueText, "misnomer_offer", reputationBand, false, responseTexts)
+      PandoricalApi.screens().open(player,
+         DialogueScreens.buildScreen(villager.getUUID(), villagerName, professionName, dialogueText, "misnomer_offer", reputationBand, responseTexts)
       );
    }
 
@@ -1982,7 +2001,7 @@ public class DialogueManager {
       int reputation = VillageQuests.getReputationManager().getReputation(player, village);
       String reputationBand = VillageQuests.getReputationManager().getReputationLevel(reputation);
       VillagerProfession profession = (VillagerProfession)villager.getVillagerData().profession().value();
-      String professionName = BuiltInRegistries.VILLAGER_PROFESSION.getKey(profession).getPath();
+      String professionName = professionName(profession);
       boolean collision = MysteryQuest.checkSecretCollision(player, mysteryQuest);
       ThreadLocalRandom rng = ThreadLocalRandom.current();
       String dialogueText;
@@ -2028,20 +2047,9 @@ public class DialogueManager {
       indexMapping.add(-1);
       this.responseIndexMappings.put(player.getUUID(), indexMapping);
       this.responseActionIds.put(player.getUUID(), actionIds);
-      ServerPlayNetworking.send(
-         player,
-         new DialoguePayload(villager.getUUID(), villagerName, professionName, dialogueText, "mystery_accusation", reputationBand, false, responseTexts)
+      PandoricalApi.screens().open(player,
+         DialogueScreens.buildScreen(villager.getUUID(), villagerName, professionName, dialogueText, "mystery_accusation", reputationBand, responseTexts)
       );
-   }
-
-   private static String needTag(Item item, int amount) {
-      String id = BuiltInRegistries.ITEM.getKey(item).toString();
-      return " [need:" + id + (amount > 1 ? ":" + amount : "") + "]";
-   }
-
-   private static String giveTag(Item item, int amount) {
-      String id = BuiltInRegistries.ITEM.getKey(item).toString();
-      return " [give:" + id + (amount > 1 ? ":" + amount : "") + "]";
    }
 
    private void sendWorkOffer(ServerPlayer player, Villager villager, VillagerQuest quest) {
@@ -2051,17 +2059,16 @@ public class DialogueManager {
       String villagerName = VillageQuests.getNameManager().getName(villager);
       String reputationBand = VillageQuests.getReputationManager().getReputationLevel(reputation);
       VillagerProfession profession = (VillagerProfession)villager.getVillagerData().profession().value();
-      String professionName = BuiltInRegistries.VILLAGER_PROFESSION.getKey(profession).getPath();
+      String professionName = professionName(profession);
       ThreadLocalRandom rng = ThreadLocalRandom.current();
       String dialogueText = stripNamePrefix(quest.getDescription(), villagerName);
       Item giveItem = quest.getGiveItem();
-      if (giveItem != null) {
-         dialogueText = dialogueText + giveTag(giveItem, quest.getGiveAmount());
-      }
-
       Item needItem = quest.getSubmissionItem();
-      if (needItem != null && giveItem == null) {
-         dialogueText = dialogueText + needTag(needItem, quest.getSubmissionAmount());
+      DialogueScreens.ItemHint itemHint = null;
+      if (giveItem != null) {
+         itemHint = DialogueScreens.ItemHint.give(giveItem, quest.getGiveAmount());
+      } else if (needItem != null) {
+         itemHint = DialogueScreens.ItemHint.need(needItem, quest.getSubmissionAmount());
       }
 
       if (rng.nextDouble() < 0.4) {
@@ -2102,9 +2109,8 @@ public class DialogueManager {
       List<String> responseTexts = List.of(acceptText, declineText);
       this.responseActionIds.put(player.getUUID(), new ArrayList<>(List.of("accept_work", "decline_work")));
       this.responseIndexMappings.put(player.getUUID(), List.of(0, 1));
-      ServerPlayNetworking.send(
-         player,
-         new DialoguePayload(villager.getUUID(), villagerName, professionName, dialogueText, "work_available_direct", reputationBand, false, responseTexts)
+      PandoricalApi.screens().open(player,
+         DialogueScreens.buildScreen(villager.getUUID(), villagerName, professionName, dialogueText, "work_available_direct", reputationBand, responseTexts, itemHint)
       );
    }
 
@@ -2117,12 +2123,11 @@ public class DialogueManager {
       List<String> responseTexts = dialogue.getResponses().stream().map(Dialogue.DialogueResponse::getText).toList();
       VillagerProfession profession = (VillagerProfession)villager.getVillagerData().profession().value();
       boolean isChild = villager.isBaby();
-      String professionName = isChild ? "child" : BuiltInRegistries.VILLAGER_PROFESSION.getKey(profession).getPath();
+      String professionName = isChild ? "child" : professionName(profession);
       boolean hasQuests = !ActiveQuestManager.hasActiveQuest(player);
       String reputationBand = VillageQuests.getReputationManager().getReputationLevel(reputation);
-      ServerPlayNetworking.send(
-         player,
-         new DialoguePayload(villager.getUUID(), villagerName, professionName, dialogueText, dialogue.getId(), reputationBand, hasQuests, responseTexts)
+      PandoricalApi.screens().open(player,
+         DialogueScreens.buildScreen(villager.getUUID(), villagerName, professionName, dialogueText, dialogue.getId(), reputationBand, responseTexts)
       );
    }
 
@@ -2329,7 +2334,7 @@ public class DialogueManager {
          player.sendSystemMessage(
             Component.literal("*" + villagerName + " takes it. Doesn't say anything. Nods.*")
                .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            false
+            true
          );
          ThreadLocalRandom rng = ThreadLocalRandom.current();
          long delayMinutes = 3 + rng.nextInt(3);
@@ -2377,7 +2382,7 @@ public class DialogueManager {
       }
 
       Inventory inventory = player.getInventory();
-      String profId = BuiltInRegistries.VILLAGER_PROFESSION.getKey((VillagerProfession)villager.getVillagerData().profession().value()).getPath();
+      String profId = professionName((VillagerProfession)villager.getVillagerData().profession().value());
       Item affinityItem = getVillagerAffinity(villager.getUUID(), profId);
       ThreadLocalRandom rng = ThreadLocalRandom.current();
 
@@ -2449,7 +2454,7 @@ public class DialogueManager {
          removeOneFromInventory(player, giftItem);
          String cooldownKey = player.getUUID() + ":" + villagerUuid;
          giftCooldowns.put(cooldownKey, world.getGameTime());
-         String profId = BuiltInRegistries.VILLAGER_PROFESSION.getKey((VillagerProfession)villager.getVillagerData().profession().value()).getPath();
+         String profId = professionName((VillagerProfession)villager.getVillagerData().profession().value());
          Item affinityItem = getVillagerAffinity(villagerUuid, profId);
          boolean isAffinityMatch = giftItem == affinityItem;
          boolean hasReceivedBefore = VillagerMemory.hasMemory(villagerUuid, VillagerMemory.MemoryType.GIFT_RECEIVED);
@@ -2481,7 +2486,7 @@ public class DialogueManager {
 
          player.sendSystemMessage(
             Component.literal(villagerName + ": " + response).withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            false
+            true
          );
          VillagerMemory.recordMemory(villagerUuid, VillagerMemory.MemoryType.GIFT_RECEIVED);
          Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
@@ -2692,7 +2697,7 @@ public class DialogueManager {
       }
 
       if (darkCount >= 3) {
-         observations.add("dark_paths");
+         observations.add(OBS_DARK_PATHS);
          return "I almost tripped on the path again last night. Can't see a thing out there.";
       } else {
          for (int attempt = 0; attempt < 10; attempt++) {
@@ -2705,7 +2710,7 @@ public class DialogueManager {
                   BlockPos adjacent = checkPos.relative(dir);
                   BlockPos beyond = adjacent.relative(dir);
                   if (world.getBlockState(adjacent).isAir() && world.getBlockState(beyond).is(BlockTags.FENCES)) {
-                     observations.add("broken_fences");
+                     observations.add(OBS_BROKEN_FENCES);
                      String direction = getCardinalDirection(center, checkPos);
                      return "The fence by the " + direction + " field has a gap in it. The animals keep getting through.";
                   }
@@ -2722,7 +2727,7 @@ public class DialogueManager {
             if (state.is(BlockTags.BEDS)) {
                int light = world.getMaxLocalRawBrightness(checkPos.above());
                if (light < 5) {
-                  observations.add("unlit_houses");
+                  observations.add(OBS_UNLIT_HOUSES);
                   return "Someone's house doesn't have any light inside. I can tell from the windows.";
                }
             }
@@ -2736,7 +2741,7 @@ public class DialogueManager {
             if (state.getBlock() instanceof FarmlandBlock) {
                BlockState above = world.getBlockState(checkPos.above());
                if (above.isAir()) {
-                  observations.add("empty_fields");
+                  observations.add(OBS_EMPTY_FIELDS);
                   String direction = getCardinalDirection(center, checkPos);
                   return "The " + direction + " field's sitting empty. Seems like a waste.";
                }
@@ -2753,7 +2758,7 @@ public class DialogueManager {
       if (observations != null && !observations.isEmpty()) {
          BlockPos center = village.getCenter();
          ThreadLocalRandom rng = ThreadLocalRandom.current();
-         if (observations.contains("dark_paths")) {
+         if (observations.contains(OBS_DARK_PATHS)) {
             int darkCount = 0;
 
             for (int i = 0; i < 5; i++) {
@@ -2767,13 +2772,13 @@ public class DialogueManager {
             }
 
             if (darkCount < 2) {
-               observations.remove("dark_paths");
+               observations.remove(OBS_DARK_PATHS);
                String[] lines = new String[]{"The path's lit up now. I noticed.", "Someone put torches along the path. Was that you?"};
                return lines[rng.nextInt(lines.length)];
             }
          }
 
-         if (observations.contains("broken_fences")) {
+         if (observations.contains(OBS_BROKEN_FENCES)) {
             boolean stillBroken = false;
 
             for (int attempt = 0; attempt < 10; attempt++) {
@@ -2798,13 +2803,13 @@ public class DialogueManager {
             }
 
             if (!stillBroken) {
-               observations.remove("broken_fences");
+               observations.remove(OBS_BROKEN_FENCES);
                String[] lines = new String[]{"Someone fixed the fence. Was that you?", "The fence is solid again. Good."};
                return lines[rng.nextInt(lines.length)];
             }
          }
 
-         if (observations.contains("empty_fields")) {
+         if (observations.contains(OBS_EMPTY_FIELDS)) {
             boolean stillEmpty = false;
 
             for (int attempt = 0; attempt < 8; attempt++) {
@@ -2822,13 +2827,13 @@ public class DialogueManager {
             }
 
             if (!stillEmpty) {
-               observations.remove("empty_fields");
+               observations.remove(OBS_EMPTY_FIELDS);
                String[] lines = new String[]{"The field's growing again. Good to see.", "Someone planted the empty field. Was that you?"};
                return lines[rng.nextInt(lines.length)];
             }
          }
 
-         if (observations.contains("unlit_houses")) {
+         if (observations.contains(OBS_UNLIT_HOUSES)) {
             boolean stillUnlit = false;
 
             for (int attemptx = 0; attemptx < 8; attemptx++) {
@@ -2847,7 +2852,7 @@ public class DialogueManager {
             }
 
             if (!stillUnlit) {
-               observations.remove("unlit_houses");
+               observations.remove(OBS_UNLIT_HOUSES);
                return "The houses all have light now. Someone's been busy.";
             }
          }
@@ -2946,7 +2951,7 @@ public class DialogueManager {
          player.sendSystemMessage(
             Component.literal("*You say nothing. The moment passes.*")
                .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            false
+            true
          );
       }
    }
@@ -2965,7 +2970,7 @@ public class DialogueManager {
          String subjectName = secret.subjectName();
          player.sendSystemMessage(
             Component.literal(villagerName + ": \"" + subjectName + "? Really? ...I'll keep that in mind.\"").withStyle(ChatFormatting.YELLOW),
-            false
+            true
          );
          VillagerMemory.recordMemory(secret.subjectUuid(), VillagerMemory.MemoryType.TRUST_BETRAYED);
       }

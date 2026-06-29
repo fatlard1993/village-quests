@@ -90,7 +90,7 @@ class SignalFireQuest extends CreationQuest {
          "*stares at the smoke for a long time* I hope someone's there to see it."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), false);
+      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), true);
       ServerLevel village = player.level();
       if (village instanceof ServerLevel) {
          Village villagex = VillageQuests.getVillageManager().findNearestVillage(village, player.blockPosition());

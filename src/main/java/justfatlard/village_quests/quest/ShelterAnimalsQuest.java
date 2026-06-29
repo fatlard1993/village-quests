@@ -124,7 +124,7 @@ class ShelterAnimalsQuest extends CreationQuest {
          "I don't know why I'm getting worked up about chickens. But look at them in there."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), false);
+      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), true);
       this.scheduleAftermathLetter(
          player,
          new String[]{

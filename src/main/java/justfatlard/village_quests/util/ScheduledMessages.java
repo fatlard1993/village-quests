@@ -67,7 +67,7 @@ public class ScheduledMessages {
                   if (currentTick >= msg.deliverAtTick) {
                      try {
                         if (msg.text != null && !msg.text.getString().isEmpty()) {
-                           player.sendSystemMessage(msg.text, false);
+                           player.sendSystemMessage(msg.text, true);
                         }
                         if (msg.onDeliver != null) {
                            msg.onDeliver.run();

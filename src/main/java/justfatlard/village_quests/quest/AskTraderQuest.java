@@ -74,11 +74,10 @@ class AskTraderQuest extends TimeSensitiveQuest {
             "The spot where the trader stood is just empty ground now."
          };
          player.sendSystemMessage(
-            Component.literal(expiryMsgs[ThreadLocalRandom.current().nextInt(expiryMsgs.length)]).withStyle(ChatFormatting.YELLOW), false
-         );
+            Component.literal(expiryMsgs[ThreadLocalRandom.current().nextInt(expiryMsgs.length)]).withStyle(ChatFormatting.YELLOW), true         );
          ConversationMemory.recordTopic(player.getUUID(), this.villagerUuid, ConversationMemory.ConversationTopic.QUEST_GIVEN);
       } else {
-         player.sendSystemMessage(Component.literal("Wandering Trader: \"" + this.traderResponse + "\"").withStyle(ChatFormatting.AQUA), false);
+         player.sendSystemMessage(Component.literal("Wandering Trader: \"" + this.traderResponse + "\"").withStyle(ChatFormatting.AQUA), true);
          String completion;
          if (this.question.contains("brother")) {
             completion = this.requesterName + ": \"Maybe. *stares at the road* Maybe is better than nothing.\"";
@@ -95,7 +94,7 @@ class AskTraderQuest extends TimeSensitiveQuest {
             completion = defaults[ThreadLocalRandom.current().nextInt(defaults.length)];
          }
 
-         player.sendSystemMessage(Component.literal(completion).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(completion).withStyle(ChatFormatting.GREEN), true);
          ConversationMemory.recordTopic(player.getUUID(), this.villagerUuid, ConversationMemory.ConversationTopic.QUEST_GIVEN);
          ScheduledMessages.schedule(
             player, Component.literal(this.requesterName + " has been quiet since you told them.").withStyle(ChatFormatting.GRAY), 600

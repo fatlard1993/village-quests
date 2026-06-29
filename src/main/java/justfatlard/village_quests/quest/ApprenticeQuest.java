@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -142,7 +143,7 @@ public class ApprenticeQuest extends VillagerQuest {
          this.requesterName + ": \"Perfect. *positions it* The kid's been watching from behind the fence for weeks. Tomorrow I'll wave them over.\"",
          this.requesterName + ": \"*steps back, looks at both stations* Side by side. That's how my master taught me. Same way.\""
       };
-      player.sendSystemMessage(Component.literal(msgsx[rng.nextInt(msgsx.length)]).withStyle(ChatFormatting.GREEN), false);
+      player.sendSystemMessage(Component.literal(msgsx[rng.nextInt(msgsx.length)]).withStyle(ChatFormatting.GREEN), true);
       ScheduledMessages.schedule(
          player,
          Component.literal(
@@ -321,7 +322,7 @@ public class ApprenticeQuest extends VillagerQuest {
             amounts = new int[]{8};
             break;
          case "shepherd":
-            items = new Item[]{Items.WHITE_WOOL};
+            items = new Item[]{Items.WOOL.pick(DyeColor.WHITE)};
             amounts = new int[]{4};
             break;
          case "fisherman":
@@ -420,7 +421,7 @@ public class ApprenticeQuest extends VillagerQuest {
             this.requesterName + ": \"*nods slowly* These'll do. " + this.childName + "'s hands are small but steady. Mostly steady.\"",
             this.requesterName + ": \"Perfect. *sets them on the workbench* " + this.childName + " won't know what to do at first. That's the point.\""
          };
-         player.sendSystemMessage(Component.literal(msgsx[rng.nextInt(msgsx.length)]).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(msgsx[rng.nextInt(msgsx.length)]).withStyle(ChatFormatting.GREEN), true);
          ScheduledMessages.schedule(
             player,
             Component.literal(this.requesterName + ": '*watching from across the room* They broke two already. That's normal. I broke four my first day.'")
@@ -494,7 +495,7 @@ public class ApprenticeQuest extends VillagerQuest {
          player.sendSystemMessage(
             Component.literal(this.requesterName + ": '*holds something out carefully* They made this. Their first one.'")
                .withStyle(ChatFormatting.GREEN),
-            false
+            true
          );
          ScheduledMessages.schedule(
             player,
@@ -518,7 +519,7 @@ public class ApprenticeQuest extends VillagerQuest {
                player.sendSystemMessage(
                   Component.literal("You received " + gift.getHoverName().getString() + ".")
                      .withStyle(new ChatFormatting[]{ChatFormatting.GOLD, ChatFormatting.ITALIC}),
-                  false
+                  true
                );
             }
          );
@@ -618,7 +619,7 @@ public class ApprenticeQuest extends VillagerQuest {
                itemLabel = childName + "'s First Brick";
                break;
             case "shepherd":
-               baseItem = Items.WHITE_WOOL;
+               baseItem = Items.WOOL.pick(DyeColor.WHITE);
                itemLabel = childName + "'s First Wool";
                break;
             case "fisherman":

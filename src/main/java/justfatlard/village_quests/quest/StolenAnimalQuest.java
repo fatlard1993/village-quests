@@ -14,6 +14,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.decoration.LeashFenceKnotEntity;
 import net.minecraft.world.entity.monster.illager.Pillager;
@@ -71,9 +72,9 @@ class StolenAnimalQuest extends MobEventQuest {
          boolean useSheep = rng.nextBoolean();
          Entity animal;
          if (useSheep) {
-            animal = EntityType.SHEEP.create(world, EntitySpawnReason.MOB_SUMMONED);
+            animal = EntityTypes.SHEEP.create(world, EntitySpawnReason.MOB_SUMMONED);
          } else {
-            animal = EntityType.COW.create(world, EntitySpawnReason.MOB_SUMMONED);
+            animal = EntityTypes.COW.create(world, EntitySpawnReason.MOB_SUMMONED);
          }
 
          if (animal != null) {
@@ -95,7 +96,7 @@ class StolenAnimalQuest extends MobEventQuest {
 
          for (int i = 0; i < pillagerCount; i++) {
             BlockPos pPos = findSafeSpawnPos(world, campfirePos, 2, 5);
-            Pillager pillager = (Pillager)EntityType.PILLAGER.create(world, EntitySpawnReason.MOB_SUMMONED);
+            Pillager pillager = (Pillager)EntityTypes.PILLAGER.create(world, EntitySpawnReason.MOB_SUMMONED);
             if (pillager != null) {
                pillager.snapTo(
                   pPos.getX() + 0.5, (double)pPos.getY(), pPos.getZ() + 0.5, world.getRandom().nextFloat() * 360.0F, 0.0F
@@ -152,7 +153,7 @@ class StolenAnimalQuest extends MobEventQuest {
          player.sendSystemMessage(
             Component.literal(this.animalName + " never came back. " + this.requesterName + " left the pen gate open for a week.")
                .withStyle(ChatFormatting.AQUA),
-            false
+            true
          );
          Village v = VillageQuests.getVillageManager().findNearestVillage(world, player.blockPosition());
          if (v != null) {
@@ -166,7 +167,7 @@ class StolenAnimalQuest extends MobEventQuest {
                this.requesterName + ": \"" + this.animalName + "! *kneels down* Oh, you're okay. You're okay.\"",
                this.requesterName + ": \"They're shaking. But they're home. *voice breaks* Thank you.\""
             };
-            player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), false);
+            player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
             VillagerMemory.recordMemory(this.villagerUuid, VillagerMemory.MemoryType.ANIMAL_RESCUED);
             this.scheduleAftermathLetter(
                player,
@@ -179,7 +180,7 @@ class StolenAnimalQuest extends MobEventQuest {
             player.sendSystemMessage(
                Component.literal(this.requesterName + ": \"The camp is gone. That's something. *looks at the empty pen* That's something.\"")
                   .withStyle(ChatFormatting.YELLOW),
-               false
+               true
             );
             this.scheduleAftermathLetter(player, new String[]{"The pen is still empty. " + this.requesterName + " hasn't taken the name tag down."});
          }

@@ -64,8 +64,7 @@ class FishHatQuest extends TimeSensitiveQuest {
             "The water's still moving. The " + this.hatType + " isn't."
          };
          player.sendSystemMessage(
-            Component.literal(expiryMsgs[ThreadLocalRandom.current().nextInt(expiryMsgs.length)]).withStyle(ChatFormatting.AQUA), false
-         );
+            Component.literal(expiryMsgs[ThreadLocalRandom.current().nextInt(expiryMsgs.length)]).withStyle(ChatFormatting.AQUA), true         );
          ConversationMemory.recordTopic(player.getUUID(), this.villagerUuid, ConversationMemory.ConversationTopic.QUEST_GIVEN);
          ServerLevel v = player.level();
          if (v instanceof ServerLevel) {
@@ -83,7 +82,7 @@ class FishHatQuest extends TimeSensitiveQuest {
          );
          player.sendSystemMessage(
             Component.literal(this.requesterName + ": \"My " + this.hatType + "! Still dry enough to wear.\"").withStyle(ChatFormatting.GREEN),
-            false
+            true
          );
          ConversationMemory.recordTopic(player.getUUID(), this.villagerUuid, ConversationMemory.ConversationTopic.QUEST_GIVEN);
          ScheduledMessages.schedule(

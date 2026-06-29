@@ -34,16 +34,19 @@ public enum ReputationEvent {
       this.color = color;
    }
 
+   /** Matches ReputationBand.ELDER_FRIEND minReputation (200). */
+   private static final int REPUTATION_TAPER_CAP = 200;
+
    public int calculateChange(int currentReputation) {
       float scaledPercentage = this.basePercentage;
       if (currentReputation > 0) {
          if (this.basePercentage > 0.0F) {
-            float taperFactor = 1.0F - Math.min(currentReputation, 200) / 400.0F;
+            float taperFactor = 1.0F - Math.min(currentReputation, REPUTATION_TAPER_CAP) / (REPUTATION_TAPER_CAP * 2.0F);
             scaledPercentage *= 0.5F + 0.5F * taperFactor;
          }
       } else if (currentReputation < 0) {
          if (this.basePercentage < 0.0F) {
-            float taperFactor = 1.0F - Math.min(Math.abs(currentReputation), 200) / 400.0F;
+            float taperFactor = 1.0F - Math.min(Math.abs(currentReputation), REPUTATION_TAPER_CAP) / (REPUTATION_TAPER_CAP * 2.0F);
             scaledPercentage *= 0.5F + 0.5F * taperFactor;
          } else {
             scaledPercentage *= 1.5F;

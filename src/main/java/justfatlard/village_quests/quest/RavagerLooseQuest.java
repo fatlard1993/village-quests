@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.monster.Ravager;
 
 class RavagerLooseQuest extends MobEventQuest {
@@ -37,7 +38,7 @@ class RavagerLooseQuest extends MobEventQuest {
    public void spawnMobs(ServerLevel world) {
       if (!this.mobsSpawned) {
          BlockPos spawnPos = findSafeSpawnPos(world, this.eventLocation, 10, 25);
-         Ravager ravager = (Ravager)EntityType.RAVAGER.create(world, EntitySpawnReason.MOB_SUMMONED);
+         Ravager ravager = (Ravager)EntityTypes.RAVAGER.create(world, EntitySpawnReason.MOB_SUMMONED);
          if (ravager != null) {
             ravager.snapTo(
                spawnPos.getX() + 0.5, (double)spawnPos.getY(), spawnPos.getZ() + 0.5, world.getRandom().nextFloat() * 360.0F, 0.0F
@@ -61,7 +62,7 @@ class RavagerLooseQuest extends MobEventQuest {
             "It left on its own. Nobody's sure where it went. " + this.requesterName + " checked the door lock three times.",
             "Someone heard it crash through the fence at the edge of the village. Then nothing."
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.YELLOW), false);
+         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.YELLOW), true);
          if (world instanceof ServerLevel) {
             Village v = VillageQuests.getVillageManager().findNearestVillage(world, player.blockPosition());
             if (v != null) {
@@ -74,7 +75,7 @@ class RavagerLooseQuest extends MobEventQuest {
             this.requesterName + ": \"I can still hear it. In my head. But the square is quiet now.\"",
             this.requesterName + ": \"My hands won't stop shaking. But I can go home. Thank you.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
          this.scheduleAftermathLetter(
             player,
             new String[]{this.requesterName + " started sleeping with the shutters open again.", "The fence is rebuilt. Stronger this time. Nobody said why."}

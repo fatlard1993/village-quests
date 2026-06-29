@@ -23,7 +23,7 @@ public class WorkRequestManager {
    private static final String STORAGE_KEY = "village_quests_work_requests";
    private static final long IN_GAME_DAY = 24000L;
    private static final SavedDataType<WorkRequestManager.WorkRequestData> WORK_REQUEST_STATE_TYPE = new SavedDataType<>(
-      Identifier.parse("village_quests_work_requests"), WorkRequestManager.WorkRequestData::new, WorkRequestManager.WorkRequestData.CODEC, DataFixTypes.LEVEL
+      Identifier.parse(STORAGE_KEY), WorkRequestManager.WorkRequestData::new, WorkRequestManager.WorkRequestData.CODEC, DataFixTypes.LEVEL
    );
 
    private WorkRequestManager.WorkRequestData getWorkRequestData(ServerLevel world) {

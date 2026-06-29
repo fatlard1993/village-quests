@@ -72,7 +72,7 @@ class LightCandleQuest extends CreationQuest {
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
       player.sendSystemMessage(
          Component.literal(this.requesterName + ": " + response).withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-         false
+         true
       );
       this.completed = true;
    }

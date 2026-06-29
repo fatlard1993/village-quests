@@ -67,7 +67,7 @@ class RetryHealGolemQuest extends CreationQuest {
          player.sendSystemMessage(
             Component.literal(this.requesterName + ": \"*sits down* ...We did it. It took us " + (this.attempt + 1) + " tries but we did it.\"")
                .withStyle(ChatFormatting.GREEN),
-            false
+            true
          );
          VillagerQuest.clearFailureHistory(this.villagerUuid);
          VillagerMemory.recordMemory(this.villagerUuid, VillagerMemory.MemoryType.GOLEM_HEALED);
@@ -80,12 +80,12 @@ class RetryHealGolemQuest extends CreationQuest {
             String failMsg = this.attempt == 1
                ? this.requesterName + ": \"Twice now. Maybe it's not the iron. Maybe it's this place.\""
                : this.requesterName + ": \"I don't know why we keep trying. ...I do know. But I can't say it out loud.\"";
-            player.sendSystemMessage(Component.literal(failMsg).withStyle(ChatFormatting.GREEN), false);
+            player.sendSystemMessage(Component.literal(failMsg).withStyle(ChatFormatting.GREEN), true);
          } else {
             String successMsg = this.attempt == 1
                ? this.requesterName + ": \"It worked. *stares* ...It actually worked this time.\""
                : this.requesterName + ": \"Third time. *watches* ...I stopped hoping. That's when it worked.\"";
-            player.sendSystemMessage(Component.literal(successMsg).withStyle(ChatFormatting.GREEN), false);
+            player.sendSystemMessage(Component.literal(successMsg).withStyle(ChatFormatting.GREEN), true);
             VillagerQuest.clearFailureHistory(this.villagerUuid);
          }
 

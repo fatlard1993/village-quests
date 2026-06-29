@@ -100,7 +100,7 @@ class AnimalSwarmQuest extends MobEventQuest {
          player.sendSystemMessage(
             Component.literal("The " + this.animalWord + " eventually wandered off. Most of them. There's still one in the library.")
                .withStyle(ChatFormatting.YELLOW),
-            false
+            true
          );
       } else {
          String[] msgs = new String[]{
@@ -108,7 +108,7 @@ class AnimalSwarmQuest extends MobEventQuest {
             this.requesterName + ": \"My house smells like " + this.animalWord + ". But at least the square is clear. I think.\"",
             this.requesterName + ": \"One of the children is crying because they wanted to keep one. *sighs* I'm going to regret this.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
          this.scheduleAftermathLetter(
             player,
             new String[]{

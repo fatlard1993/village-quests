@@ -26,7 +26,9 @@ import justfatlard.village_quests.presence.FirstEncounterTracker;
 import justfatlard.village_quests.presence.PresenceTracker;
 import justfatlard.village_quests.presence.SocialBehaviorManager;
 import justfatlard.village_quests.presence.VillagerMoodManager;
+import justfatlard.village_quests.api.QuestRegistry;
 import justfatlard.village_quests.quest.ApprenticeQuest;
+import justfatlard.village_quests.quest.BuilderMaterialsQuest;
 import justfatlard.village_quests.quest.DarkActionTracker;
 import justfatlard.village_quests.quest.MemorialQuest;
 import justfatlard.village_quests.quest.MisnomerQuest;
@@ -45,6 +47,7 @@ import justfatlard.village_quests.util.MessagePacer;
 import justfatlard.village_quests.util.ReputationHelper;
 import justfatlard.village_quests.util.ScheduledMessages;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AfterDamage;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AfterDeath;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
@@ -77,7 +80,7 @@ import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.entity.raid.Raid;
-import net.minecraft.world.item.BedItem;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -109,6 +112,10 @@ public class VillageQuests implements ModInitializer {
    private static final Map<String, Long> survivedNightCooldowns = new ConcurrentHashMap<>();
    private static final long SURVIVED_NIGHT_COOLDOWN_TICKS = 72000L;
    private static final long VILLAGE_CENTER_CACHE_TTL_TICKS = 100L;
+   private static final long PLAYER_DEDUP_COOLDOWN_MS = 500L;
+   private static final long COOLDOWN_MAP_TTL_MS = 5000L;
+   static final long MC_NIGHT_START_TICKS = 13000L;
+   static final long MC_NIGHT_END_TICKS = 23000L;
    private static final Logger LOGGER = LoggerFactory.getLogger("VillageQuests");
    private static final String[] REMINDER_VARIANTS = new String[]{
       "You haven't forgotten about that, have you? — %s",
@@ -149,6 +156,19 @@ public class VillageQuests implements ModInitializer {
       this.registerPlayerEvents();
       this.registerServerLifecycleEvents();
       ReputationMailSystem.init();
+      this.registerExternalQuests();
+   }
+
+   private void registerExternalQuests() {
+      // BuilderMaterialsQuest: builder profession (village-builder mod), rep >= 0, 40% chance
+      if (FabricLoader.getInstance().isModLoaded("village-builder")) {
+         QuestRegistry.QuestGenerator builderMaterials = (villager, villagerName, reputation, random) -> {
+            if (reputation < 0) return null;
+            if (random.nextFloat() >= 0.40f) return null;
+            return new BuilderMaterialsQuest(villagerName, villager.getUUID());
+         };
+         QuestRegistry.registerProfessionQuest("builder", builderMaterials);
+      }
    }
 
    private void registerEntityEvents() {
@@ -170,11 +190,11 @@ public class VillageQuests implements ModInitializer {
                   } else {
                      long now = System.currentTimeMillis();
                      Long lastPlayerInteraction = playerInteractionCooldowns.get(serverPlayer.getUUID());
-                     if (lastPlayerInteraction != null && now - lastPlayerInteraction < 500L) {
+                     if (lastPlayerInteraction != null && now - lastPlayerInteraction < PLAYER_DEDUP_COOLDOWN_MS) {
                         return InteractionResult.SUCCESS;
                      } else {
                         playerInteractionCooldowns.put(serverPlayer.getUUID(), now);
-                        playerInteractionCooldowns.entrySet().removeIf(entry -> now - entry.getValue() > 5000L);
+                        playerInteractionCooldowns.entrySet().removeIf(entry -> now - entry.getValue() > COOLDOWN_MAP_TTL_MS);
                         String cooldownKey = serverPlayer.getUUID() + ":" + villager.getUUID();
                         long currentTime = System.currentTimeMillis();
                         Long lastInteraction = interactionCooldowns.get(cooldownKey);
@@ -182,15 +202,11 @@ public class VillageQuests implements ModInitializer {
                            return InteractionResult.SUCCESS;
                         } else {
                            interactionCooldowns.put(cooldownKey, currentTime);
-                           interactionCooldowns.entrySet().removeIf(entry -> currentTime - entry.getValue() > 5000L);
+                           interactionCooldowns.entrySet().removeIf(entry -> currentTime - entry.getValue() > COOLDOWN_MAP_TTL_MS);
                            if (DialogueStateManager.isInDialogue(villager)) {
                               UUID partner = DialogueStateManager.getDialoguePartner(villager);
                               if (partner != null && !partner.equals(serverPlayer.getUUID())) {
-                                 serverPlayer.sendSystemMessage(
-                                    Component.literal(nameManager.getName(villager) + " is busy talking to someone.")
-                                       .withStyle(ChatFormatting.GRAY),
-                                    true
-                                 );
+                                 dialogueManager.openMoodRefusal(serverPlayer, villager, "is busy talking to someone.");
                                  return InteractionResult.SUCCESS;
                               }
                            }
@@ -211,7 +227,7 @@ public class VillageQuests implements ModInitializer {
                                  if (villagerHasProfession) {
                                     dialogueManager.openTradeDirectly(serverPlayer, villager);
                                  } else {
-                                    serverPlayer.sendSystemMessage(Component.literal(reputationRefusal).withStyle(ChatFormatting.GRAY), true);
+                                    dialogueManager.openMoodRefusal(serverPlayer, villager, reputationRefusal);
                                  }
 
                                  return InteractionResult.SUCCESS;
@@ -224,7 +240,7 @@ public class VillageQuests implements ModInitializer {
                                  if (villagerHasProfession) {
                                     dialogueManager.openTradeDirectly(serverPlayer, villager);
                                  } else {
-                                    serverPlayer.sendSystemMessage(Component.literal(exhaustedRefusal).withStyle(ChatFormatting.GRAY), true);
+                                    dialogueManager.openMoodRefusal(serverPlayer, villager, exhaustedRefusal);
                                  }
 
                                  return InteractionResult.SUCCESS;
@@ -237,10 +253,7 @@ public class VillageQuests implements ModInitializer {
                                  if (villagerHasProfession) {
                                     dialogueManager.openTradeDirectly(serverPlayer, villager);
                                  } else {
-                                    String villagerName = nameManager.getName(villager);
-                                    serverPlayer.sendSystemMessage(
-                                       Component.literal(villagerName + " " + moodRefusal).withStyle(ChatFormatting.GRAY), true
-                                    );
+                                    dialogueManager.openMoodRefusal(serverPlayer, villager, moodRefusal);
                                  }
 
                                  return InteractionResult.SUCCESS;
@@ -381,7 +394,7 @@ public class VillageQuests implements ModInitializer {
                   ItemStack stack = player.getItemInHand(hand);
                   Item item = stack.getItem();
                   Village village = getCachedVillage(serverPlayer);
-                  if (item instanceof BedItem) {
+                  if (stack.is(ItemTags.BEDS)) {
                      BlockPos pos = hitResult.getBlockPos().relative(hitResult.getDirection());
                      if (village != null && pos.closerThan(village.getCenter(), 64.0)) {
                         applyBlockPlacementEvent(serverPlayer, village, ReputationEvent.BED_PLACED);
@@ -506,7 +519,6 @@ public class VillageQuests implements ModInitializer {
          }
 
          if (tick % 100L == 0L) {
-            safeTick(() -> ActiveQuestManager.tickQuestCompletions(server), "quest-completion-poll");
             safeTick(() -> this.processMisnomerRecognitions(server), "misnomer");
             safeTick(() -> this.processMailQueues(server), "mail");
          }
@@ -570,7 +582,7 @@ public class VillageQuests implements ModInitializer {
 
    private void processOvernightStays(MinecraftServer server) {
       long worldTime = server.overworld().getGameTime();
-      if (worldTime % 24000L >= 13000L && worldTime % 24000L <= 23000L && server.getTickCount() % 100 == 0) {
+      if (worldTime % 24000L >= MC_NIGHT_START_TICKS && worldTime % 24000L <= MC_NIGHT_END_TICKS && server.getTickCount() % 100 == 0) {
          BehaviorReputationTracker.processOvernightStays(server);
       }
    }
@@ -636,7 +648,7 @@ public class VillageQuests implements ModInitializer {
             player.sendSystemMessage(
                Component.literal("You haven't heard from anyone in " + village.getName() + " in a while.")
                   .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-               false
+               true
             );
          }
       }
@@ -822,7 +834,7 @@ public class VillageQuests implements ModInitializer {
 
             for (ServerPlayer player : world.players()) {
                if (player.blockPosition().closerThan(villageCenter, 100.0)) {
-                  player.sendSystemMessage(Component.literal("There's talk of new homes. More room, they say.").withStyle(ChatFormatting.GRAY), false);
+                  player.sendSystemMessage(Component.literal("There's talk of new homes. More room, they say.").withStyle(ChatFormatting.GRAY), true);
                }
             }
          }

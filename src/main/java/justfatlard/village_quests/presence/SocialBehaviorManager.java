@@ -94,8 +94,6 @@ public class SocialBehaviorManager {
             world.sendParticles(
                ParticleTypes.HAPPY_VILLAGER, villager.getX(), villager.getY() + 2.0, villager.getZ(), 3, 0.3, 0.3, 0.3, 0.0
             );
-            String villagerName = VillageQuests.getNameManager().getName(villager);
-            player.sendSystemMessage(Component.literal(villagerName + " nods at you warmly.").withStyle(ChatFormatting.GRAY), true);
             LAST_GREETING.put(villagerId, currentTime);
          }
       }

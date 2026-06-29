@@ -32,7 +32,7 @@ public class ReputationManager {
    private static final Logger LOGGER = LoggerFactory.getLogger("VillageQuests");
    private static final String STORAGE_KEY = "village_quests_reputation";
    private static final SavedDataType<ReputationManager.ReputationData> REPUTATION_STATE_TYPE = new SavedDataType<>(
-      Identifier.parse("village_quests_reputation"), ReputationManager.ReputationData::new, ReputationManager.ReputationData.CODEC, DataFixTypes.LEVEL
+      Identifier.parse(STORAGE_KEY), ReputationManager.ReputationData::new, ReputationManager.ReputationData.CODEC, DataFixTypes.LEVEL
    );
 
    private ReputationManager.ReputationData getReputationData(ServerLevel world) {

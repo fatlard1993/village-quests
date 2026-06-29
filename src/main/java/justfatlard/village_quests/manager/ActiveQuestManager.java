@@ -50,7 +50,7 @@ public class ActiveQuestManager {
    private static final Map<UUID, Boolean> alreadyHadItems = new ConcurrentHashMap<>();
    private static final String STORAGE_KEY = "village_quests_active";
    private static final SavedDataType<ActiveQuestManager.InterruptedQuestState> INTERRUPTED_STATE_TYPE = new SavedDataType<>(
-      Identifier.parse("village_quests_active"), ActiveQuestManager.InterruptedQuestState::new, ActiveQuestManager.InterruptedQuestState.CODEC, DataFixTypes.LEVEL
+      Identifier.parse(STORAGE_KEY), ActiveQuestManager.InterruptedQuestState::new, ActiveQuestManager.InterruptedQuestState.CODEC, DataFixTypes.LEVEL
    );
 
    public static boolean consumeAlreadyHadItems(UUID playerId) {
@@ -98,6 +98,9 @@ public class ActiveQuestManager {
       }
 
       activeQuests.put(player.getUUID(), newQuest);
+      if (newQuest instanceof justfatlard.village_quests.quest.TimeSensitiveQuest ts) {
+         ts.initAtAcceptance(player.level().getServer().getTickCount());
+      }
       newQuest.onAccept(player);
       VillagerQuest.recordQuestType(player.getUUID(), newQuest.getType());
       BehaviorReputationTracker.trackQuestAcceptance(player.getUUID(), newQuest.getQuestId());
@@ -360,39 +363,6 @@ public class ActiveQuestManager {
          return var4 instanceof ServerLevel ? plotManager.ownsPlotInVillage(var4, player.getUUID(), village) : false;
       } else {
          return false;
-      }
-   }
-
-   public static void tickQuestCompletions(MinecraftServer server) {
-      List<UUID> completedPlayers = new ArrayList<>();
-
-      for (Entry<UUID, VillagerQuest> entry : activeQuests.entrySet()) {
-         UUID playerId = entry.getKey();
-         VillagerQuest quest = entry.getValue();
-         if (!quest.isCompleted()) {
-            ServerPlayer player = server.getPlayerList().getPlayer(playerId);
-            if (player != null
-               && (quest.getVillagerUuid() == null || !DialogueStateManager.isInDialogue(quest.getVillagerUuid()))
-               && quest.checkCompletion(player)) {
-               completedPlayers.add(playerId);
-            }
-         }
-      }
-
-      for (UUID playerId : completedPlayers) {
-         ServerPlayer player = server.getPlayerList().getPlayer(playerId);
-         if (player != null) {
-            VillagerQuest quest = activeQuests.get(playerId);
-            if (quest != null && !quest.isCompleted()) {
-               Village village = null;
-               ServerLevel var8 = player.level();
-               if (var8 instanceof ServerLevel) {
-                  village = VillageQuests.getVillageManager().findNearestVillage(var8, player.blockPosition());
-               }
-
-               completeQuest(player, village, 0);
-            }
-         }
       }
    }
 

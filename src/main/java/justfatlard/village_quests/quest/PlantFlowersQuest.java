@@ -135,7 +135,7 @@ class PlantFlowersQuest extends CreationQuest {
          player.sendSystemMessage(
             Component.literal(this.requesterName + ": \"The bees came. For a day. Then they left again. I don't know what we're doing wrong.\"")
                .withStyle(ChatFormatting.GREEN),
-            false
+            true
          );
       } else {
          String[] responses = new String[]{
@@ -145,7 +145,7 @@ class PlantFlowersQuest extends CreationQuest {
             "Color everywhere. I forgot what that looked like."
          };
          String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-         player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), true);
          this.scheduleAftermathLetter(
             player,
             new String[]{

@@ -312,10 +312,10 @@ class BuildHomeQuest extends CreationQuest {
          "I don't know what to say. It's... it's a house. They have a house now."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), false);
+      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), true);
 
       for (String observation : this.getBuildQualityObservations(player)) {
-         player.sendSystemMessage(Component.literal(this.requesterName + ": " + observation).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(this.requesterName + ": " + observation).withStyle(ChatFormatting.GREEN), true);
       }
 
       String anticipation = this.getAnticipationLine();
@@ -323,7 +323,7 @@ class BuildHomeQuest extends CreationQuest {
          player.sendSystemMessage(
             Component.literal(this.requesterName + ": " + anticipation)
                .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            false
+            true
          );
       }
 

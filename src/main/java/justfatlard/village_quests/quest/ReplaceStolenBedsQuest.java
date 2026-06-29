@@ -79,7 +79,7 @@ class ReplaceStolenBedsQuest extends CreationQuest {
          "I heard someone snoring last night and I almost cried. That sounds strange. But I did."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), false);
+      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), true);
       this.scheduleAftermathLetter(
          player,
          new String[]{

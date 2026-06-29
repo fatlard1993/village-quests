@@ -2628,7 +2628,8 @@ class DialogueContent {
    static String generateTradeText(Villager villager, ServerPlayer player, int reputation) {
       Level world = villager.level();
       VillagerProfession profession = (VillagerProfession)villager.getVillagerData().profession().value();
-      String professionId = BuiltInRegistries.VILLAGER_PROFESSION.getKey(profession).getPath();
+      net.minecraft.resources.Identifier _tradeKey = BuiltInRegistries.VILLAGER_PROFESSION.getKey(profession);
+      String professionId = _tradeKey != null ? _tradeKey.getPath() : "none";
       long timeOfDay = world.getOverworldClockTime() % 24000L;
       boolean isMorning = timeOfDay < 6000L;
       if (timeOfDay >= 6000L && timeOfDay < 12000L) {
@@ -2786,7 +2787,8 @@ class DialogueContent {
    static String generateWorkInquiryText(Villager villager, ServerPlayer player, int reputation, boolean isOnCooldown, long cooldownRemaining) {
       Level world = villager.level();
       VillagerProfession profession = (VillagerProfession)villager.getVillagerData().profession().value();
-      String professionId = BuiltInRegistries.VILLAGER_PROFESSION.getKey(profession).getPath();
+      net.minecraft.resources.Identifier _workKey = BuiltInRegistries.VILLAGER_PROFESSION.getKey(profession);
+      String professionId = _workKey != null ? _workKey.getPath() : "none";
       long timeOfDay = world.getOverworldClockTime() % 24000L;
       boolean isMorning = timeOfDay < 6000L;
       boolean isEvening = timeOfDay >= 12000L && timeOfDay < 18000L;

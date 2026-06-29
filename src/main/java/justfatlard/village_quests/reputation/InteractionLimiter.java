@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class InteractionLimiter {
-   private static final Map<String, Set<String>> DAILY_USED_OPTIONS = new ConcurrentHashMap<>();
+   private static final Map<UUID, Map<UUID, Set<String>>> DAILY_USED_OPTIONS = new ConcurrentHashMap<>();
    private static final String[] SHUNNED_REFUSALS = new String[]{"*turns away*", "*won't look at you*", "Go away."};
    private static final String[] HOSTILE_REFUSALS = new String[]{"*hesitates*", "I have nothing to say to you.", "Not now."};
    private static final String[] DISTRUSTED_REFUSALS = new String[]{"*looks uncomfortable*"};
@@ -35,13 +35,17 @@ public class InteractionLimiter {
    }
 
    public static void recordUsed(UUID playerId, UUID villagerId, String optionType) {
-      String key = playerId + ":" + villagerId;
-      DAILY_USED_OPTIONS.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet()).add(optionType);
+      DAILY_USED_OPTIONS
+         .computeIfAbsent(playerId, k -> new ConcurrentHashMap<>())
+         .computeIfAbsent(villagerId, k -> ConcurrentHashMap.newKeySet())
+         .add(optionType);
    }
 
    private static Set<String> getUsedOptions(UUID playerId, UUID villagerId) {
-      String key = playerId + ":" + villagerId;
-      return DAILY_USED_OPTIONS.getOrDefault(key, Set.of());
+      Map<UUID, Set<String>> villagerMap = DAILY_USED_OPTIONS.get(playerId);
+      if (villagerMap == null) return Set.of();
+      Set<String> options = villagerMap.get(villagerId);
+      return options != null ? options : Set.of();
    }
 
    public static void resetDailyInteractions() {
@@ -49,8 +53,7 @@ public class InteractionLimiter {
    }
 
    public static void onPlayerDisconnect(UUID playerId) {
-      String prefix = playerId.toString() + ":";
-      DAILY_USED_OPTIONS.keySet().removeIf(key -> key.startsWith(prefix));
+      DAILY_USED_OPTIONS.remove(playerId);
    }
 
    public static void onServerStopping() {

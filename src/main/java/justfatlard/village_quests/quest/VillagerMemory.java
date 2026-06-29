@@ -93,11 +93,11 @@ public class VillagerMemory {
    }
 
    private static float calculateDecayedStrength(VillagerMemory.MemoryType type, VillagerMemory.MemoryEntry entry) {
-      long elapsed = System.currentTimeMillis() - entry.createdTime;
+      long elapsed = System.currentTimeMillis() - entry.getCreatedTime();
       float daysSinceCreated = (float)elapsed / 8.64E7F;
       float maxDays = getMaxDays(type);
       float natural = 1.0F - daysSinceCreated / maxDays;
-      return Math.min(entry.strength, Math.max(natural, 0.0F));
+      return Math.min(entry.getStrength(), Math.max(natural, 0.0F));
    }
 
    public static float getMemoryStrength(UUID villagerUuid, VillagerMemory.MemoryType type) {
@@ -151,8 +151,8 @@ public class VillagerMemory {
       if (memories != null) {
          VillagerMemory.MemoryEntry entry = memories.get(type);
          if (entry != null) {
-            entry.strength = Math.min(1.0F, entry.strength + 0.1F);
-            entry.resurfaceCount++;
+            entry.boostStrength(0.1F);
+            entry.incrementResurfaceCount();
             markDirty();
          }
       }
@@ -163,7 +163,8 @@ public class VillagerMemory {
          return false;
       } else {
          VillagerProfession prof = (VillagerProfession)villager.getVillagerData().profession().value();
-         String profId = BuiltInRegistries.VILLAGER_PROFESSION.getKey(prof).getPath();
+         Identifier _memKey = BuiltInRegistries.VILLAGER_PROFESSION.getKey(prof);
+         String profId = _memKey != null ? _memKey.getPath() : "none";
          return "nitwit".equals(profId) ? true : (villager.getUUID().hashCode() & 7) == 0;
       }
    }
@@ -174,7 +175,7 @@ public class VillagerMemory {
          return 0;
       } else {
          VillagerMemory.MemoryEntry entry = memories.get(VillagerMemory.MemoryType.INDEPENDENCE_RESPECTED);
-         return entry == null ? 0 : entry.resurfaceCount + 1;
+         return entry == null ? 0 : entry.getResurfaceCount() + 1;
       }
    }
 
@@ -521,17 +522,17 @@ public class VillagerMemory {
       VillagerMemory.MemoryEntry betrayed = memories.get(VillagerMemory.MemoryType.TRUST_BETRAYED);
       VillagerMemory.MemoryEntry lifeSaved = memories.get(VillagerMemory.MemoryType.LIFE_SAVED);
       if (betrayed != null && lifeSaved != null) {
-         if (betrayed.createdTime > lifeSaved.createdTime) {
-            lifeSaved.strength = Math.max(0.0F, lifeSaved.strength - 0.3F);
+         if (betrayed.getCreatedTime() > lifeSaved.getCreatedTime()) {
+            lifeSaved.setStrength(Math.max(0.0F, lifeSaved.getStrength() - 0.3F));
          } else {
-            betrayed.strength = Math.max(0.0F, betrayed.strength - 0.3F);
+            betrayed.setStrength(Math.max(0.0F, betrayed.getStrength() - 0.3F));
          }
       }
 
       VillagerMemory.MemoryEntry destroyed = memories.get(VillagerMemory.MemoryType.HOME_DESTROYED);
       VillagerMemory.MemoryEntry rebuilt = memories.get(VillagerMemory.MemoryType.HOME_REBUILT);
       if (destroyed != null && rebuilt != null) {
-         destroyed.strength = Math.max(0.0F, destroyed.strength - 0.5F);
+         destroyed.setStrength(Math.max(0.0F, destroyed.getStrength() - 0.5F));
       }
    }
 
@@ -545,8 +546,8 @@ public class VillagerMemory {
 
          for (Entry<VillagerMemory.MemoryType, VillagerMemory.MemoryEntry> memEntry : memories.entrySet()) {
             float effective = calculateDecayedStrength(memEntry.getKey(), memEntry.getValue());
-            if (effective != memEntry.getValue().strength) {
-               memEntry.getValue().strength = effective;
+            if (effective != memEntry.getValue().getStrength()) {
+               memEntry.getValue().setStrength(effective);
                anyChanged = true;
             }
          }
@@ -556,7 +557,7 @@ public class VillagerMemory {
 
          while (memIter.hasNext()) {
             Entry<VillagerMemory.MemoryType, VillagerMemory.MemoryEntry> memEntryx = memIter.next();
-            if (memEntryx.getValue().strength <= 0.0F) {
+            if (memEntryx.getValue().getStrength() <= 0.0F) {
                memIter.remove();
                anyChanged = true;
             }
@@ -584,9 +585,9 @@ public class VillagerMemory {
          for (Entry<VillagerMemory.MemoryType, VillagerMemory.MemoryEntry> memEntry : entry.getValue().entrySet()) {
             CompoundTag memoryNbt = new CompoundTag();
             memoryNbt.putString("type", memEntry.getKey().getKey());
-            memoryNbt.putLong("createdTime", memEntry.getValue().createdTime);
-            memoryNbt.putFloat("strength", memEntry.getValue().strength);
-            memoryNbt.putInt("resurfaceCount", memEntry.getValue().resurfaceCount);
+            memoryNbt.putLong("createdTime", memEntry.getValue().getCreatedTime());
+            memoryNbt.putFloat("strength", memEntry.getValue().getStrength());
+            memoryNbt.putInt("resurfaceCount", memEntry.getValue().getResurfaceCount());
             memoryList.add(memoryNbt);
          }
 
@@ -721,9 +722,9 @@ public class VillagerMemory {
    }
 
    public static class MemoryEntry {
-      public long createdTime;
-      public float strength;
-      public int resurfaceCount;
+      private long createdTime;
+      private float strength;
+      private int resurfaceCount;
 
       public MemoryEntry(long createdTime, float strength, int resurfaceCount) {
          this.createdTime = createdTime;
@@ -734,6 +735,13 @@ public class VillagerMemory {
       public MemoryEntry() {
          this(System.currentTimeMillis(), 1.0F, 0);
       }
+
+      public long getCreatedTime() { return createdTime; }
+      public float getStrength() { return strength; }
+      public int getResurfaceCount() { return resurfaceCount; }
+      public void setStrength(float s) { this.strength = s; }
+      public void incrementResurfaceCount() { this.resurfaceCount++; }
+      public void boostStrength(float delta) { this.strength = Math.min(1.0F, this.strength + delta); }
    }
 
    private static class MemoryState extends SavedData {

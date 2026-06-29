@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import justfatlard.village_quests.Village;
 import justfatlard.village_quests.VillageQuests;
 import justfatlard.village_quests.util.ScheduledMessages;
@@ -25,9 +27,21 @@ import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.phys.AABB;
 
 public class QuestChainSeeds {
+   private static final Logger LOGGER = LoggerFactory.getLogger(QuestChainSeeds.class);
    private static final Map<UUID, List<QuestChainSeeds.ChainSeed>> VILLAGE_SEEDS = new ConcurrentHashMap<>();
+   private static final java.util.Set<UUID> MISSING_TRADER_COMPLETED_VILLAGES = ConcurrentHashMap.newKeySet();
    private static final long MC_DAY = 24000L;
    private static final String[] CHILD_NAMES = new String[]{"Pip", "Wren", "Kit", "Nell", "Tam", "Lark", "Ash", "Rue", "Sage", "Fern"};
+
+   public static boolean hasCompletedMissingTrader(UUID villageId) {
+      return MISSING_TRADER_COMPLETED_VILLAGES.contains(villageId);
+   }
+
+   public static void markMissingTraderComplete(UUID villageId) {
+      if (villageId != null) {
+         MISSING_TRADER_COMPLETED_VILLAGES.add(villageId);
+      }
+   }
 
    private static long getMinBloomDelay(String chainType) {
       return switch (chainType) {
@@ -37,6 +51,7 @@ public class QuestChainSeeds {
          case "last_words" -> 0L;
          case "planted_on_grave" -> 240000L;
          case "tools_for_child" -> 360000L;
+         case "missing_trader" -> 48000L;
          default -> 120000L;
       };
    }
@@ -49,6 +64,7 @@ public class QuestChainSeeds {
          case "last_words" -> Long.MAX_VALUE;
          case "planted_on_grave" -> 600000L;
          case "tools_for_child" -> 720000L;
+         case "missing_trader" -> 192000L;
          default -> 360000L;
       };
    }
@@ -154,15 +170,12 @@ public class QuestChainSeeds {
          } else {
             for (QuestChainSeeds.ChainSeed seed : seeds) {
                if ("last_words".equals(seed.chainType()) && seed.phase() == 1 && seed.playerUuid().equals(playerUuid)) {
-                  String[] parts = seed.detail().split("\\|");
-                  if (parts.length >= 3) {
-                     try {
-                        UUID storedTargetUuid = UUID.fromString(parts[2]);
-                        if (storedTargetUuid.equals(targetVillagerUuid)) {
-                           return seed;
-                        }
-                     } catch (IllegalArgumentException var8) {
-                     }
+                  QuestChainSeeds.ChainSeed.LastWordsDetail lw = QuestChainSeeds.ChainSeed.LastWordsDetail.parse(seed.detail());
+                  if (lw != null && lw.targetVillagerUuid().equals(targetVillagerUuid)) {
+                     return seed;
+                  }
+                  if (lw == null) {
+                     LOGGER.warn("[VQ] Malformed last_words chain seed detail: '{}'", seed.detail());
                   }
                }
             }
@@ -200,6 +213,7 @@ public class QuestChainSeeds {
 
    public static void clearAll() {
       VILLAGE_SEEDS.clear();
+      MISSING_TRADER_COMPLETED_VILLAGES.clear();
    }
 
    public static VillagerQuest generateBloomQuest(QuestChainSeeds.ChainSeed seed, Villager villager, String villagerName, ServerLevel world, Village village) {
@@ -213,6 +227,7 @@ public class QuestChainSeeds {
             case "fence_saved_animals" -> generateFenceSavedAnimalsQuest(seed, villager, villagerName, world, village);
             case "planted_on_grave" -> generatePlantedOnGraveQuest(seed, villager, villagerName, world, village);
             case "tools_for_child" -> generateToolsForChildQuest(seed, villager, villagerName, world, village);
+            case "missing_trader" -> new TraderRouteQuest(seed.villagerName(), villager.getUUID(), seed.detail());
             default -> null;
          };
       }
@@ -255,7 +270,7 @@ public class QuestChainSeeds {
                villagerName
                   + ": '*looks up, and for the first time you see something other than worry* She's okay. She's going to be okay. The honey... it helped. She baked something. For you. Said it was the least she could do.'"
             };
-            player.sendSystemMessage(Component.literal(greetings[rng.nextInt(greetings.length)]).withStyle(ChatFormatting.GREEN), false);
+            player.sendSystemMessage(Component.literal(greetings[rng.nextInt(greetings.length)]).withStyle(ChatFormatting.GREEN), true);
             ScheduledMessages.schedule(
                player,
                Component.literal(""),
@@ -271,7 +286,7 @@ public class QuestChainSeeds {
                   player.sendSystemMessage(
                      Component.literal("You received From " + villagerName + "'s Wife.")
                         .withStyle(new ChatFormatting[]{ChatFormatting.GOLD, ChatFormatting.ITALIC}),
-                     false
+                     true
                   );
                }
             );
@@ -282,14 +297,10 @@ public class QuestChainSeeds {
 
    public static VillagerQuest generateLastWordsQuest(QuestChainSeeds.ChainSeed seed, Villager targetVillager, String targetVillagerName, Village village) {
       if (seed != null && village != null) {
-         String[] parts = seed.detail().split("\\|");
-         if (parts.length < 2) {
-            return null;
-         } else {
-            String senderName = parts[0];
-            removeSeed(village.getId(), "last_words", seed.playerUuid());
-            return new QuestChainSeeds.LastWordsQuest(targetVillagerName, targetVillager.getUUID(), senderName);
-         }
+         QuestChainSeeds.ChainSeed.LastWordsDetail lw = QuestChainSeeds.ChainSeed.LastWordsDetail.parse(seed.detail());
+         if (lw == null) return null;
+         removeSeed(village.getId(), "last_words", seed.playerUuid());
+         return new QuestChainSeeds.LastWordsQuest(targetVillagerName, targetVillager.getUUID(), lw.senderName());
       } else {
          return null;
       }
@@ -442,7 +453,7 @@ public class QuestChainSeeds {
          player.sendSystemMessage(
             Component.literal(this.childName + ": '*walks beside you in silence for a while, then:* Do you get scared? When you go out there?'")
                .withStyle(ChatFormatting.GREEN),
-            false
+            true
          );
          ScheduledMessages.schedule(
             player,
@@ -478,6 +489,19 @@ public class QuestChainSeeds {
       public QuestChainSeeds.ChainSeed withPhase(int newPhase) {
          return new QuestChainSeeds.ChainSeed(this.chainType, this.playerUuid, this.villagerUuid, this.villagerName, this.detail, this.plantedTick, newPhase);
       }
+
+      /** Typed view of the "last_words" chain-type detail field: "senderName|targetName|targetUUID". */
+      public record LastWordsDetail(String senderName, String targetName, UUID targetVillagerUuid) {
+         static LastWordsDetail parse(String detail) {
+            String[] p = detail.split("\\|", 3);
+            if (p.length < 3) return null;
+            try {
+               return new LastWordsDetail(p[0], p[1], UUID.fromString(p[2]));
+            } catch (IllegalArgumentException e) {
+               return null;
+            }
+         }
+      }
    }
 
    static class FenceSavedAnimalsQuest extends VillagerQuest {
@@ -511,7 +535,7 @@ public class QuestChainSeeds {
          player.sendSystemMessage(
             Component.literal(this.requesterName + ": 'The fence you mended held. The one nobody else touched didn't.'")
                .withStyle(ChatFormatting.GREEN),
-            false
+            true
          );
          ScheduledMessages.schedule(
             player,
@@ -565,8 +589,7 @@ public class QuestChainSeeds {
       @Override
       protected void deliverDialogue(ServerPlayer player) {
          player.sendSystemMessage(
-            Component.literal(this.requesterName + ": '*holds the message to their chest*'").withStyle(ChatFormatting.GRAY), false
-         );
+            Component.literal(this.requesterName + ": '*holds the message to their chest*'").withStyle(ChatFormatting.GRAY), true         );
          ScheduledMessages.schedule(
             player,
             Component.literal(
@@ -612,7 +635,7 @@ public class QuestChainSeeds {
          player.sendSystemMessage(
             Component.literal(this.requesterName + ": 'I go up there now. To see what you planted. It's growing.'")
                .withStyle(ChatFormatting.GRAY),
-            false
+            true
          );
          ScheduledMessages.schedule(
             player, Component.literal(this.requesterName + ": '*voice breaks* She would have liked that.'").withStyle(ChatFormatting.GRAY), 80
@@ -659,7 +682,7 @@ public class QuestChainSeeds {
          player.sendSystemMessage(
             Component.literal(this.requesterName + ": 'I watched them every morning. Same rock. Same pickaxe. Didn't miss a day.'")
                .withStyle(ChatFormatting.GREEN),
-            false
+            true
          );
          ScheduledMessages.schedule(
             player,

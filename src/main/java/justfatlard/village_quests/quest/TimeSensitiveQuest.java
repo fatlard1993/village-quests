@@ -12,9 +12,10 @@ public abstract class TimeSensitiveQuest extends VillagerQuest {
       super(type, requesterName, villagerUuid, reputationShift);
    }
 
-   private void initQuestStartTick(ServerLevel world) {
+   /** Called by ActiveQuestManager.acceptQuest() so the timer starts at acceptance, not at first check. */
+   public void initAtAcceptance(long serverTick) {
       if (this.questStartTick < 0L) {
-         this.questStartTick = world.getServer().getTickCount();
+         this.questStartTick = serverTick;
       }
    }
 
@@ -27,7 +28,10 @@ public abstract class TimeSensitiveQuest extends VillagerQuest {
    @Override
    public boolean checkCompletion(ServerPlayer player) {
       ServerLevel world = player.level();
-      this.initQuestStartTick(world);
+      // Fallback init in case initAtAcceptance was not called (e.g. loaded from save)
+      if (this.questStartTick < 0L) {
+         this.questStartTick = world.getServer().getTickCount();
+      }
       if (!this.expired) {
          this.expired = this.hasExpired(world);
       }

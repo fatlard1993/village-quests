@@ -11,6 +11,8 @@ import java.util.UUID;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import justfatlard.village_quests.integration.MailSystemIntegration;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.nbt.CompoundTag;
@@ -26,10 +28,11 @@ import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
 
 public class QuestCompletionMailSystem {
+   private static final Logger LOGGER = LoggerFactory.getLogger(QuestCompletionMailSystem.class);
    private static final Map<UUID, List<QuestCompletionMailSystem.PendingLetter>> PENDING_LETTERS = new ConcurrentHashMap<>();
    private static final String STORAGE_KEY = "village_quests_pending_letters";
    private static final SavedDataType<QuestCompletionMailSystem.PendingLetterState> PENDING_LETTER_STATE_TYPE = new SavedDataType<>(
-      Identifier.parse("village_quests_pending_letters"),
+      Identifier.parse(STORAGE_KEY),
       QuestCompletionMailSystem.PendingLetterState::new,
       QuestCompletionMailSystem.PendingLetterState.CODEC,
       DataFixTypes.LEVEL
@@ -308,6 +311,7 @@ public class QuestCompletionMailSystem {
 
                   state.letters.computeIfAbsent(playerId, k -> new ArrayList<>()).add(letter);
                } catch (IllegalArgumentException var17) {
+                  LOGGER.warn("[VQ] Skipping malformed quest completion mail entry: {}", letterNbt);
                }
             }
          }

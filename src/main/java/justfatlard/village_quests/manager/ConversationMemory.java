@@ -29,7 +29,7 @@ public class ConversationMemory {
    private static final Map<UUID, Map<UUID, Deque<ConversationMemory.ConversationTopic>>> topicHistory = new ConcurrentHashMap<>();
    private static final String STORAGE_KEY = "village_quests_conversations";
    private static final SavedDataType<ConversationMemory.ConversationMemoryState> STATE_TYPE = new SavedDataType<>(
-      Identifier.parse("village_quests_conversations"),
+      Identifier.parse(STORAGE_KEY),
       ConversationMemory.ConversationMemoryState::new,
       ConversationMemory.ConversationMemoryState.CODEC,
       DataFixTypes.LEVEL

@@ -1,6 +1,7 @@
 package justfatlard.village_quests.quest;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 import justfatlard.village_quests.Village;
 import justfatlard.village_quests.VillageQuests;
 import justfatlard.village_quests.api.QuestRegistry;
@@ -19,10 +21,12 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.golem.IronGolem;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.entity.npc.wanderingtrader.WanderingTrader;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -219,10 +223,8 @@ public abstract class VillagerQuest {
 
       VillagerQuest.FailureHistory failureHist = getFailureHistory(villager.getUUID());
       if (failureHist != null && villager.level() instanceof ServerLevel retryWorld) {
-         long ticksSinceFailure = retryWorld.getGameTime() - failureHist.lastFailureTime;
          long msSinceFailure = System.currentTimeMillis() - failureHist.lastFailureTime;
          long minDelayMs = 3600000L;
-         long maxDelayMs = 6000000L;
          if (msSinceFailure >= minDelayMs && random.nextFloat() < 0.4F) {
             VillagerQuest retryQuest = CreationQuest.createRetryQuest(villagerName, villager.getUUID(), failureHist, retryWorld, villager.blockPosition());
             if (retryQuest != null) {
@@ -269,9 +271,9 @@ public abstract class VillagerQuest {
             if (reputation >= 75) {
                quest = generateHighRepQuest(villager, villagerName, profession, random, reputation, ctx, biome);
             } else if (reputation >= 25) {
-               quest = generateMediumQuest(villager, villagerName, profession, random, ctx, biome);
+               quest = generateMediumQuest(villager, villagerName, profession, random, reputation, ctx, biome);
             } else {
-               quest = generateBasicQuest(villager, villagerName, profession, random, ctx, biome);
+               quest = generateBasicQuest(villager, villagerName, profession, random, reputation, ctx, biome);
             }
 
             if (playerId != null && quest != null) {
@@ -283,9 +285,9 @@ public abstract class VillagerQuest {
                   if (reputation >= 75) {
                      reroll = generateHighRepQuest(villager, villagerName, profession, random, reputation, ctx, biome);
                   } else if (reputation >= 25) {
-                     reroll = generateMediumQuest(villager, villagerName, profession, random, ctx, biome);
+                     reroll = generateMediumQuest(villager, villagerName, profession, random, reputation, ctx, biome);
                   } else {
-                     reroll = generateBasicQuest(villager, villagerName, profession, random, ctx, biome);
+                     reroll = generateBasicQuest(villager, villagerName, profession, random, reputation, ctx, biome);
                   }
 
                   if (reroll != null && reroll.getType() != questType) {
@@ -301,6 +303,132 @@ public abstract class VillagerQuest {
             return quest;
          }
       }
+   }
+
+   private static VillagerQuest tryVersionQuest(
+      Villager villager, String villagerName, int reputation, Random random, String professionName, VillagerQuest.WorldContext ctx
+   ) {
+      ServerLevel sw = villager.level() instanceof ServerLevel s ? s : null;
+
+      // Build a shuffled list of lambdas, each returning a quest or null
+      List<Supplier<VillagerQuest>> candidates = new ArrayList<>();
+
+      // WoolFestivalQuest: shepherd or farmer, rep >= -20, 30% chance
+      if (professionName.equals("shepherd") || professionName.equals("farmer")) {
+         candidates.add(() -> {
+            if (reputation < -20) return null;
+            if (random.nextFloat() >= 0.30f) return null;
+            return new WoolFestivalQuest(villagerName, villager.getUUID());
+         });
+      }
+
+      // CastleScoutQuest: universal, rep >= 10, 25% chance
+      candidates.add(() -> {
+         if (reputation < 10) return null;
+         if (random.nextFloat() >= 0.25f) return null;
+         if (sw == null) return null;
+         Village village = VillageQuests.getVillageManager().findNearestVillage(sw, villager.blockPosition());
+         BlockPos center = village != null ? village.getCenter() : villager.blockPosition();
+         return new CastleScoutQuest(villagerName, villager.getUUID(), center);
+      });
+
+      // MissingTraderCampQuest: universal, rep >= -10, 20% chance
+      candidates.add(() -> {
+         if (reputation < -10) return null;
+         if (random.nextFloat() >= 0.20f) return null;
+         if (sw == null) return null;
+         Village village = VillageQuests.getVillageManager().findNearestVillage(sw, villager.blockPosition());
+         if (village == null) return null;
+         if (justfatlard.village_quests.quest.QuestChainSeeds.hasCompletedMissingTrader(village.getId())) return null;
+         return new MissingTraderCampQuest(villagerName, villager.getUUID(), village.getCenter());
+      });
+
+      // DappledForestHarvestQuest: universal (and farmer), any rep, 25% chance
+      candidates.add(() -> {
+         if (random.nextFloat() >= 0.25f) return null;
+         return new DappledForestHarvestQuest(villagerName, villager.getUUID());
+      });
+
+      // PoplarSaplingQuest: farmer only, any rep, 20% chance
+      if (professionName.equals("farmer")) {
+         candidates.add(() -> {
+            if (random.nextFloat() >= 0.20f) return null;
+            return new PoplarSaplingQuest(villagerName, villager.getUUID());
+         });
+      }
+
+      // CarpetShortageQuest: universal, any rep, 20% chance
+      candidates.add(() -> {
+         if (random.nextFloat() >= 0.20f) return null;
+         return new CarpetShortageQuest(villagerName, villager.getUUID());
+      });
+
+      // RedShrubQuest: farmer 30% OR universal 15%, rep >= -10
+      if (professionName.equals("farmer")) {
+         candidates.add(() -> {
+            if (reputation < -10) return null;
+            if (random.nextFloat() >= 0.30f) return null;
+            return new RedShrubQuest(villagerName, villager.getUUID());
+         });
+      } else {
+         candidates.add(() -> {
+            if (reputation < -10) return null;
+            if (random.nextFloat() >= 0.15f) return null;
+            return new RedShrubQuest(villagerName, villager.getUUID());
+         });
+      }
+
+      // GoldenDandelionQuest: universal, any rep, 20% chance
+      candidates.add(() -> {
+         if (random.nextFloat() >= 0.20f) return null;
+         return new GoldenDandelionQuest(villagerName, villager.getUUID());
+      });
+
+      // NameTagCraftQuest: universal, any rep, 20% chance
+      candidates.add(() -> {
+         if (random.nextFloat() >= 0.20f) return null;
+         return new NameTagCraftQuest(villagerName, villager.getUUID());
+      });
+
+      // CinnabarQuest: universal (and mason), rep >= 0, 25% chance
+      candidates.add(() -> {
+         if (reputation < 0) return null;
+         if (random.nextFloat() >= 0.25f) return null;
+         return new CinnabarQuest(villagerName, villager.getUUID());
+      });
+
+      // SulfurSpringQuest: universal, rep >= -5, 15% chance — needs village center
+      candidates.add(() -> {
+         if (reputation < -5) return null;
+         if (random.nextFloat() >= 0.15f) return null;
+         if (sw == null) return null;
+         Village village = VillageQuests.getVillageManager().findNearestVillage(sw, villager.blockPosition());
+         if (village == null) return null;
+         return new SulfurSpringQuest(villagerName, villager.getUUID(), village.getCenter());
+      });
+
+      // SulfurCubeCaptureQuest: universal, rep >= 0, 20% chance
+      candidates.add(() -> {
+         if (reputation < 0) return null;
+         if (random.nextFloat() >= 0.20f) return null;
+         return new SulfurCubeCaptureQuest(villagerName, villager.getUUID());
+      });
+
+      // BounceMusicDiscQuest: universal, deep quest — only at high rep >= 50, 25% chance
+      candidates.add(() -> {
+         if (reputation < 50) return null;
+         if (random.nextFloat() >= 0.25f) return null;
+         return new BounceMusicDiscQuest(villagerName, villager.getUUID());
+      });
+
+      Collections.shuffle(candidates, random);
+      for (Supplier<VillagerQuest> candidate : candidates) {
+         VillagerQuest quest = candidate.get();
+         if (quest != null) {
+            return quest;
+         }
+      }
+      return null;
    }
 
    private static VillagerQuest generateHighRepQuest(
@@ -378,6 +506,16 @@ public abstract class VillagerQuest {
                if (mobQuest != null) {
                   return mobQuest;
                }
+            }
+         }
+
+         // 26.x quests at ~15% probability before the dev/harder-fetch fallback
+         if (random.nextFloat() < 0.15f) {
+            Identifier highProfId = BuiltInRegistries.VILLAGER_PROFESSION.getKey(profession);
+            String highProfName = highProfId != null ? highProfId.getPath() : "none";
+            VillagerQuest versionQuest = tryVersionQuest(villager, villagerName, reputation, random, highProfName, ctx);
+            if (versionQuest != null) {
+               return versionQuest;
             }
          }
 
@@ -499,29 +637,6 @@ public abstract class VillagerQuest {
       }
    }
 
-   private static VillagerQuest tryGenerateWeatherCreationQuest(Villager villager, String villagerName, ServerLevel world, VillagerQuest.WorldContext ctx) {
-      Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
-      if (village == null) {
-         return null;
-      } else {
-         BlockPos center = village.getCenter();
-         long timeOfDay = world.getOverworldClockTime() % 24000L;
-         boolean isNight = timeOfDay >= 13000L && timeOfDay < 23000L;
-         if ((ctx.isRaining || ctx.isThundering) && QuestRarityManager.canOfferWeatherQuest(village, "shelter_animals")) {
-            QuestRarityManager.recordWeatherQuest(village, "shelter_animals");
-            return new ShelterAnimalsQuest(villagerName, villager.getUUID(), center, village.getBiomeType());
-         } else if (isNight && !ctx.isRaining && !ctx.isThundering && QuestRarityManager.canOfferWeatherQuest(village, "warm_village")) {
-            QuestRarityManager.recordWeatherQuest(village, "warm_village");
-            return new WarmTheVillageQuest(villagerName, villager.getUUID(), center, village.getBiomeType());
-         } else if (ctx.isRaining && QuestRarityManager.canOfferWeatherQuest(village, "drain_flooding")) {
-            QuestRarityManager.recordWeatherQuest(village, "drain_flooding");
-            return new DrainFloodingQuest(villagerName, villager.getUUID(), center, village.getBiomeType());
-         } else {
-            return null;
-         }
-      }
-   }
-
    private static VillagerQuest tryGenerateTimeSensitiveQuest(Villager villager, String villagerName, ServerLevel world, Random random) {
       long timeOfDay = world.getOverworldClockTime() % 24000L;
       boolean isRaining = world.isRaining();
@@ -613,16 +728,16 @@ public abstract class VillagerQuest {
                String swarmWord;
                EntityType<?> swarmType;
                if (animalRoll < 0.35F) {
-                  swarmType = EntityType.CHICKEN;
+                  swarmType = EntityTypes.CHICKEN;
                   swarmWord = "chickens";
                } else if (animalRoll < 0.55F) {
-                  swarmType = EntityType.PIG;
+                  swarmType = EntityTypes.PIG;
                   swarmWord = "pigs";
                } else if (animalRoll < 0.75F) {
-                  swarmType = EntityType.RABBIT;
+                  swarmType = EntityTypes.RABBIT;
                   swarmWord = "rabbits";
                } else {
-                  swarmType = EntityType.COW;
+                  swarmType = EntityTypes.COW;
                   swarmWord = "cows";
                }
 
@@ -633,13 +748,13 @@ public abstract class VillagerQuest {
                String stuckWord;
                EntityType<?> stuckType;
                if (animalRoll < 0.4F) {
-                  stuckType = EntityType.GOAT;
+                  stuckType = EntityTypes.GOAT;
                   stuckWord = "goat";
                } else if (animalRoll < 0.7F) {
-                  stuckType = EntityType.FOX;
+                  stuckType = EntityTypes.FOX;
                   stuckWord = "fox";
                } else {
-                  stuckType = EntityType.WOLF;
+                  stuckType = EntityTypes.WOLF;
                   stuckWord = "wolf";
                }
 
@@ -654,7 +769,7 @@ public abstract class VillagerQuest {
    }
 
    private static VillagerQuest generateBasicQuest(
-      Villager villager, String villagerName, VillagerProfession profession, Random random, VillagerQuest.WorldContext ctx, String biome
+      Villager villager, String villagerName, VillagerProfession profession, Random random, int reputation, VillagerQuest.WorldContext ctx, String biome
    ) {
       if (random.nextDouble() < 0.3 && villager.level() instanceof ServerLevel redirectWorld) {
          Villager redirectTarget = findNearbyVillagerTarget(redirectWorld, villager);
@@ -716,6 +831,14 @@ public abstract class VillagerQuest {
             }
          }
 
+         // 26.x quests compete at ~25% probability before falling back to personal requests
+         if (random.nextFloat() < 0.25f) {
+            VillagerQuest versionQuest = tryVersionQuest(villager, villagerName, reputation, random, professionName, ctx);
+            if (versionQuest != null) {
+               return versionQuest;
+            }
+         }
+
          Object[][] requests = getPersonalRequests(professionName, biome, random);
          Object[] picked = requests[random.nextInt(requests.length)];
          Item item = (Item)picked[0];
@@ -732,7 +855,7 @@ public abstract class VillagerQuest {
 
          if (placeBlock != null) {
             quest.setPlaceOnComplete(placeBlock, villager.getUUID());
-         } else if (item == Items.PAINTING) {
+         } else if (item == Items.ITEM_FRAME || item == Items.GLOW_ITEM_FRAME) {
             quest.setPlaceNearVillager(villager.getUUID());
          }
 
@@ -771,7 +894,7 @@ public abstract class VillagerQuest {
             {Items.RABBIT, 2, "Someone ordered rabbit stew. I'm a butcher, not a hunter."},
             {Items.MUSHROOM_STEW, 1, "The wife's sick. Could you bring mushroom stew? I'm no cook."},
             {Items.COOKED_BEEF, 2, "I burned the last batch. Don't tell anyone. Just bring me two cooked pieces."},
-            {Items.PAINTING, 1, "My wife says the shop is depressing. A painting might shut her up. I mean cheer her up."}
+            {Items.FLOWER_POT, 1, "My wife says the shop is depressing. A flower pot might shut her up. I mean cheer her up."}
          };
          case "librarian" -> new Object[][]{
             {Items.INK_SAC, 3, "I'm almost out of ink. Can't write without it."},
@@ -784,7 +907,7 @@ public abstract class VillagerQuest {
                   1,
                   "Glow ink. For the maps. The cartographer won't share theirs. Those glowing squid deep underground — that's where it comes from."
             },
-            {Items.PAINTING, 1, "The reading room is bare. A painting would give people something to look at while they think."}
+            {Items.CHISELED_BOOKSHELF, 1, "The reading room is bare. A chiseled bookshelf would give it some character."}
          };
          case "cleric" -> new Object[][]{
             {Items.NETHER_WART, 2, "I'm running low on wart. Don't ask what it's for. It only grows in that other place. The hot one. Near the dark brick."},
@@ -797,7 +920,7 @@ public abstract class VillagerQuest {
             },
             {Items.REDSTONE, 4, "The brewing stand's acting up. Redstone might fix the timing."},
             {Items.BLAZE_POWDER, 1, "I need blaze powder. I know it's hard to get. Those fire things in the dark brick fortress. That's why I'm asking."},
-            {Items.PAINTING, 1, "The chapel walls are empty. Something on them might help people feel... something."}
+            {Items.CANDLE, 4, "The chapel walls are bare. Some candles on the ledges might help people feel... something."}
          };
          case "weaponsmith" -> new Object[][]{
             {Items.COAL, 6, "Forge is cold. Need coal before I can do anything."},
@@ -832,16 +955,16 @@ public abstract class VillagerQuest {
                   2,
                   "Beeswax. For waterproofing the boots. Trust me, it works. Shears on a bee nest — but light a fire underneath first or they get angry."
             },
-            {Items.RED_DYE, 2, "Red dye. Someone wants red boots. I don't judge."},
-            {Items.BROWN_DYE, 2, "Brown dye for the saddle. The horse doesn't care but the owner does."}
+            {Items.DYE.pick(DyeColor.RED), 2, "Red dye. Someone wants red boots. I don't judge."},
+            {Items.DYE.pick(DyeColor.BROWN), 2, "Brown dye for the saddle. The horse doesn't care but the owner does."}
          };
          case "shepherd" -> new Object[][]{
             {Items.WHEAT, 4, "Feed's running low. Four wheat and the sheep are happy."},
             {Items.SHEARS, 1, "My shears broke. I'm not pulling wool by hand."},
-            {Items.RED_DYE, 1, "Someone wants a red sheep. I've stopped asking why."},
+            {Items.DYE.pick(DyeColor.RED), 1, "Someone wants a red sheep. I've stopped asking why."},
             {Items.LEAD, 1, "Lost a lead in the field. Can't herd without one."},
             {Items.HAY_BLOCK, 1, "Hay for the winter pen. One bale goes a long way."},
-            {Items.PAINTING, 1, "The kids get bored in the wool shed. A painting might give them something to stare at besides sheep."}
+            {Items.ITEM_FRAME, 1, "The kids get bored in the wool shed. A frame with something in it might distract them from bothering me."}
          };
          case "cartographer" -> new Object[][]{
             {Items.PAPER, 3, "Three sheets of paper. I've got a map to finish."},
@@ -854,7 +977,7 @@ public abstract class VillagerQuest {
             {Items.BRICK, 4, "Bricks for the chimney repair. Four should do it."},
             {Items.STONE, 8, "Stone. Always need stone. Walls don't fix themselves."},
             {Items.QUARTZ, 2, "Quartz for the elder's hearth. Decorative. But they asked nice. You find it past the portal, in the pale stone."},
-            {Items.PAINTING, 1, "I build walls all day. Nice to put something on one for once."}
+            {Items.ITEM_FRAME, 1, "I build walls all day. Nice to put something on one for once."}
          };
          case "nitwit" -> new Object[][]{
             {Items.COOKIE, 2, "I like cookies. That's the whole reason. Is that okay?"},
@@ -872,7 +995,7 @@ public abstract class VillagerQuest {
             {Items.TORCH, 4, "My end of the village is dark. Four torches and I can see my door."},
             {Items.COAL, 3, "Furnace is out. Coal to get it going again."},
             {Items.APPLE, 2, "Could use something fresh. Apples, if you find any."},
-            {Items.TORCH, 4, "My end of the village is dark. Four torches and I can see my door."},
+            {Items.STICK, 8, "I need sticks for a repair. Nothing fancy, just a handful."},
             {Items.FLOWER_POT, 1, "I want to put a flower on my windowsill. Need a pot first.", Blocks.FLOWER_POT}
          };
       };
@@ -884,16 +1007,16 @@ public abstract class VillagerQuest {
          {Items.POPPY, 2, "I want flowers outside my window. Something colorful.", Blocks.POPPY},
          {Items.STONE_SLAB, 4, "The path to the well is bare dirt. A few slabs would make it nicer.", Blocks.STONE_SLAB},
          {Items.OAK_STAIRS, 2, "The village square needs a bench. Just a couple stairs would do.", Blocks.OAK_STAIRS},
-         {Items.PAINTING, 1, "I'd like a painting. For the wall. Something to look at besides stone."},
+         {Items.ITEM_FRAME, 1, "I'd like a frame for the wall. Something to put things in besides stone."},
          {Items.OAK_FENCE, 3, "The fence by the road is missing a section. Makes us look abandoned.", Blocks.OAK_FENCE},
-         {Items.PAINTING, 1, "The town hall needs something on the walls. Feels too empty in there."},
-         {Items.PAINTING, 1, "There's a blank wall by the well everyone stares at. A painting would give them something better to look at."}
+         {Items.GLOW_ITEM_FRAME, 1, "The town hall needs something on the walls. A glowing frame would make it feel important."},
+         {Items.ITEM_FRAME, 1, "There's a blank wall by the well everyone stares at. A frame with a map in it would give them something better to look at."}
       };
       return pool[random.nextInt(pool.length)];
    }
 
    private static VillagerQuest generateMediumQuest(
-      Villager villager, String villagerName, VillagerProfession profession, Random random, VillagerQuest.WorldContext ctx, String biome
+      Villager villager, String villagerName, VillagerProfession profession, Random random, int reputation, VillagerQuest.WorldContext ctx, String biome
    ) {
       Identifier profId = BuiltInRegistries.VILLAGER_PROFESSION.getKey(profession);
       String profName = profId != null ? profId.getPath() : "none";
@@ -937,11 +1060,6 @@ public abstract class VillagerQuest {
          return SpecimenRetrievalQuest.generate(villager, villagerName, profName, biome, random);
       } else {
          if (roll < creationEnd && villager.level() instanceof ServerLevel worldxx) {
-            VillagerQuest weatherQuest = tryGenerateWeatherCreationQuest(villager, villagerName, worldxx, ctx);
-            if (weatherQuest != null) {
-               return weatherQuest;
-            }
-
             VillagerQuest creationQuest = tryGenerateCreationQuest(villager, villagerName, worldxx, random);
             if (creationQuest != null) {
                return creationQuest;
@@ -975,6 +1093,14 @@ public abstract class VillagerQuest {
                VillagerQuest apprentice = ApprenticeQuest.tryCreate(villager, villagerName, profName, sw, random);
                if (apprentice != null) {
                   return apprentice;
+               }
+            }
+
+            // 26.x quests compete at ~20% probability before the prettying fallback
+            if (random.nextFloat() < 0.20f) {
+               VillagerQuest versionQuest = tryVersionQuest(villager, villagerName, reputation, random, profName, ctx);
+               if (versionQuest != null) {
+                  return versionQuest;
                }
             }
 
@@ -1180,34 +1306,6 @@ public abstract class VillagerQuest {
          return flavor;
       } else {
          return flavor == null ? prefix : prefix + " " + flavor;
-      }
-   }
-
-   public static String getWeatherFlavorText(VillagerQuest.QuestType type, boolean isRaining, boolean isThundering) {
-      if (isThundering) {
-         switch (type) {
-            case FETCH:
-               return "We need supplies before the next strike.";
-            case CREATION:
-               return "The storm's done damage.";
-            case TIME_SENSITIVE:
-               return "Hard to work in this weather.";
-            default:
-               return null;
-         }
-      } else if (isRaining) {
-         switch (type) {
-            case FETCH:
-               return "The rain won't let up.";
-            case CREATION:
-               return "Wet ground makes building harder.";
-            case DIALOGUE:
-               return "Good day to stay in and talk.";
-            default:
-               return null;
-         }
-      } else {
-         return null;
       }
    }
 

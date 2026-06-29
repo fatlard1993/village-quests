@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.Mob;
 
 class AnimalInHouseQuest extends MobEventQuest {
@@ -27,7 +28,7 @@ class AnimalInHouseQuest extends MobEventQuest {
 
    @Override
    public String getDescription() {
-      if (this.animalType == EntityType.GOAT) {
+      if (this.animalType == EntityTypes.GOAT) {
          String[] d = new String[]{
             this.requesterName
                + ": \"A goat headbutted "
@@ -41,7 +42,7 @@ class AnimalInHouseQuest extends MobEventQuest {
                + " is standing outside in the rain.\""
          };
          return d[ThreadLocalRandom.current().nextInt(d.length)];
-      } else if (this.animalType == EntityType.FOX) {
+      } else if (this.animalType == EntityTypes.FOX) {
          String[] d = new String[]{
             this.requesterName + ": \"A fox got into " + this.homeOwnerName + "'s house through the window. It's under the bed with something in its mouth.\"",
             this.requesterName + ": \"" + this.homeOwnerName + " found a fox in the pantry this morning. It's eaten half the bread and now it won't leave.\""
@@ -112,7 +113,7 @@ class AnimalInHouseQuest extends MobEventQuest {
          player.sendSystemMessage(
             Component.literal(this.homeOwnerName + " eventually lured it out with bread. Took most of the morning. The curtains didn't survive.")
                .withStyle(ChatFormatting.YELLOW),
-            false
+            true
          );
       } else {
          Entity animal = this.stuckAnimalUuid != null ? world.getEntity(this.stuckAnimalUuid) : null;
@@ -120,7 +121,7 @@ class AnimalInHouseQuest extends MobEventQuest {
          String msg = alive
             ? this.homeOwnerName + ": \"It's out. The " + this.animalWord + " looked offended when it left. My curtains are ruined.\""
             : this.homeOwnerName + ": \"It's gone. The house smells like " + this.animalWord + ". But it's mine again.\"";
-         player.sendSystemMessage(Component.literal(msg).withStyle(ChatFormatting.GREEN), false);
+         player.sendSystemMessage(Component.literal(msg).withStyle(ChatFormatting.GREEN), true);
          this.scheduleAftermathLetter(
             player,
             new String[]{
