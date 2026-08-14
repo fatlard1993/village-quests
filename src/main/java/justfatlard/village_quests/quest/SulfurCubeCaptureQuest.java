@@ -10,7 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 
 /**
- * Mystery quest — capture a large sulfur cube in a bucket.
+ * Mystery quest: capture a large sulfur cube in a bucket.
  * Sulfur cubes are passive mobs from 26.2 sulfur caves. A curious villager wants one alive.
  *
  * Universal, rep >= 10, 12% chance.

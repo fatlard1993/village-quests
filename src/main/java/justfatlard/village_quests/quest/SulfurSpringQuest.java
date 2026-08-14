@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 /**
- * Mystery quest for Sulfur Springs — new surface feature in 26.2 that generates
+ * Mystery quest for Sulfur Springs, the 26.2 surface feature that generates
  * above sulfur caves. They bubble, smell wrong, and cause nausea from the gas.
  *
  * Player must travel 150+ blocks from the village center, then stand within
@@ -93,7 +93,7 @@ public class SulfurSpringQuest extends VillagerQuest {
             return false;
         }
 
-        // Spring found — complete on the next check.
+        // Spring found; complete on the next check.
         return true;
     }
 

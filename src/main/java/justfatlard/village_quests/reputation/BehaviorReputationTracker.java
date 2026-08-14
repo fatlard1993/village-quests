@@ -51,7 +51,7 @@ public class BehaviorReputationTracker {
             Map<UUID, Long> playerStays = OVERNIGHT_STAYS.computeIfAbsent(playerId, k -> new ConcurrentHashMap<>());
             Long lastNightStayed = playerStays.get(villageId);
             if (lastNightStayed == null) {
-               // First time we've seen this player at this village during night —
+               // First time we've seen this player at this village during night;
                // just seed the record so the NEXT night can trigger a proper reward.
                playerStays.put(villageId, currentNight);
             } else if (lastNightStayed < currentNight) {

@@ -397,7 +397,7 @@ public abstract class VillagerQuest {
          return new CinnabarQuest(villagerName, villager.getUUID());
       });
 
-      // SulfurSpringQuest: universal, rep >= -5, 15% chance — needs village center
+      // SulfurSpringQuest: universal, rep >= -5, 15% chance; needs village center
       candidates.add(() -> {
          if (reputation < -5) return null;
          if (random.nextFloat() >= 0.15f) return null;
@@ -414,7 +414,7 @@ public abstract class VillagerQuest {
          return new SulfurCubeCaptureQuest(villagerName, villager.getUUID());
       });
 
-      // BounceMusicDiscQuest: universal, deep quest — only at high rep >= 50, 25% chance
+      // BounceMusicDiscQuest: universal, deep quest; only at high rep >= 50, 25% chance
       candidates.add(() -> {
          if (reputation < 50) return null;
          if (random.nextFloat() >= 0.25f) return null;

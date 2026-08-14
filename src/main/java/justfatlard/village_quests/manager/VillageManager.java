@@ -700,7 +700,7 @@ public class VillageManager {
             for (int z = -256; z <= 256; z += 4) {
                int cx = (searchCenter.getX() + x) >> 4;
                int cz = (searchCenter.getZ() + z) >> 4;
-               // Skip unloaded chunks — getBlockState forces chunk generation otherwise,
+               // Skip unloaded chunks: getBlockState forces chunk generation otherwise,
                // causing 15-20 second freezes on join when no village is nearby.
                if (world.getChunkSource().getChunkNow(cx, cz) == null) continue;
                for (int y = -16; y <= 16; y += 4) {

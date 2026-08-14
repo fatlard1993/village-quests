@@ -10,7 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 
 /**
- * Fetch quest for Red Shrubs — the new 26.3 Dappled Forest plant.
+ * Fetch quest for Red Shrubs, the 26.3 Dappled Forest plant.
  * A cook or herbalist wants them for an infusion, garnish, or dye base.
  * Distinct from DappledForestHarvestQuest (which fetches shelf mushrooms).
  *

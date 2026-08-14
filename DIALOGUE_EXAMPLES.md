@@ -7,7 +7,7 @@ For when you need to write new dialogue quickly while maintaining the vision.
 ## The Golden Rule
 **Every line should feel like it comes from someone with their own concerns.**
 
-**Note:** These examples represent the target voice and tone. Some match lines already in `DialogueContent.java`; others are templates for new dialogue. All dialogue is hardcoded in Java source — see the writing guide for technical details.
+**Note:** These examples represent the target voice and tone. Some match lines already in `DialogueContent.java`; others are templates for new dialogue. All dialogue is hardcoded in Java source; see the writing guide for technical details.
 
 ## Quick Templates by Context
 
@@ -125,7 +125,7 @@ null // Sometimes no response IS the response
 ❌ "The village is safe thanks to you!"
 
 Also avoid:
-❌ "There's something I should... no, forget it." (the trail-off formula — once is human, twelve times is a writer's tic)
+❌ "There's something I should... no, forget it." (the trail-off formula: once is human, twelve times is a writer's tic)
 ❌ "[Deep statement]. [Ellipsis]. Never mind." (every villager trailing off the same way kills the mystery it's reaching for)
 
 ### Moonfaced Prose (the biggest trap)
@@ -133,7 +133,7 @@ Also avoid:
 This is when dialogue sounds cryptically poetic instead of human. Villagers are NOT fortune cookies.
 
 ```java
-// ❌ MOONFACED — sounds like a film trailer
+// ❌ MOONFACED: sounds like a film trailer
 "That matters."
 "Knowing is enough."
 "The silence between you holds."
@@ -141,7 +141,7 @@ This is when dialogue sounds cryptically poetic instead of human. Villagers are 
 "You're just... in it."
 "Something about this hour feels thin."
 
-// ✅ GROUNDED — sounds like a person
+// ✅ GROUNDED: sounds like a person
 "You've been here a while. Longer than some."
 "Even the bugs shut up around now."
 "Saw the kids playing near your place."
@@ -161,7 +161,7 @@ The difference: moonfaced prose strips specificity until only atmosphere remains
 ## Formatting Patterns
 
 - `*action in asterisks*` for physical actions
-- `...` for trailing off — **use sparingly, earns its weight through rarity**
+- `...` for trailing off; **use sparingly, earns its weight through rarity**
 - Short sentences. Fragments even.
 - Interruptions that don't finish
 - Subject changes that say more than the confession would have
@@ -173,7 +173,7 @@ When in doubt:
 - Make it about them, not the player
 - Make it specific to their life, not generically weighted
 - Consider saying nothing
-- Think about what they're NOT saying — then find a way to show it that isn't always "... never mind"
+- Think about what they're NOT saying, then find a way to show it that isn't always "... never mind"
 
 The moment it sounds like a video game NPC, start over.
 The moment every villager sounds the same kind of mysterious, start over.

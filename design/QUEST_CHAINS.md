@@ -17,10 +17,10 @@
 All six chains below require one shared addition:
 
 **`SeedMemory`**: A lightweight extension to VillagerMemory for tracking chain seeds. Unlike high-impact memories, seed memories are:
-- **Low-strength** (start at 0.5, not 1.0) — they're small events
-- **Medium decay** (60-day max) — long enough to bridge the gap, short enough to expire naturally if the player doesn't return
+- **Low-strength** (start at 0.5, not 1.0): they're small events
+- **Medium decay** (60-day max): long enough to bridge the gap, short enough to expire naturally if the player doesn't return
 - **Cross-villager**: Some seeds are stored on the *village*, not the villager, because the consequence shows up in a different villager's dialogue
-- **No dialogue modifier on their own** — they never surface as greeting callbacks. They only matter when checked during quest generation.
+- **No dialogue modifier on their own**: they never surface as greeting callbacks. They only matter when checked during quest generation.
 
 New MemoryTypes needed:
 ```
@@ -32,9 +32,9 @@ NOTE_DELIVERED_UNSENT        // Carried a message someone couldn't send themselv
 TOOL_LENT_TO_CHILD           // Gave tools to a kid who was trying to learn (low impact, 60-day)
 ```
 
-These are recorded silently during normal quest completion — the existing `onComplete()` method already has hooks for memory recording. The player sees nothing different.
+These are recorded silently during normal quest completion; the existing `onComplete()` method already has hooks for memory recording. The player sees nothing different.
 
-**Village-level seed tracking**: A new `Map<String, Long>` in the `Village` class, `villageSeeds`, keyed by seed name and timestamped. This allows Beat 2 to fire from a *different villager* than Beat 1, which is critical — the chain should feel like the village is alive, not like one NPC has a scripted arc.
+**Village-level seed tracking**: A new `Map<String, Long>` in the `Village` class, `villageSeeds`, keyed by seed name and timestamped. This allows Beat 2 to fire from a *different villager* than Beat 1, which is critical: the chain should feel like the village is alive, not like one NPC has a scripted arc.
 
 ---
 
@@ -42,7 +42,7 @@ These are recorded silently during normal quest completion — the existing `onC
 
 *A fetch quest feeds someone. Weeks later, that someone's child is standing on their own two feet.*
 
-### Beat 1 — Fetch Quest (completely normal)
+### Beat 1: Fetch Quest (completely normal)
 
 **Quest type**: FETCH
 **Trigger**: Any farmer or butcher, reputation >= 25
@@ -63,10 +63,10 @@ Nothing more. No fanfare.
 
 **What triggers Beat 2**: During quest generation for any villager in the same village, check village seeds for `"fed_family:<uuid>"` where the timestamp is 14-28 days old. If the referenced villager is still alive and the player's reputation >= 50, Beat 2 can fire. 15% chance per eligible quest generation roll.
 
-### Beat 2 — Dialogue Quest (the growing)
+### Beat 2: Dialogue Quest (the growing)
 
 **Quest type**: DIALOGUE (deliver_message)
-**What the villager says** (a *different* villager than Beat 1 — a neighbor, a shopkeeper):
+**What the villager says** (a *different* villager than Beat 1: a neighbor, a shopkeeper):
 > Soren: "The kid from that family — you know the one, by the south wall? She's been asking about you. Says she wants to learn to farm. Can you tell her mother I said she can work my fields in the mornings? I don't want to overstep."
 
 **The player's moment**: "Wait — the family by the south wall. I brought them bread weeks ago." The quest is still just a message delivery. Walk to the mother, deliver the message.
@@ -76,9 +76,9 @@ Nothing more. No fanfare.
 > "She stopped crying at night. After you came. I don't know if it was the bread or just knowing someone noticed."
 > "Tell Soren yes. She can work his fields."
 
-**On completion**: Record `FED_THE_HUNGRY` (already exists) on the mother's UUID if not already present. The memory system takes it from here — future greeting callbacks will reference the feeding. The chain's narrative work is done.
+**On completion**: Record `FED_THE_HUNGRY` (already exists) on the mother's UUID if not already present. The memory system takes it from here; future greeting callbacks will reference the feeding. The chain's narrative work is done.
 
-### Beat 3 — The Bloom (emergent, not scripted)
+### Beat 3: The Bloom (emergent, not scripted)
 
 There is no Beat 3 *quest*. The bloom is what happens naturally:
 - The mother now has a `FED_THE_HUNGRY` memory. Her greetings will occasionally reference it: *"I eat now. I don't steal. Because of what you did."* or the fading variant: *"You were kind to me once. I think about that."*
@@ -87,7 +87,7 @@ There is no Beat 3 *quest*. The bloom is what happens naturally:
 
 ### Implementation Notes
 
-- Beat 1 reuses `generateBasicQuest` or `generateHarderFetchQuest` — just add a weighted variant in the farmer/butcher profession pool that targets "a struggling family" with bread. The quest itself is mechanically identical to existing fetch quests.
+- Beat 1 reuses `generateBasicQuest` or `generateHarderFetchQuest`: just add a weighted variant in the farmer/butcher profession pool that targets "a struggling family" with bread. The quest itself is mechanically identical to existing fetch quests.
 - Beat 2 hooks into `generateDialogueQuest` with a pre-check for village seeds. If the seed exists and conditions match, it overrides the normal dialogue generation with this specific variant.
 - No new quest classes needed. Both beats use existing `FetchQuest` and `DialogueQuest` classes. The only new code is the seed check during generation and the specific dialogue strings.
 
@@ -97,7 +97,7 @@ There is no Beat 3 *quest*. The bloom is what happens naturally:
 
 *A creation quest repairs something broken. Weeks later, a mystery reveals what the fence was holding back.*
 
-### Beat 1 — Creation Quest (completely normal)
+### Beat 1: Creation Quest (completely normal)
 
 **Quest type**: CREATION (existing repair variant, or a new "mend fence" sub-type of the repair family)
 **Trigger**: Any villager, reputation >= 25, animal pens detected near village
@@ -112,10 +112,10 @@ There is no Beat 3 *quest*. The bloom is what happens naturally:
 
 **What triggers Beat 2**: During mystery quest generation (`MysteryQuest.generateMysteryQuest`), if the village has a `"fence_repaired"` seed that's 7-21 days old, there's a 20% chance the mystery is specifically about animals that would have escaped through that fence. The mystery's backstory references the repair.
 
-### Beat 2 — Mystery Quest (the growing)
+### Beat 2: Mystery Quest (the growing)
 
 **Quest type**: MYSTERY (missing_animal)
-**What the villager says** (a *different* villager — the animal's owner):
+**What the villager says** (a *different* villager: the animal's owner):
 > Elara: "Three of my sheep are gone. But the pen is closed. Every gate. Every fence. I don't understand."
 
 **Standard mystery investigation proceeds.** The player searches for clues. But when they find the clue, the resolution text is different:
@@ -132,14 +132,14 @@ There is no Beat 3 *quest*. The bloom is what happens naturally:
 
 **On completion**: Record `ANIMAL_RESCUED` (already exists) on Elara. The mystery resolves as "the animals that escaped got out through the old gap *before* the repair, not after." The repair saved the rest.
 
-### Beat 3 — The Bloom
+### Beat 3: The Bloom
 
 - Elara's `ANIMAL_RESCUED` memory generates greeting callbacks: *"You brought them back. I didn't think anyone would."*
 - But the deeper bloom is in Thatch's dialogue. He never asked you to save anyone's sheep. He just had a broken fence. Months later, if Thatch gets a deep quest about the village, his dialogue might reference: *"I asked you to fix a fence. Just a fence. Turns out it was more than that."* This hooks into the existing `getDialogueModifier` for THANKS context.
 
 ### Implementation Notes
 
-- Beat 1 is a minor variant of the existing creation/repair quest family. The `RepairDoorQuest` pattern works — create a `RepairFenceQuest` that checks for fence gaps near animal pens.
+- Beat 1 is a minor variant of the existing creation/repair quest family. The `RepairDoorQuest` pattern works: create a `RepairFenceQuest` that checks for fence gaps near animal pens.
 - Beat 2 hooks into `MysteryQuest.generateMysteryQuest`. When `mysteryType == MISSING_ANIMAL`, check village seeds for a recent fence repair. If found, use the chain-aware backstory and resolution text instead of the default.
 - The "wait, that was YOU?" moment in the mystery resolution is the entire payload. It's carried by dialogue, not mechanics.
 
@@ -147,9 +147,9 @@ There is no Beat 3 *quest*. The bloom is what happens naturally:
 
 ## Chain 3: The Honey and the Recovery
 
-*A fetch quest brings medicine. Months later, the person you saved does something no villager has ever done — they help YOU.*
+*A fetch quest brings medicine. Months later, the person you saved does something no villager has ever done: they help YOU.*
 
-### Beat 1 — Fetch Quest (completely normal)
+### Beat 1: Fetch Quest (completely normal)
 
 **Quest type**: FETCH
 **Trigger**: Any villager, reputation >= 50 (they trust you enough to ask about family)
@@ -172,9 +172,9 @@ This chain has the longest gap. The illness takes time to resolve. During quest 
 - The player's reputation >= 50
 - 10% chance per eligible roll (this should be rare)
 
-### Beat 2 — No Quest At All (the bloom)
+### Beat 2: No Quest At All (the bloom)
 
-This is the rule-breaker. There is no Beat 2 quest. Instead, the wife villager gains a unique one-time dialogue that fires when the player talks to her. Not a quest offer — just words.
+This is the rule-breaker. There is no Beat 2 quest. Instead, the wife villager gains a unique one-time dialogue that fires when the player talks to her. Not a quest offer, just words.
 
 **When the player talks to the wife** (instead of a quest offer, 10% chance, once ever):
 > *She's standing outside. First time you've seen her outside.*
@@ -190,7 +190,7 @@ This is the rule-breaker. There is no Beat 2 quest. Instead, the wife villager g
 
 ### Implementation Notes
 
-- Beat 1 is a standard fetch quest — add "honey for a sick spouse" to the profession-specific personal request pools that already exist. The honey bottle is the item. No new quest class.
+- Beat 1 is a standard fetch quest: add "honey for a sick spouse" to the profession-specific personal request pools that already exist. The honey bottle is the item. No new quest class.
 - Beat 2 requires a new check in the dialogue/greeting system. When a villager would normally offer a quest or give a greeting, check village seeds for `"healed_spouse"` where this villager is the spouse. If conditions match, deliver the one-time gift dialogue instead of a quest. Mark the seed as consumed so it never fires again.
 - The cookie is given via `player.giveItemStack(new ItemStack(Items.COOKIE, 1))`. One cookie. The smallest possible gift. The restraint is the point.
 - This chain is the hardest to implement because it breaks the player-gives/villager-receives pattern. But that's exactly why it matters. The ethos says "the player is a participant, not a hero." A villager giving the player a cookie because she felt like it is the purest expression of that.
@@ -201,9 +201,9 @@ This is the rule-breaker. There is no Beat 2 quest. Instead, the wife villager g
 
 *A creation quest plants a tree. Weeks later, a deep quest reveals it was planted on a grave.*
 
-### Beat 1 — Creation Quest (completely normal)
+### Beat 1: Creation Quest (completely normal)
 
-**Quest type**: CREATION (existing `PlantFlowersQuest` variant — or a new sapling variant)
+**Quest type**: CREATION (existing `PlantFlowersQuest` variant, or a new sapling variant)
 **Trigger**: Any villager, reputation >= 25, clear weather
 **What the villager says**:
 > Wren: "There's a bare patch on the hill. East side. Always bothered me. Can you plant a sapling there? Oak, I think. Something that'll last."
@@ -218,9 +218,9 @@ This is the rule-breaker. There is no Beat 2 quest. Instead, the wife villager g
 
 ### The Connection (14-30 real days later)
 
-Beat 2 triggers from Wren specifically — she's the one who asked, and she's the one carrying the weight. During deep quest generation, if Wren has `SAPLING_PLANTED_FOR_STRANGER` as an active memory and reputation >= 50, there's a 15% chance her deep quest is about this.
+Beat 2 triggers from Wren specifically; she's the one who asked, and she's the one carrying the weight. During deep quest generation, if Wren has `SAPLING_PLANTED_FOR_STRANGER` as an active memory and reputation >= 50, there's a 15% chance her deep quest is about this.
 
-### Beat 2 — Deep Quest (the bloom)
+### Beat 2: Deep Quest (the bloom)
 
 **Quest type**: DEEP
 **What Wren says** (the deep quest description):
@@ -240,14 +240,14 @@ Beat 2 triggers from Wren specifically — she's the one who asked, and she's th
 
 **Acknowledgment beat**: *Neither of you says anything for a while.*
 
-**The realization**: The player planted a tree on a dead child's favorite spot. They didn't know. Wren couldn't do it herself — the grief was too heavy. She asked a stranger to do the thing she couldn't. And the stranger did it because it was just a quest.
+**The realization**: The player planted a tree on a dead child's favorite spot. They didn't know. Wren couldn't do it herself; the grief was too heavy. She asked a stranger to do the thing she couldn't. And the stranger did it because it was just a quest.
 
 **On completion**: No new memory needed. The deep quest completion itself is the payoff. Wren's existing dialogue modifiers from the deep quest system handle the aftermath.
 
 ### Implementation Notes
 
 - Beat 1 is a variant of the existing `PlantFlowersQuest` or a new `PlantSaplingQuest` that targets a specific BlockPos and requires 1 sapling. Mechanically simple.
-- Beat 2 is a new DeepQuest subclass in `DeepQuestDialogues.java` — `GriefTreeQuest`. It checks for `SAPLING_PLANTED_FOR_STRANGER` memory during `checkForDeepQuest`. The deep quest requires any flower (check for any item tagged as `minecraft:flowers`).
+- Beat 2 is a new DeepQuest subclass in `DeepQuestDialogues.java`: `GriefTreeQuest`. It checks for `SAPLING_PLANTED_FOR_STRANGER` memory during `checkForDeepQuest`. The deep quest requires any flower (check for any item tagged as `minecraft:flowers`).
 - The dialogue is the only complex part. It follows the existing `sendSequencedDialogue` pattern with 4 messages.
 - The chain only works if the sapling was planted by the player. If the tree has grown (oak sapling -> oak tree over MC days), the deep quest dialogue can reference that: *"The tree is taller than I expected."* If it's still a sapling: *"It's still small. Like she was."* Check `world.getBlockState(pos)` for sapling vs. log.
 
@@ -257,7 +257,7 @@ Beat 2 triggers from Wren specifically — she's the one who asked, and she's th
 
 *A dialogue quest delivers a message. Weeks later, you learn the message was a goodbye.*
 
-### Beat 1 — Dialogue Quest (completely normal)
+### Beat 1: Dialogue Quest (completely normal)
 
 **Quest type**: DIALOGUE (deliver_message)
 **Trigger**: Any villager, reputation >= 25
@@ -278,11 +278,11 @@ Beat 2 triggers from Wren specifically — she's the one who asked, and she's th
 
 During quest generation, if the village has a `"note_delivered"` seed and Aldric's villager entity is no longer alive (died to zombie, raid, or despawned), Beat 2 fires from Petra.
 
-**The critical condition**: Aldric must be dead. If Aldric is still alive, the chain never advances — it was just a normal message delivery. The chain only blooms in the presence of loss.
+**The critical condition**: Aldric must be dead. If Aldric is still alive, the chain never advances; it was just a normal message delivery. The chain only blooms in the presence of loss.
 
 If Aldric IS dead and the seed is 7+ days old and Petra is still alive, Beat 2 has a 25% chance to fire when Petra would generate a quest.
 
-### Beat 2 — Deep Quest (the bloom)
+### Beat 2: Deep Quest (the bloom)
 
 **Quest type**: DEEP
 **What Petra says** (instead of her normal quest):
@@ -304,17 +304,17 @@ If Aldric IS dead and the seed is 7+ days old and Petra is still alive, Beat 2 h
 ### Implementation Notes
 
 - Beat 1 is a standard `DialogueQuest` with `DELIVER_MESSAGE` type. The only addition is recording the seed on completion. The dialogue variant "I'm sorry I didn't come in person" is added to the existing message pool.
-- Beat 2 requires a death check. The `VillagerMemory` system already handles UUID tracking. During quest generation, check `world.getEntity(aldricUUID)` — if null and the seed exists, Aldric is gone.
-- **Critically, this chain only fires when a villager dies naturally.** The player cannot trigger it intentionally. It emerges from the intersection of a mundane quest and unpredictable village life. Most of the time, Aldric lives, and the note was just a note. The rare time he doesn't — the player realizes they carried a dying man's reconciliation and didn't know.
+- Beat 2 requires a death check. The `VillagerMemory` system already handles UUID tracking. During quest generation, check `world.getEntity(aldricUUID)`: if null and the seed exists, Aldric is gone.
+- **Critically, this chain only fires when a villager dies naturally.** The player cannot trigger it intentionally. It emerges from the intersection of a mundane quest and unpredictable village life. Most of the time, Aldric lives, and the note was just a note. The rare time he doesn't, the player realizes they carried a dying man's reconciliation and didn't know.
 - New DeepQuest subclass: `LastWordsQuest` in `DeepQuestDialogues.java`.
 
 ---
 
 ## Chain 6: The Tools You Gave a Child
 
-*A fetch quest hands tools to a kid who's trying to learn. Months later, the kid is an apprentice — and they remember who believed in them first.*
+*A fetch quest hands tools to a kid who's trying to learn. Months later, the kid is an apprentice, and they remember who believed in them first.*
 
-### Beat 1 — Fetch Quest (completely normal)
+### Beat 1: Fetch Quest (completely normal)
 
 **Quest type**: FETCH
 **Trigger**: Any villager with a baby villager nearby, reputation >= 25
@@ -340,7 +340,7 @@ This is the longest chain. It requires:
 
 When the grown child (now an adult villager) would generate a quest, check village seeds. If they were the child who received tools, their quest is different.
 
-### Beat 2 — Apprentice Chain Kickoff (the growing)
+### Beat 2: Apprentice Chain Kickoff (the growing)
 
 **Quest type**: The existing apprentice quest system (APPRENTICE_STARTED path)
 **What the grown child says** (first time the player talks to them as an adult):
@@ -352,7 +352,7 @@ Before offering the apprentice quest, they say:
 
 Then the standard apprentice quest chain begins (Phase 1 -> Phase 2 -> Phase 3, already implemented via `APPRENTICE_STARTED` / `APPRENTICE_PRACTICING` / `APPRENTICE_GRADUATED` memories).
 
-### Beat 3 — The Bloom (graduation)
+### Beat 3: The Bloom (graduation)
 
 When the apprentice chain completes (Phase 3, `APPRENTICE_GRADUATED`), the graduation dialogue has an additional line that references the wooden tools:
 
@@ -365,7 +365,7 @@ When the apprentice chain completes (Phase 3, `APPRENTICE_GRADUATED`), the gradu
 - Beat 1 is a standard fetch quest. Add "wooden tools for a child" to the personal request pool when baby villagers are detected nearby. The detection logic for baby villagers already exists in `findNearbyVillagerTarget` (the `!v.isBaby()` filter implies baby detection is possible).
 - Beat 2 hooks into the existing apprentice quest generation. Before generating an apprentice quest, check if the apprentice villager's UUID matches any `"child_tools"` village seed. If so, prepend the memory dialogue.
 - Beat 3 hooks into the existing `APPRENTICE_GRADUATED` completion handler. Check the same seed. If present, add the wooden-tool callback line to the graduation dialogue.
-- This chain has the highest emotional payoff because it spans the most time. A player who gave wooden tools to a baby months ago and then sees that baby grow up, remember them, and become a craftsperson — that's the kind of moment the ethos describes: *"They tell someone: 'There's this villager in my world...'"*
+- This chain has the highest emotional payoff because it spans the most time. A player who gave wooden tools to a baby months ago and then sees that baby grow up, remember them, and become a craftsperson: that's the kind of moment the ethos describes: *"They tell someone: 'There's this villager in my world...'"*
 
 ---
 
@@ -408,7 +408,7 @@ These rates are intentionally low. The ethos says: *"Rare > Loud."* A player who
 - **Memory resurfacing**: If a villager references a seed memory in greeting dialogue (e.g., `FED_THE_HUNGRY` after Chain 1 completes), the memory is resurfaced and the decay clock resets. The chain's aftermath can echo for months.
 - **Single active quest**: Chains respect the single-quest constraint. Each beat is a separate quest accepted at a separate time. The player never holds two beats simultaneously.
 - **Quest rarity manager**: Beat 2 quest generation hooks into `QuestRarityManager` to prevent spam. A village can only have one active chain-seed check per quest generation cycle.
-- **Mail system**: After any chain completes, there's a 30% chance of a follow-up letter arriving days later via the mail system. The letter references the chain obliquely. For Chain 4 (sapling/grief), Wren might write: *"The tree has leaves now. I sat under it yesterday. First time."* This is not a new system — it uses the existing `MailSystemIntegration` hooks.
+- **Mail system**: After any chain completes, there's a 30% chance of a follow-up letter arriving days later via the mail system. The letter references the chain obliquely. For Chain 4 (sapling/grief), Wren might write: *"The tree has leaves now. I sat under it yesterday. First time."* This is not a new system; it uses the existing `MailSystemIntegration` hooks.
 
 ---
 

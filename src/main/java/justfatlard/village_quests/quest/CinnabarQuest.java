@@ -10,7 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 
 /**
- * Fetch quest for Cinnabar — the new deep red stone from 26.2 sulfur caves.
+ * Fetch quest for Cinnabar, the deep red stone from 26.2 sulfur caves.
  * Sought by builders and masons who want it for decorative stonework.
  *
  * Mason profession + universal, rep >= 0, 20% chance.

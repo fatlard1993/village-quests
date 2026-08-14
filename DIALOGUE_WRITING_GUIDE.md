@@ -124,7 +124,7 @@ TOOLSMITH: "Heat it. Bend it. Hit it. Heat it again."
 
 **Response Options (Always refuse-weighted):**
 
-Give the player language to refuse without sounding like a philosopher. These are hard moments — the responses should feel hard, not wise.
+Give the player language to refuse without sounding like a philosopher. These are hard moments; the responses should feel hard, not wise.
 
 ```java
 "I... no. I'm not doing that."
@@ -155,7 +155,7 @@ The danger zone for cryptic-sounding dialogue. Idle chat is where writers reach 
 "Saw the baker crying yesterday. Didn't ask."
 "My son tried to build a boat. In the middle of the field. No water for miles."
 
-// THINGS LEFT UNSAID (vary the shape — not every unsaid thing is a trail-off)
+// THINGS LEFT UNSAID (vary the shape: not every unsaid thing is a trail-off)
 "I used to think about leaving. Still do, some mornings."
 "*stares at the empty house across the road*"
 "*opens mouth, closes it, goes back to work*"
@@ -245,7 +245,7 @@ Building: "Planning to stay a while?"
 
 ### 9. Ontological Observations
 
-These are the rarest and most powerful lines. They work because the villager isn't trying to be deep — they're noticing something genuinely strange about their world. Keep them grounded in observation, not in performed unease.
+These are the rarest and most powerful lines. They work because the villager isn't trying to be deep; they're noticing something genuinely strange about their world. Keep them grounded in observation, not in performed unease.
 
 ```java
 // GOOD: Specific to the world's actual strangeness
@@ -258,8 +258,8 @@ These are the rarest and most powerful lines. They work because the villager isn
 "How come you can carry 64 logs but only 16 eggs?"
 
 // AVOID: Generic existential weight
-// "Do you ever wonder if any of this is real?" — too on-the-nose
-// "Something feels wrong but I can't explain it." — open circuit, no specifics
+// "Do you ever wonder if any of this is real?": too on-the-nose
+// "Something feels wrong but I can't explain it.": open circuit, no specifics
 ```
 
 ## Dialogue Don'ts
@@ -280,40 +280,40 @@ These are the rarest and most powerful lines. They work because the villager isn
 - Immediate gratitude
 - Clear moral lessons
 - Game terminology
-- **The trail-off formula on repeat** — "I should tell you... never mind" is valid once. Used as a pattern, it becomes a writer's tic that replaces genuine mystery with performed mystery
-- **Fortune-cookie refusals** — "Violence never brings understanding" sounds wise but not human. Refusals should stumble.
-- **Moonfaced prose** — See below. This is the single most common failure mode in this mod's dialogue.
+- **The trail-off formula on repeat**: "I should tell you... never mind" is valid once. Used as a pattern, it becomes a writer's tic that replaces genuine mystery with performed mystery
+- **Fortune-cookie refusals**: "Violence never brings understanding" sounds wise but not human. Refusals should stumble.
+- **Moonfaced prose**: see below. This is the single most common failure mode in this mod's dialogue.
 
 ### The Moonfaced Test (CRITICAL)
 
 "Moonfaced" dialogue is when a villager sounds like a fortune cookie, a film trailer, or an oracle instead of a person. It's cryptically poetic, weirdly terse, or unnaturally compressed in a way that sounds profound but says nothing a real person would say out loud.
 
-**The test: "Would a real farmer/butcher/mason say this to someone standing in front of them?"** If the answer is "only in a movie" — rewrite it.
+**The test: "Would a real farmer/butcher/mason say this to someone standing in front of them?"** If the answer is "only in a movie", rewrite it.
 
 #### What moonfaced sounds like:
 ```java
-// FORTUNE COOKIE — wisdom that sounds carved in stone
+// FORTUNE COOKIE: wisdom that sounds carved in stone
 "That matters."
 "Knowing is enough."
 "That's not nothing."
 "The silence between you holds."
 
-// FILM TRAILER — dramatic fragments that sound like voiceover
+// FILM TRAILER: dramatic fragments that sound like voiceover
 "Just... different."
 "Something brought you here."
 "You're just... in it."
 
-// ORACLE — the villager knows things they shouldn't
+// ORACLE: the villager knows things they shouldn't
 "Something about this hour feels thin."
 "The world's half-asleep."
 "Make a wish."
 
-// POETICIZED MUNDANE — ordinary observations made mysteriously heavy
+// POETICIZED MUNDANE: ordinary observations made mysteriously heavy
 "The veil is thinnest at night."
 "Time bends here."
 "Everything else here matters too much."
 
-// SELF-AWARE DISCLAIMER — praising the player while pretending not to
+// SELF-AWARE DISCLAIMER: praising the player while pretending not to
 "Not because we need you. Just because you're part of it."
 "That's not a compliment. It's just true."
 ```
@@ -333,15 +333,15 @@ These are the rarest and most powerful lines. They work because the villager isn
 Moonfaced prose **strips specificity until only atmosphere remains.** Grounded prose **keeps the specific detail that makes it real.** "The silence holds" has no handhold. "Even the bugs shut up" has bugs. Bugs are real.
 
 #### Where this pattern hides:
-- **Acknowledgment/witness beats** after emotional moments — the temptation to caption the silence
-- **Time-awareness greetings** — the temptation to be profound about duration
-- **High-reputation greetings** — the temptation to have the villager deliver a thesis about belonging
-- **Overheard fragments** — the temptation to script vague atmosphere instead of specific gossip
-- **Micro-intimacy greetings** — the temptation to have villagers perform vulnerability instead of showing it
+- **Acknowledgment/witness beats** after emotional moments: the temptation to caption the silence
+- **Time-awareness greetings**: the temptation to be profound about duration
+- **High-reputation greetings**: the temptation to have the villager deliver a thesis about belonging
+- **Overheard fragments**: the temptation to script vague atmosphere instead of specific gossip
+- **Micro-intimacy greetings**: the temptation to have villagers perform vulnerability instead of showing it
 
 #### The fix is always the same: add a specific detail.
 - "I think I'm happy" → "I don't know why I'm in a good mood"
-- "That matters" → (cut — the action speaks for itself)
+- "That matters" → (cut; the action speaks for itself)
 - "Just... different" → "...been in a better mood since they started helping"
 - "The world's half-asleep" → "Dead quiet out there"
 
@@ -403,7 +403,7 @@ if (reputation < -30 && random.nextBoolean()) {
 ## Writing Process
 
 1. **First Draft:** Write what a real person would say in that situation
-2. **Body Pass:** Give them a body — are they sweating, squinting, fidgeting, leaning?
+2. **Body Pass:** Give them a body: are they sweating, squinting, fidgeting, leaning?
 3. **Context Pass:** Adjust for time, weather, recent events, who's nearby
 4. **Specificity Pass:** Replace anything generic with something from *this* person's life
 5. **Variety Pass:** Does this sound like the last three lines you wrote? Find a different shape.

@@ -10,7 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 
 /**
- * Fetch quest for Shelf Mushroom — the distinctive new Dappled Forest fungus
+ * Fetch quest for Shelf Mushroom, the Dappled Forest fungus
  * added in 26.3. Shelf mushrooms grow on poplar logs and fallen trees.
  *
  * Offered by farmers, and any villager at low-mid reputation.

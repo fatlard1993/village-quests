@@ -104,7 +104,7 @@ public class DialogueManager {
    private static final Map<UUID, DialogueManager.SecretData> PLAYER_SECRETS = new ConcurrentHashMap<>();
    private static final long SECRET_EXPIRY_TICKS = 168000L;
    private static final Map<UUID, Set<String>> VILLAGE_OBSERVATIONS = new ConcurrentHashMap<>();
-   // Observation tag constants — used in both add/remove calls here and switch cases in DeepQuestDialogues
+   // Observation tag constants, used in both add/remove calls here and switch cases in DeepQuestDialogues
    public static final String OBS_DARK_PATHS = "dark_paths";
    public static final String OBS_BROKEN_FENCES = "broken_fences";
    public static final String OBS_EMPTY_FIELDS = "empty_fields";
@@ -399,7 +399,7 @@ public class DialogueManager {
                   RandomKindnessHandler.KindnessResult k = kindness.get();
                   VillagerProfession kindProf = (VillagerProfession) villager.getVillagerData().profession().value();
                   String kindProfName = isChild ? "child" : professionName(kindProf);
-                  // Gift is given immediately — no accept/decline
+                  // Gift is given immediately: no accept/decline
                   player.getInventory().add(k.gift().copy());
                   net.minecraft.world.item.Item giftItem = k.gift().getItem();
                   DialogueScreens.ItemHint giftHint = DialogueScreens.ItemHint.give(giftItem, k.gift().getCount());

@@ -145,7 +145,7 @@ public class MissingTraderCampQuest extends VillagerQuest {
                 template.placeInWorld(world, campPos, campPos, placeSettings, world.getRandom(), 2);
             } catch (Exception e) {
                 LOGGER.error("[VQ] Failed to place camp structure at {}: {}", campPos, e.getMessage());
-                // Quest still works — player gets directed to the location
+                // Quest still works; the player gets directed to the location
             }
         }
 
@@ -187,7 +187,7 @@ public class MissingTraderCampQuest extends VillagerQuest {
         // Give the compass back
         player.addItem(new ItemStack(Items.COMPASS));
 
-        // Plant the chain seed — detail stores "x,y,z|traderName" for TraderRouteQuest
+        // Plant the chain seed: detail stores "x,y,z|traderName" for TraderRouteQuest
         Village village = VillageQuests.getCachedVillage(player);
         if (village != null) {
             String posStr = campPos != null

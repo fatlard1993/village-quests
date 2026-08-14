@@ -13,7 +13,7 @@
 
 **The player is a participant, not a manager, hero, or center of gravity.**
 
-This mod exists to restore a sense of social continuity, lived-in space, and moral texture to Minecraft villages—without replacing vanilla systems or creating a parallel simulation.
+This mod exists to restore a sense of social continuity, lived-in space, and moral texture to Minecraft villages without replacing vanilla systems or creating a parallel simulation.
 
 The goal is not to make villagers smarter, more efficient, or more rewarding, but to make them feel like people who exist whether or not the player is present.
 
@@ -45,7 +45,7 @@ If players can identify a "best" or "optimal" behavior loop, the system has fail
 
 ### 2.3 Emotional Continuity Over Mechanical Progression
 
-Reputation reflects trust, reliability, restraint, and presence—not XP or grind.
+Reputation reflects trust, reliability, restraint, and presence, not XP or grind.
 
 Villagers remember how things happened, not just outcomes.
 
@@ -118,7 +118,7 @@ Not through:
 
 ## 4. Quest Philosophy
 
-**Quests are reasons people talk to you — not tasks to be completed.**
+**Quests are reasons people talk to you, not tasks to be completed.**
 
 ### 4.1 Quest Types Reflect Human Needs
 
@@ -150,7 +150,7 @@ Quests exist because life is messy, not because content is needed.
 
 Some requests should not be fulfilled.
 
-The villager asks out of fear, anger, or desperation—not manipulation.
+The villager asks out of fear, anger, or desperation, not manipulation.
 
 Refusal is explicit, respected, and sometimes later acknowledged.
 
@@ -170,7 +170,7 @@ They are **invisible** events the player is rarely included in.
 
 The power is in thinking "this must happen all the time and I just never knew."
 
-No particles, no sounds, no villager pathing—unless invited.
+No particles, no sounds, no villager pathing, unless invited.
 
 The invitation itself is the entire feature.
 
@@ -197,7 +197,7 @@ Mail must:
 **Important Non-Goals:**
 - No reputation farming
 - No reputation immunity
-- No permanent status (ELDER_FRIEND decays at 1% above 100 per MC day — high trust requires sustained presence)
+- No permanent status (ELDER_FRIEND decays at 1% above 100 per MC day; high trust requires sustained presence)
 
 ---
 
@@ -348,7 +348,7 @@ Can the system be fully explained? If yes, ambiguity has died.
 
 ## 12. The Final Statement
 
-**This mod is about what almost happens — and what people think about afterward.**
+**This mod is about what almost happens, and what people think about afterward.**
 
 If reality ever drifts toward:
 - loud
@@ -383,4 +383,4 @@ And that's what makes your presence there meaningful.
 
 *"The moment every villager sounds like a fortune cookie, start over."*
 
-*"Moonfaced prose — cryptically poetic, weirdly terse, stripped of specificity until only atmosphere remains — is the subtler failure mode. It doesn't sound like a video game. It sounds like a film trailer. Both are wrong. Villagers are specific people with observations, not oracles with atmospherics."*
+*"Moonfaced prose (cryptically poetic, weirdly terse, stripped of specificity until only atmosphere remains) is the subtler failure mode. It doesn't sound like a video game. It sounds like a film trailer. Both are wrong. Villagers are specific people with observations, not oracles with atmospherics."*

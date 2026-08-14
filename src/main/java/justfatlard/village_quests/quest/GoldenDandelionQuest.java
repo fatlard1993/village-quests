@@ -10,7 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 
 /**
- * Fetch quest for Golden Dandelion — the 26.1 item that stops baby mobs from aging.
+ * Fetch quest for Golden Dandelion, the 26.1 item that stops baby mobs from aging.
  * A villager has a beloved baby animal they can't bear to watch grow up.
  *
  * Universal, any rep, 15% chance.

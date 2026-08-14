@@ -97,7 +97,7 @@ public class TraderRouteQuest extends VillagerQuest {
         String traderDirection = getOppositeOrPerp(campDirection, rng);
         directionHint = traderDirection;
 
-        // Distance 150-250 blocks — closer than the camp, hiding and watching
+        // Distance 150-250 blocks: closer than the camp, hiding and watching
         int distance = 150 + rng.nextInt(101);
 
         int dx = 0;
@@ -140,7 +140,7 @@ public class TraderRouteQuest extends VillagerQuest {
             return BlockPos.ZERO;
         }
         try {
-            // detail format: "x,y,z|traderName" — strip the name part
+            // detail format: "x,y,z|traderName"; strip the name part
             String posPart = detail.contains("|") ? detail.substring(0, detail.indexOf("|")) : detail;
             String[] parts = posPart.split(",");
             if (parts.length >= 3) {
@@ -203,7 +203,7 @@ public class TraderRouteQuest extends VillagerQuest {
         ItemStack map = new ItemStack(Items.MAP);
         player.addItem(map);
 
-        // Mark the chain as completed at this village — prevent re-trigger
+        // Mark the chain as completed at this village to prevent re-trigger
         Village village = VillageQuests.getCachedVillage(player);
         UUID villageId = village != null ? village.getId() : null;
         if (villageId != null) {

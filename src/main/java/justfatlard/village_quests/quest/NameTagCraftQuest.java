@@ -10,7 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 
 /**
- * Fetch quest for Name Tags — now craftable in 26.1 (paper + any metal nugget).
+ * Fetch quest for Name Tags, craftable since 26.1 (paper + any metal nugget).
  * A villager needs them because their animals all have names that matter to them.
  *
  * Universal, rep >= -20, 20% chance.

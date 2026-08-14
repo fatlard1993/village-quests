@@ -20,7 +20,7 @@ public class LoreRepository {
       addMasonLore();
       addPastoralLore();
       addNitwitLore();
-      if (FabricLoader.getInstance().isModLoaded("herobrine-justfatlard")) {
+      if (FabricLoader.getInstance().isModLoaded("herobrine")) {
          addHerobrineLore();
       }
 

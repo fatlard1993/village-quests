@@ -10,7 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 
 /**
- * Fetch quest for Poplar Saplings — the new Dappled Forest tree added in 26.3.
+ * Fetch quest for Poplar Saplings, the Dappled Forest tree added in 26.3.
  * Wandering Traders are the canonical source for saplings in vanilla; villagers
  * want to plant them near the village but can't travel to find them.
  *
