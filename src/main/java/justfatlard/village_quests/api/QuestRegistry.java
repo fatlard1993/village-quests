@@ -11,8 +11,11 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class QuestRegistry {
+   private static final Logger LOGGER = LoggerFactory.getLogger(QuestRegistry.class);
    private static final Map<String, List<QuestRegistry.QuestGenerator>> PROFESSION_QUEST_GENERATORS = new HashMap<>();
    private static final List<QuestRegistry.QuestGenerator> UNIVERSAL_QUEST_GENERATORS = new ArrayList<>();
 
@@ -38,7 +41,17 @@ public class QuestRegistry {
       Collections.shuffle(generators, random);
 
       for (QuestRegistry.QuestGenerator generator : generators) {
-         VillagerQuest quest = generator.generate(villager, villagerName, reputation, random);
+         // Third-party generators (often reflection-backed proxies) must never
+         // take the server down: a throwing generator is logged and skipped,
+         // and the remaining generators still get their turn
+         VillagerQuest quest;
+         try {
+            quest = generator.generate(villager, villagerName, reputation, random);
+         } catch (Exception | LinkageError e) {
+            LOGGER.warn("Quest generator {} threw for villager {}; skipping it: {}",
+               generator.getClass().getName(), villagerName, e.toString());
+            continue;
+         }
          if (quest != null) {
             return quest;
          }

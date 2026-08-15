@@ -12,8 +12,11 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DialogueRegistry {
+   private static final Logger LOGGER = LoggerFactory.getLogger(DialogueRegistry.class);
    private static final Map<String, List<DialogueRegistry.DialogueProvider>> PROFESSION_DIALOGUES = new HashMap<>();
    private static final List<DialogueRegistry.DialogueProvider> UNIVERSAL_DIALOGUES = new ArrayList<>();
    private static final Map<String, DialogueRegistry.DialogueHandler> DIALOGUE_HANDLERS = new HashMap<>();
@@ -49,7 +52,15 @@ public class DialogueRegistry {
 
    public static Component handleDialogueOption(Villager villager, ServerPlayer player, String optionId) {
       DialogueRegistry.DialogueHandler handler = DIALOGUE_HANDLERS.get(optionId);
-      return (Component)(handler != null ? handler.handle(villager, player, optionId) : Component.literal("I don't understand that."));
+      if (handler == null) return Component.literal("I don't understand that.");
+      // Same containment as QuestRegistry.tryGenerateQuest: a third-party
+      // handler (often a reflection proxy) must never crash the server
+      try {
+         return handler.handle(villager, player, optionId);
+      } catch (Exception | LinkageError e) {
+         LOGGER.warn("Dialogue handler for '{}' threw; swallowing: {}", optionId, e.toString());
+         return Component.literal("...");
+      }
    }
 
    public static void clear() {

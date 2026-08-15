@@ -22,7 +22,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
-class FetchItemQuest extends VillagerQuest {
+public class FetchItemQuest extends VillagerQuest {
    protected final Item requiredItem;
    protected final int requiredAmount;
    private final String weatherFlavor;
