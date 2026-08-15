@@ -382,7 +382,9 @@ public class DialogueManager {
       Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
       Component overheardFragment = DeepQuestDialogues.getOverheardDialogue(player, village, world);
       if (overheardFragment != null) {
-         player.sendSystemMessage(overheardFragment, true);
+         // Chat, not actionbar: overheard lore is sentence-length and rare
+         // (3% of dialogue opens); the actionbar fades before it can be read
+         player.sendSystemMessage(overheardFragment.copy().withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC), false);
       }
 
       if (!this.progressActiveQuest(player, villager)) {
@@ -1593,12 +1595,12 @@ public class DialogueManager {
                int clueNumber = mq.getCluesInvestigated() + 1;
                String clueLine = MysteryQuest.getClueDialogue(mq.getMysteryType(), clueNumber, mq.getTargetDescription(), mq.getCulpritName(), witnessName);
                mq.investigateClue();
-               player.sendSystemMessage(Component.literal(clueLine).withStyle(ChatFormatting.AQUA), true);
+               player.sendSystemMessage(Component.literal(clueLine).withStyle(ChatFormatting.AQUA), false);
                if (mq.getCluesInvestigated() >= 3) {
                   player.sendSystemMessage(
                      Component.literal(witnessName + ": \"That's all I know. Take it up with " + mq.getRequesterName() + ".\"")
                         .withStyle(ChatFormatting.YELLOW),
-                     true
+                     false
                   );
                }
             }
@@ -1645,7 +1647,7 @@ public class DialogueManager {
             String optionId = actionId.substring(7);
             Component result = DialogueRegistry.handleDialogueOption(villager, player, optionId);
             if (result != null) {
-               player.sendSystemMessage(result, true);
+               player.sendSystemMessage(result, false);
             }
 
             DialogueStateManager.endDialogue(villager.getUUID());
@@ -1681,7 +1683,7 @@ public class DialogueManager {
                String optionId = customIds.get(customIndex);
                Component response = DialogueRegistry.handleDialogueOption(villager, player, optionId);
                if (response != null) {
-                  player.sendSystemMessage(response, true);
+                  player.sendSystemMessage(response, false);
                }
 
                this.customDialogueOptions.remove(player.getUUID());
