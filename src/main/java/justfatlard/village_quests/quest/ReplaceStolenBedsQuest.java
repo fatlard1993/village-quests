@@ -6,6 +6,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.BedBlock;
 
@@ -79,7 +80,7 @@ class ReplaceStolenBedsQuest extends CreationQuest {
          "I heard someone snoring last night and I almost cried. That sounds strange. But I did."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), true);
+      VillagerVoice.queue(player, this.villagerUuid, response);
       this.scheduleAftermathLetter(
          player,
          new String[]{

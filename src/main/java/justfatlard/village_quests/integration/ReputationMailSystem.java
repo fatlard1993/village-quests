@@ -151,7 +151,9 @@ public class ReputationMailSystem {
       }
 
       MailSystemIntegration.sendMailWithButtons(server, villager.getUUID(), villagerName, player.getUUID(), "VILLAGER", letter, null, buttons);
-      player.sendSystemMessage(Component.literal("A letter arrived.").withStyle(ChatFormatting.GRAY), true);
+      // No arrival ping: village-mail already shows an unread badge on the HUD,
+      // and an action-bar line is the temporary floating text this mod is getting
+      // out of.
    }
 
    public static void sendDelayedGratitude(MinecraftServer server, UUID playerId, String villagerName, String villagerUuidStr, String reason) {

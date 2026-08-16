@@ -6,6 +6,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.CandleBlock;
 import net.minecraft.world.level.block.CandleCakeBlock;
@@ -70,10 +71,7 @@ class LightCandleQuest extends CreationQuest {
          "*stands quietly for a long time*", "...Thank you.", "*watches the flame* " + this.deceasedName + " would have liked you."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      player.sendSystemMessage(
-         Component.literal(this.requesterName + ": " + response).withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-         true
-      );
+      VillagerVoice.queue(player, this.villagerUuid, response);
       this.completed = true;
    }
 }

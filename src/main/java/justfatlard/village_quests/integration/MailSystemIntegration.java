@@ -60,21 +60,23 @@ public class MailSystemIntegration {
       }
    }
 
-   private static void sendChatFallback(ServerPlayer player, String senderName, String body, String context) {
-      LOGGER.info("Village-mail not available, falling back to chat for {} from '{}'", context, senderName);
-      String abbreviated = body;
-      int newline = body.indexOf(10);
-      if (newline > 0 && newline < 80) {
-         abbreviated = body.substring(0, newline);
-      } else if (body.length() > 80) {
-         abbreviated = body.substring(0, 77) + "...";
+   /**
+    * What happens to a letter that cannot be delivered: nothing.
+    *
+    * <p>Delayed recognition is a village-mail feature. Without that mod it does
+    * not exist rather than degrading into a whisper, because a villager speaking
+    * to you from across the world is exactly the thing this mod does not do:
+    * villagers are heard in conversation, or read on paper, and nowhere else.
+    *
+    * <p>Logged at error when village-mail IS present, since that is a wiring
+    * fault rather than a missing feature.
+    */
+   private static void dropUndeliverable(ServerPlayer player, String senderName, String body, String context) {
+      if (isMailSystemAvailable()) {
+         LOGGER.error("village-mail is present but {} from '{}' could not be sent; message dropped", context, senderName);
+      } else {
+         LOGGER.debug("No village-mail: {} from '{}' not delivered", context, senderName);
       }
-
-      player.sendSystemMessage(
-         Component.literal(senderName + " whispers to you: \"" + abbreviated + "\"")
-            .withStyle(ChatFormatting.GREEN, ChatFormatting.ITALIC),
-         false
-      );
    }
 
    public static void sendMisnomerThankYouLetter(ServerPlayer player, String villagerName, UUID villagerUuid, String misnomerType) {
@@ -82,13 +84,13 @@ public class MailSystemIntegration {
       ItemStack gift = generateThankYouGift(misnomerType);
       MinecraftServer server = player.level().getServer();
       if (!isLoaded) {
-         sendChatFallback(player, villagerName, letterContent, "misnomer thank-you letter");
+         dropUndeliverable(player, villagerName, letterContent, "misnomer thank-you letter");
       } else {
          boolean sent = buildAndSendMail(server, villagerUuid, villagerName, player.getUUID(), "PERSONAL", letterContent, gift);
          if (sent) {
             player.sendSystemMessage(Component.literal("A letter arrived. From " + villagerName + ".").withStyle(ChatFormatting.YELLOW), true);
          } else {
-            sendChatFallback(player, villagerName, letterContent, "misnomer thank-you letter (reflection failure)");
+            dropUndeliverable(player, villagerName, letterContent, "misnomer thank-you letter (reflection failure)");
          }
       }
    }
@@ -306,13 +308,13 @@ public class MailSystemIntegration {
       if (!isLoaded) {
          ServerPlayer player = server.getPlayerList().getPlayer(playerId);
          if (player != null) {
-            sendChatFallback(player, villagerName, content, "quest thank-you letter");
+            dropUndeliverable(player, villagerName, content, "quest thank-you letter");
          }
       } else {
          if (!buildAndSendMail(server, villagerUuid, villagerName, playerId, "PERSONAL", content, gift)) {
             ServerPlayer player = server.getPlayerList().getPlayer(playerId);
             if (player != null) {
-               sendChatFallback(player, villagerName, content, "quest thank-you letter (reflection failure)");
+               dropUndeliverable(player, villagerName, content, "quest thank-you letter (reflection failure)");
             }
          }
       }
@@ -323,13 +325,13 @@ public class MailSystemIntegration {
       if (!isLoaded) {
          ServerPlayer player = server.getPlayerList().getPlayer(playerId);
          if (player != null) {
-            sendChatFallback(player, senderName, content, "gathering invitation");
+            dropUndeliverable(player, senderName, content, "gathering invitation");
          }
       } else {
          if (!buildAndSendMail(server, villageUuid, senderName, playerId, "NOTICE", content, null)) {
             ServerPlayer player = server.getPlayerList().getPlayer(playerId);
             if (player != null) {
-               sendChatFallback(player, senderName, content, "gathering invitation (reflection failure)");
+               dropUndeliverable(player, senderName, content, "gathering invitation (reflection failure)");
             }
          }
       }
@@ -449,13 +451,13 @@ public class MailSystemIntegration {
       if (!isLoaded) {
          ServerPlayer player = server.getPlayerList().getPlayer(playerId);
          if (player != null) {
-            sendChatFallback(player, villagerName, body, "letter from villager");
+            dropUndeliverable(player, villagerName, body, "letter from villager");
          }
       } else {
          if (!buildAndSendMail(server, villagerUuid, villagerName, playerId, "PERSONAL", body, null)) {
             ServerPlayer player = server.getPlayerList().getPlayer(playerId);
             if (player != null) {
-               sendChatFallback(player, villagerName, body, "letter from villager (reflection failure)");
+               dropUndeliverable(player, villagerName, body, "letter from villager (reflection failure)");
             }
          }
       }

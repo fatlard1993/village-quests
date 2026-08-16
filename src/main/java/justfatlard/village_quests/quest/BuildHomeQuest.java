@@ -10,6 +10,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.AirBlock;
@@ -312,10 +313,10 @@ class BuildHomeQuest extends CreationQuest {
          "I don't know what to say. It's... it's a house. They have a house now."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), true);
+      VillagerVoice.queue(player, this.villagerUuid, response);
 
       for (String observation : this.getBuildQualityObservations(player)) {
-         player.sendSystemMessage(Component.literal(this.requesterName + ": " + observation).withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, observation);
       }
 
       String anticipation = this.getAnticipationLine();

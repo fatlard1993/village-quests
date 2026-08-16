@@ -6,6 +6,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -144,7 +145,7 @@ class DrainFloodingQuest extends CreationQuest {
             "Blaze it all, I thought the whole field was done for. But it's draining. It's actually draining."
          };
          String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-         player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, response);
          this.scheduleAftermathLetter(
             player, new String[]{"The seedlings are still alive. Barely, but alive.", "Mud everywhere. But it's drying. That's something."}
          );

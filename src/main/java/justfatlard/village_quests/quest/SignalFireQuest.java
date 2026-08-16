@@ -9,6 +9,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -90,7 +91,7 @@ class SignalFireQuest extends CreationQuest {
          "*stares at the smoke for a long time* I hope someone's there to see it."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), true);
+      VillagerVoice.queue(player, this.villagerUuid, response);
       ServerLevel village = player.level();
       if (village instanceof ServerLevel) {
          Village villagex = VillageQuests.getVillageManager().findNearestVillage(village, player.blockPosition());

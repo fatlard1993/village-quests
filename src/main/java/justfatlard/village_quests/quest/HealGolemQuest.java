@@ -11,6 +11,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.animal.golem.IronGolem;
 import net.minecraft.world.level.entity.EntityTypeTest;
@@ -111,7 +112,7 @@ class HealGolemQuest extends CreationQuest {
             "The children ran up to it this morning. It let them. *voice catches* It let them."
          };
          String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-         player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, response);
          String anticipation = this.getAnticipationLine();
          if (anticipation != null) {
             player.sendSystemMessage(

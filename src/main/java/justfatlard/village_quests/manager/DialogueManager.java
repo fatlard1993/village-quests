@@ -655,6 +655,14 @@ public class DialogueManager {
                      }
                   }
 
+                  // Anything this villager has been holding opens the conversation,
+                  // ahead of the greeting. They reacted when it happened; you are
+                  // only now in front of them to hear it.
+                  List<String> heldLines = justfatlard.village_quests.util.VillagerVoice.drain(player, villager.getUUID());
+                  if (!heldLines.isEmpty()) {
+                     greetingText = String.join(" ", heldLines) + " " + greetingText;
+                  }
+
                   if (!firstMeeting
                      && !isChild
                      && ActiveQuestManager.getActiveQuest(player) instanceof RedirectQuest redirectQuest

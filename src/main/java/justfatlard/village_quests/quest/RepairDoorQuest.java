@@ -6,6 +6,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.DoorBlock;
 
@@ -54,7 +55,7 @@ class RepairDoorQuest extends CreationQuest {
          this.victimName + " can sleep safely again.", "Door's solid. That'll hold.", "I keep opening and closing it. My wife thinks I've lost my mind."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), true);
+      VillagerVoice.queue(player, this.villagerUuid, response);
       this.scheduleAftermathLetter(
          player,
          new String[]{"The door closes properly now. Funny how much that matters.", "I caught myself testing the latch three times. Just to hear it click."}

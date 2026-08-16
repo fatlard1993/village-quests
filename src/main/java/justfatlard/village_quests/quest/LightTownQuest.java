@@ -6,6 +6,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
 
@@ -117,7 +118,7 @@ class LightTownQuest extends CreationQuest {
          "I walked the whole village tonight. Every path. I could see my feet the whole way."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      player.sendSystemMessage(Component.literal(this.requesterName + ": " + response).withStyle(ChatFormatting.GREEN), true);
+      VillagerVoice.queue(player, this.villagerUuid, response);
       this.scheduleAftermathLetter(
          player,
          new String[]{

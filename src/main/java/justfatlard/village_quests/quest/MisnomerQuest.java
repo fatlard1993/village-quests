@@ -33,6 +33,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -486,7 +487,7 @@ public class MisnomerQuest extends VillagerQuest {
       this.refusalTime = System.currentTimeMillis();
       this.recognitionDelay = getRandomRecognitionDelay();
       String reaction = this.getImmediateReaction();
-      player.sendSystemMessage(Component.literal(this.requesterName + ": " + reaction).withStyle(ChatFormatting.GRAY), true);
+      VillagerVoice.queue(player, this.villagerUuid, reaction);
       UUID playerId = player.getUUID();
       long recognitionTime = System.currentTimeMillis() + this.recognitionDelay;
       DELAYED_RECOGNITIONS.computeIfAbsent(playerId, k -> new HashMap<>())
@@ -500,7 +501,7 @@ public class MisnomerQuest extends VillagerQuest {
       this.refusalTime = System.currentTimeMillis();
       this.recognitionDelay = getRandomRecognitionDelay();
       String reaction = this.getColdImmediateReaction();
-      player.sendSystemMessage(Component.literal(this.requesterName + ": " + reaction).withStyle(ChatFormatting.RED), true);
+      VillagerVoice.queue(player, this.villagerUuid, reaction);
       UUID playerId = player.getUUID();
       long recognitionTime = System.currentTimeMillis() + this.recognitionDelay;
       DELAYED_RECOGNITIONS.computeIfAbsent(playerId, k -> new HashMap<>())
@@ -695,12 +696,12 @@ public class MisnomerQuest extends VillagerQuest {
             bonus = Math.min(bonus, 10);
             VillageQuests.getReputationManager().modifyReputation(player, village, bonus);
             String recognition = this.getColdRecognitionMessage();
-            player.sendSystemMessage(Component.literal(this.requesterName + ": " + recognition).withStyle(ChatFormatting.YELLOW), true);
+            VillagerVoice.queue(player, this.villagerUuid, recognition);
          } else {
             int bonus = Math.max(1, (int)(VillageQuests.getReputationManager().getReputation(player, village) * 0.03));
             VillageQuests.getReputationManager().modifyReputation(player, village, bonus);
             String recognition = this.getRecognitionMessage();
-            player.sendSystemMessage(Component.literal(this.requesterName + ": " + recognition).withStyle(ChatFormatting.GREEN), true);
+            VillagerVoice.queue(player, this.villagerUuid, recognition);
          }
       }
 
