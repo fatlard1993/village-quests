@@ -72,7 +72,9 @@ Without `village-mail`, these degrade to chat whispers: no errors, no warnings. 
 
 ## Pandorical
 
-Village Quests uses Pandorical's `screens()` API extensively; every villager dialogue interaction (conversation text, response options, quest presentation, work requests) is built and driven as a Pandorical screen. Pandorical must be installed client-side to talk to villagers through this mod's dialogue system.
+Village Quests runs server-side, and Pandorical is a hard dependency (`fabric.mod.json`): the server will not load this mod without it. Every villager dialogue interaction (conversation text, response options, quest presentation, work requests) is built and driven as a Pandorical screen.
+
+Clients are the optional half only in the sense that no Village Quests jar is needed on one. Pandorical itself is not optional: a player without it cannot talk to a villager through this mod at all, and falls through to vanilla trading.
 
 ## For Contributors
 
@@ -113,9 +115,9 @@ Install alongside its declared dependencies (see `fabric.mod.json`). Optionally 
 
 ### For Modpack Developers
 
-- **Mod ID:** `village-quests-justfatlard`
+- **Mod ID:** `village-quests-justfatlard` (note the suffix: integrations that guard on the bare `village-quests` silently never fire)
+- **Hard dependencies:** Fabric API and Pandorical
 - **Optional dependency:** `village-mail` (soft dependency, reflection-based)
-- **No hard dependencies** beyond Fabric API
 
 ## Commands
 
@@ -129,6 +131,8 @@ Install alongside its declared dependencies (see `fabric.mod.json`). Optionally 
 The mod creates `config/village-quests.properties` on first run with commented defaults. 16 tunable values covering interaction cooldowns, quest rarity, gathering frequency, reputation decay, tick intervals, and mail limits. Delete the file to regenerate defaults.
 
 ## Building
+
+Village Quests builds against Pandorical's live source, not a published artifact: `settings.gradle` includes `../pandorical`. Check both out side by side or the build fails before it starts.
 
 ```bash
 ./gradlew build
