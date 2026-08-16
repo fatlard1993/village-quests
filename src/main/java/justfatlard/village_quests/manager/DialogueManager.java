@@ -1604,6 +1604,33 @@ public class DialogueManager {
             // point or two of reputation, and those are the whole mechanic — an
             // invisible choice is still a choice, and collapsing them would delete
             // the thing this mod is about.
+            // Accepting a quest is one option, and standing picks its voice.
+            //
+            // These were written as an eagerness scale — "What's the pay?" through
+            // "I'll make time." — and offering the whole scale at once let a
+            // stranger be as warm as an old friend just by clicking the warm one.
+            // Reputation is supposed to be the relationship; you do not choose your
+            // rapport, you have already earned it. So the scale is sorted by the
+            // reputation each line carries and indexed by the band you are in:
+            // shunned gets the transactional line, an elder friend gets the eager
+            // one, and everyone in between lands somewhere sensible.
+            int questAcceptPick = -1;
+            List<Integer> acceptIndices = new java.util.ArrayList<>();
+            for (int i = 0; i < ownResponses.size(); i++) {
+               if (ownResponses.get(i).offersQuest()) {
+                  acceptIndices.add(i);
+               }
+            }
+            if (acceptIndices.size() > 1) {
+               acceptIndices.sort(java.util.Comparator.comparingInt(
+                  i -> ownResponses.get(i).getReputationChange()));
+               int bands = justfatlard.village_quests.reputation.ReputationBand.values().length - 1;
+               int position = Math.round(
+                  (float) band.ordinal() / bands * (acceptIndices.size() - 1));
+               questAcceptPick = acceptIndices.get(
+                  Math.max(0, Math.min(acceptIndices.size() - 1, position)));
+            }
+
             int flavourPick = -1;
             if (!tradeOfferGreeting && ownResponses.size() > 1) {
                boolean allInert = true;
@@ -1653,6 +1680,10 @@ public class DialogueManager {
                }
 
                if (flavourPick >= 0 && i != flavourPick) {
+                  continue;
+               }
+
+               if (questAcceptPick >= 0 && ownResponse.offersQuest() && i != questAcceptPick) {
                   continue;
                }
 
