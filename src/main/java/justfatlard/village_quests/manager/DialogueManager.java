@@ -1584,11 +1584,23 @@ public class DialogueManager {
          if (includeOwnResponses) {
             List<Dialogue.DialogueResponse> ownResponses = greeting.getResponses();
 
+            // Every authored reply to a trade offer opens the trade screen, so they
+            // are several spellings of one action rather than several actions. Most
+            // trade greetings carry two, which showed as two buttons doing exactly
+            // the same thing, and "What do you need?" sitting beside "Let me see
+            // what I have" implies a conversation the button does not have. One is
+            // chosen per conversation, so the phrasing still varies without the
+            // choice being fake.
+            int tradePick = tradeOfferGreeting && !ownResponses.isEmpty()
+               ? ThreadLocalRandom.current().nextInt(ownResponses.size())
+               : -1;
+
             for (int i = 0; i < ownResponses.size(); i++) {
                Dialogue.DialogueResponse ownResponse = ownResponses.get(i);
                if (tradeOfferGreeting) {
-                  // Surplus openers: every authored reply is a way of saying
-                  // "show me" — resolve all of them into the trade screen.
+                  if (i != tradePick) {
+                     continue;
+                  }
                   if (!canTradeHere) {
                      break;
                   }
