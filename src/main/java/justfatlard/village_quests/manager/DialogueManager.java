@@ -1658,7 +1658,11 @@ public class DialogueManager {
 
                responseTexts.add(ownResponse.getText());
                originalIndices.add(i);
-               actionIds.add("dialogue_response");
+               // Taking on a quest is the most consequential thing on the screen and
+               // was ranked as small talk, so on a quest offer the accept could sit
+               // below the fold. The handler never matches this id by equality; it
+               // falls through to the same index-driven path as any other reply.
+               actionIds.add(ownResponse.offersQuest() ? "dialogue_response_quest" : "dialogue_response");
             }
          }
 
@@ -2072,7 +2076,21 @@ public class DialogueManager {
             String optionId = actionId.substring(7);
             Component result = DialogueRegistry.handleDialogueOption(villager, player, optionId);
             if (result != null) {
-               player.sendSystemMessage(result, false);
+               // Said in the conversation you are already in. This used to print to
+               // chat as the screen closed, so another mod's villager line flashed
+               // past behind the closing dialogue.
+               String vName = VillageQuests.getNameManager().getName(villager);
+               String prof = villager.isBaby() ? "child" : professionName(villager.getVillagerData().profession().value());
+               Village cVillage = VillageQuests.getVillageManager().findNearestVillage(player.level(), villager.blockPosition());
+               int cRep = cVillage != null ? VillageQuests.getReputationManager().getReputation(player, cVillage) : 0;
+               PandoricalApi.screens().open(player, DialogueScreens.buildScreen(
+                  villager.getUUID(), vName, prof, result.getString(),
+                  "custom_reply", VillageQuests.getReputationManager().getReputationLevel(cRep),
+                  java.util.List.of("*leave*")));
+               this.responseActionIds.put(player.getUUID(), java.util.List.of("cancel"));
+               this.customDialogueOptions.remove(player.getUUID());
+               this.responseIndexMappings.remove(player.getUUID());
+               return;
             }
 
             DialogueStateManager.endDialogue(villager.getUUID());
@@ -3687,13 +3705,15 @@ public class DialogueManager {
          if (actionId == null) return 50;
          return switch (actionId) {
             // Finishing something you already committed to outranks starting anything
-            case "submit_quest_items", "deliver_misnomer_item", "teach_safely" -> 0;
+            case "submit_quest_items", "deliver_misnomer_item", "teach_safely", "dialogue_response_quest" -> 0;
             case "open_trade" -> 10;
             case "work_inquiry" -> 20;
             case "mystery_inquiry", "mystery_accuse", "mystery_protect_secret",
                  "secret_reveal", "secret_silence", "gift_item", "caretaking_gift" -> 30;
             case "cancel" -> 90;
-            default -> 50; // plain conversation, including custom: options
+            // A mod bothered to add this option for this villager in this moment,
+            // so it is situational by construction and never small talk.
+            default -> actionId.startsWith("custom:") ? 30 : 50;
          };
       }
    }
