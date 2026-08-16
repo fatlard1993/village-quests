@@ -14,6 +14,22 @@ public class Village {
    private boolean depopulated;
    public static final int MIGRATION_RADIUS = 64;
 
+   /**
+    * A village reaches as far as its buildings do, not a fixed distance from its
+    * bell. A large castle attached at the edge of a small village put half of
+    * itself outside a flat 64-block sphere, so standing in one hall counted as
+    * being in the village and standing in the next did not.
+    *
+    * <p>{@link #MIN_RADIUS} is the floor, so a village is never smaller than it
+    * used to be. {@link #MAX_RADIUS} is a ceiling against a structure whose
+    * bounding box sprawls far past anything a player would call the village.
+    * Zero means never sized: villages saved before this existed size themselves
+    * the next time they are resolved.
+    */
+   public static final int MIN_RADIUS = 64;
+   public static final int MAX_RADIUS = 192;
+   private int radius;
+
    public Village(UUID id, BlockPos center, String name) {
       this.id = id;
       this.center = center;
@@ -107,8 +123,37 @@ public class Village {
       this.depopulated = depopulated;
    }
 
+   public int getRadius() {
+      return this.radius;
+   }
+
+   /** True while this village has never been measured against its buildings. */
+   public boolean needsSizing() {
+      return this.radius < MIN_RADIUS;
+   }
+
+   /**
+    * Grow to the given reach. Never shrinks: a village that has counted a
+    * building as its own does not stop counting it because the player walked in
+    * from a different side and the structure lookup came back empty.
+    *
+    * @return true if the radius actually changed, so the caller knows to persist
+    */
+   public boolean growRadiusTo(int reach) {
+      int wanted = Math.min(Math.max(reach, MIN_RADIUS), MAX_RADIUS);
+      if (wanted <= this.radius) {
+         return false;
+      }
+      this.radius = wanted;
+      return true;
+   }
+
+   public void setRadius(int radius) {
+      this.radius = radius;
+   }
+
    public boolean isNearby(BlockPos pos) {
-      return this.center.closerThan(pos, 64.0);
+      return this.center.closerThan(pos, Math.max(this.radius, MIN_RADIUS));
    }
 
    @Override

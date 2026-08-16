@@ -21,6 +21,9 @@ import java.util.concurrent.ThreadLocalRandom;
 import justfatlard.village_quests.Village;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.tags.StructureTags;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -614,8 +617,17 @@ public class VillageManager {
    private Village resolveOrCreateVillage(ServerLevel world, BlockPos detectedCenter) {
       Village existing = this.getVillageAtPosition(detectedCenter);
       if (existing != null) {
-         if (!existing.getCenter().equals(detectedCenter)) {
+         boolean moved = !existing.getCenter().equals(detectedCenter);
+         if (moved) {
             existing.updateCenter(detectedCenter);
+         }
+
+         // Re-measure when the centre moves (the extent it was measured against
+         // moved with it) and when it has never been measured at all, which is
+         // every village saved before villages had a size.
+         boolean resized = (moved || existing.needsSizing()) && this.sizeToBuildings(world, existing);
+
+         if (moved || resized) {
             VillageManager.VillageData data = this.getVillageData(world);
             data.syncFromRegistry(this.villages.values());
             data.setDirty();
@@ -636,6 +648,7 @@ public class VillageManager {
          Identifier biomeIdForClassify = biomeForClassify.unwrapKey().map(key -> key.identifier()).orElse(null);
          String biomeType = Village.classifyBiome(biomeIdForClassify);
          Village village = Village.discover(detectedCenter, name, biomeType);
+         this.sizeToBuildings(world, village);
          village.setLastSeen(world.getGameTime());
          this.villages.put(village.getId(), village);
          data.syncFromRegistry(this.villages.values());
@@ -646,6 +659,38 @@ public class VillageManager {
 
    public Village getVillageById(UUID id) {
       return this.villages.get(id);
+   }
+
+   /**
+    * Size a village to the structure it grew from, so its reach covers its
+    * buildings instead of a fixed distance from its bell.
+    *
+    * <p>The village structure's bounding box is the right measure because
+    * anything attached after jigsaw assembly is inside it: village-castles adds
+    * its castle and grounds as pieces of the same start, and the pieces builder
+    * recomputes the box from the live piece list, so an attached castle is
+    * already accounted for by the time this reads it.
+    *
+    * <p>A village with no structure behind it (hand-built, or one whose centre
+    * drifted off the structure) keeps the {@link Village#MIN_RADIUS} floor
+    * rather than shrinking to nothing.
+    *
+    * @return true if the radius changed and the caller should persist
+    */
+   private boolean sizeToBuildings(ServerLevel world, Village village) {
+      StructureStart start = world.structureManager()
+         .getStructureWithPieceAt(village.getCenter(), StructureTags.VILLAGE);
+      if (start == null || !start.isValid()) {
+         return false;
+      }
+
+      BoundingBox box = start.getBoundingBox();
+      BlockPos center = village.getCenter();
+      int reach = Math.max(
+         Math.max(center.getX() - box.minX(), box.maxX() - center.getX()),
+         Math.max(center.getZ() - box.minZ(), box.maxZ() - center.getZ()));
+
+      return village.growRadiusTo(reach);
    }
 
    public Village getVillageAtPosition(BlockPos center) {
@@ -871,6 +916,7 @@ public class VillageManager {
             vNbt.putLong("LastSeen", village.getLastSeen());
             vNbt.putInt("ConsecutiveEmptyDays", village.getConsecutiveEmptyDays());
             vNbt.putBoolean("Depopulated", village.isDepopulated());
+            vNbt.putInt("Radius", village.getRadius());
             registryList.add(vNbt);
          }
 
@@ -906,6 +952,9 @@ public class VillageManager {
                village.setLastSeen(lastSeen);
                village.setConsecutiveEmptyDays(vNbt.getIntOr("ConsecutiveEmptyDays", 0));
                village.setDepopulated(vNbt.getBooleanOr("Depopulated", false));
+               // 0 for anything saved before villages were sized; resolveOrCreateVillage
+               // measures those the next time the player is near one.
+               village.setRadius(vNbt.getIntOr("Radius", 0));
                data.loadedVillages.add(village);
             }
          } else if (!data.villageNames.isEmpty()) {
