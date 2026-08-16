@@ -164,6 +164,8 @@ The danger zone for cryptic-sounding dialogue. Idle chat is where writers reach 
 
 **The trail-off trap:** `"I should tell you... never mind"` is one valid shape for something unsaid. But if every villager uses it, you've replaced mystery with a formula. Other shapes: changing the subject, going quiet, getting busy with their hands, staring at something specific, laughing at nothing. The unsaid thing is felt through what the person does *instead* of saying it.
 
+**The pool rule (this is where the trap actually springs):** Nobody writes "never mind" twelve times in a row on purpose. They write a *pool* of twelve variants, each one fine on its own, all twelve sharing one shape — and the random picker turns the shape into a tic. Variety is a property of the pool, not the line. When you write a pool of variants, count the shapes: trail-offs, bare emotes, aphorism closers, the "X. Y. X again." cadence. If any one shape is more than a quarter of the pool, the pool is a formula wearing costumes. This guide once taught the interrupt-dash as a technique and got back a twenty-line pool of interrupt-dashes; the technique wasn't wrong, the pool was.
+
 ### 5. Quest Completion Dialogue
 
 ```java
@@ -262,6 +264,15 @@ These are the rarest and most powerful lines. They work because the villager isn
 // "Something feels wrong but I can't explain it.": open circuit, no specifics
 ```
 
+## Surfaces: Who Is Speaking, and What Does Clicking Do
+
+Every string lands on exactly one surface, and each surface has a voice:
+
+- **The villager's line** (screen text, chat, mail, overheard fragments): the villager's voice, always.
+- **The buttons**: the PLAYER's voice, always. A button is a sentence the player chooses to say. A villager line on a button ("Give it time.") reads as the player talking to themselves.
+- **Buttons also carry intent.** Clicking one *does something*, and the label has to own that. "While we're both stuck here." is a fine fragment of a trade offer — but as a label it never says *trade*, so the click feels like a lottery. If the button opens the trade screen, the words must be a way of asking to trade. If it hands an item over, the words hand it over. Write the label, then ask: "if I clicked this, is what happens next what I just said?"
+- **Context additions inherit the surface.** A rain-flavored variant of a trade button is still a trade button; the rain flavor rides along, it doesn't replace the ask.
+
 ## Dialogue Don'ts
 
 ### Never Use These Phrases:
@@ -275,7 +286,7 @@ These are the rarest and most powerful lines. They work because the villager isn
 
 ### Avoid These Patterns:
 - Over-explaining backstory
-- Perfect grammar (people speak in fragments)
+- **One register for everyone.** Fragments are one way people talk, not the way villagers talk. This guide's own examples lean hard on the clipped, wry, punchy-terse shape ("Heat it. Bend it. Hit it.") — and if you write to those exemplars, three villagers in, everyone sounds like the same laconic cowboy. Give villagers *different* registers: some ramble and lose the thread, some over-explain, some are stiffly formal, some never stop talking. The librarian who wanders off mid-sentence into a footnote is doing more characterization than another two-word fragment ever will. Perfect grammar isn't the enemy; uniform cadence is.
 - Always being available to talk
 - Immediate gratitude
 - Clear moral lessons
@@ -311,7 +322,7 @@ These are the rarest and most powerful lines. They work because the villager isn
 // POETICIZED MUNDANE: ordinary observations made mysteriously heavy
 "The veil is thinnest at night."
 "Time bends here."
-"Everything else here matters too much."
+"The village breathes different after dark."
 
 // SELF-AWARE DISCLAIMER: praising the player while pretending not to
 "Not because we need you. Just because you're part of it."
@@ -344,6 +355,12 @@ Moonfaced prose **strips specificity until only atmosphere remains.** Grounded p
 - "That matters" → (cut; the action speaks for itself)
 - "Just... different" → "...been in a better mood since they started helping"
 - "The world's half-asleep" → "Dead quiet out there"
+
+#### Judge the scene, not the string.
+
+The lists above are symptoms, not law. A phrase that's moonfaced as a cold open can be *earned* as a payoff. "Everything else here matters too much" is empty atmosphere from a stranger at the well — and it's the whole point of a scene where a villager just admitted they miss arguing about something that *didn't* matter. The preceding beats did the grounding; the closer cashes it. Conversely, gluing a specific detail onto a hollow line doesn't save it — bugs pasted onto a fortune cookie is still a fortune cookie with bugs on it.
+
+So before you cut a line for matching this list, read the two lines before it. If they set it up, it stays. If it's carrying the whole weight of profundity alone, it goes. Deleting banned strings wherever they appear is exactly the kind of mechanical compliance that produces its own odd texture.
 
 ## Technical Implementation Tips
 
@@ -403,10 +420,10 @@ if (reputation < -30 && random.nextBoolean()) {
 ## Writing Process
 
 1. **First Draft:** Write what a real person would say in that situation
-2. **Body Pass:** Give them a body: are they sweating, squinting, fidgeting, leaning?
+2. **Body Pass:** Ask whether they'd be *doing* something — and usually the answer is no. This pass is a question, not a quota. When it became a quota, the corpus filled up with `*wipes hands*` `*looks up*` `*sets something down*` until the stage directions read as template. Most lines land with no asterisk at all; save the body for when it says what the words won't.
 3. **Context Pass:** Adjust for time, weather, recent events, who's nearby
 4. **Specificity Pass:** Replace anything generic with something from *this* person's life
-5. **Variety Pass:** Does this sound like the last three lines you wrote? Find a different shape.
+5. **Variety Pass:** Does this sound like the last three lines you wrote? Find a different shape. Then check the whole pool you're adding to (see the pool rule above) — variety per-line means nothing if the pool converges on one shape.
 
 ## Examples of Evolution
 
@@ -438,6 +455,8 @@ Read your line out loud. Then read these:
 - "I named a chicken after you! Don't tell her."
 
 Does your line belong in that company? If it sounds more *literary* than those, it's drifting. These lines are plain. They land because they're specific and embodied, not because they're poetic.
+
+One caution about this test: the five examples above all share a shape — short, clipped, dry. They're good exemplars of *plainness*, but they are not the only plain register. A line that rambles, over-qualifies, or takes three sentences to get nowhere can pass the voice test too, if that's how this person talks. Don't let the test grade everything toward punchy-terse; that's how a village ends up sounding like one person doing voices.
 
 ## Remember
 

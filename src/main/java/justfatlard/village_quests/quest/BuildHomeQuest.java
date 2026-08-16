@@ -285,7 +285,7 @@ class BuildHomeQuest extends CreationQuest {
          }
 
          if (hasMultipleLevels) {
-            var16.add("You went above and beyond. That's... not nothing.");
+            var16.add("A second floor? Nobody asked for a second floor. *shakes head slowly*");
          }
 
          if (hasFlowersOrDecor) {

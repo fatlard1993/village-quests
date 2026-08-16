@@ -188,6 +188,18 @@ public class DialogueManager {
       this.dialogueRegistry.put(dialogue.getId(), dialogue);
    }
 
+   /**
+    * Drops the per-player click mappings for whatever screen was open. Called
+    * from the screen-close handler so a screen dismissed with Escape can never
+    * leave its action ids behind for a later screen to trip over. (Every
+    * screen-opener also installs fresh mappings; this is defense in depth.)
+    */
+   public void clearResponseState(UUID playerId) {
+      this.responseActionIds.remove(playerId);
+      this.responseIndexMappings.remove(playerId);
+      this.customDialogueOptions.remove(playerId);
+   }
+
    public Dialogue getDialogue(String dialogueId) {
       return this.dialogueRegistry.get(dialogueId);
    }
@@ -291,27 +303,59 @@ public class DialogueManager {
       }
    }
 
-   public Dialogue getWeatherDialogue(ServerLevel world, boolean childOnly, int reputation) {
+   public Dialogue getWeatherDialogue(ServerLevel world, BlockPos pos, boolean childOnly, int reputation) {
       boolean isRaining = world.isRaining();
       boolean isThundering = world.isThundering();
       long timeOfDay = world.getOverworldClockTime() % 24000L;
+      // Snow lines only where precipitation actually falls as snow. Previously the
+      // snow greetings were unconditional candidates: "Snow's early this year" on a
+      // clear day in a warm biome.
+      boolean snowsHere = world.getBiome(pos).value().coldEnoughToSnow(pos, world.getSeaLevel());
       List<String> candidates = new ArrayList<>();
       if (isThundering) {
          candidates.add("weather_after_storm");
+         candidates.add("weather_storm_1");
+         candidates.add("weather_storm_2");
+         candidates.add("weather_storm_3");
+         candidates.add("weather_storm_child");
       } else if (isRaining) {
-         candidates.add("weather_fog");
-         candidates.add("weather_windy");
+         if (snowsHere) {
+            candidates.add("weather_snow");
+            candidates.add("weather_first_frost");
+            candidates.add("weather_snow_child");
+            candidates.add("weather_snow_child_2");
+         } else {
+            candidates.add("weather_fog");
+            candidates.add("weather_windy");
+            candidates.add("weather_rain_1");
+            candidates.add("weather_rain_2");
+            candidates.add("weather_rain_3");
+            candidates.add("weather_rain_4");
+            candidates.add("weather_rain_child");
+         }
       } else if (timeOfDay < 4000L) {
          candidates.add("weather_clear_morning");
-         candidates.add("weather_first_frost");
+         candidates.add("weather_dawn_1");
+         candidates.add("weather_dawn_2");
+         candidates.add("weather_clear_1");
+         candidates.add("weather_clear_2");
+         candidates.add("weather_rainbow");
+         if (snowsHere) {
+            candidates.add("weather_first_frost");
+            candidates.add("weather_turning_cold");
+         } else {
+            candidates.add("weather_turning_warm");
+         }
       } else if (timeOfDay >= 6000L && timeOfDay < 10000L) {
          candidates.add("weather_hot_day");
-      }
-
-      if (childOnly) {
-         candidates.add("weather_snow_child");
-      } else {
-         candidates.add("weather_snow");
+         candidates.add("weather_clear_3");
+         candidates.add("weather_rainbow");
+         if (!snowsHere) {
+            candidates.add("weather_drought");
+         }
+      } else if (timeOfDay >= 11000L && timeOfDay < 13000L) {
+         candidates.add("weather_dusk_1");
+         candidates.add("weather_dusk_2");
       }
 
       ThreadLocalRandom rng = ThreadLocalRandom.current();
@@ -337,6 +381,158 @@ public class DialogueManager {
       return this.getDialogue(greetingIds[ThreadLocalRandom.current().nextInt(greetingIds.length)]);
    }
 
+   /**
+    * Picks a context-free IDLE_CHAT dialogue (profession idles, ontological
+    * observations, standing gossip, child chatter). Event-gated idle entries
+    * (gathering aftermath, village deaths, quest impact, neighbor lines,
+    * weather, work-flow ids, emotional aftermath) are excluded here: each has
+    * its own gate, and firing them as random chatter contradicts world state.
+    */
+   private Dialogue getIdleChatDialogue(int reputation, boolean isChild, String professionId) {
+      List<Dialogue> matching = new ArrayList<>();
+
+      for (Dialogue dialogue : this.dialogueRegistry.values()) {
+         if (dialogue.getType() == Dialogue.DialogueType.IDLE_CHAT
+            && reputation >= dialogue.getMinReputation()
+            && reputation <= dialogue.getMaxReputation()
+            && isFreeStandingIdleChat(dialogue.getId())) {
+            boolean childDialogue = dialogue.getId().startsWith("child_") || "child".equals(dialogue.getProfession());
+            if (childDialogue == isChild) {
+               String prof = dialogue.getProfession();
+               if (prof == null) {
+                  // Several profession idles (butcher_idle_*, fletcher_idle_*, ...)
+                  // never called setProfession; infer it from the id so a shepherd
+                  // doesn't deliver the butcher's philosophy.
+                  prof = inferProfessionFromDialogueId(dialogue.getId());
+               }
+
+               if (prof == null || "any".equals(prof) || "child".equals(prof) || prof.equals(professionId)) {
+                  matching.add(dialogue);
+               }
+            }
+         }
+      }
+
+      if (matching.isEmpty()) {
+         return null;
+      } else {
+         return matching.get(ThreadLocalRandom.current().nextInt(matching.size()));
+      }
+   }
+
+   /**
+    * A villager-surplus trade opener ("Pulled more than I can use..."), matched
+    * to this villager's own profession. Every reply on these leads into the
+    * trade screen; buildFilteredResponses maps them to open_trade.
+    */
+   private Dialogue getTradeOfferDialogue(String professionId, int reputation) {
+      List<Dialogue> matching = new ArrayList<>();
+
+      for (Dialogue dialogue : this.dialogueRegistry.values()) {
+         if (dialogue.getType() == Dialogue.DialogueType.TRADE_OFFER
+            && reputation >= dialogue.getMinReputation()
+            && reputation <= dialogue.getMaxReputation()) {
+            String prof = dialogue.getProfession();
+            if ("any".equals(prof) || professionId.equals(prof)) {
+               matching.add(dialogue);
+            }
+         }
+      }
+
+      if (matching.isEmpty()) {
+         return null;
+      } else {
+         return matching.get(ThreadLocalRandom.current().nextInt(matching.size()));
+      }
+   }
+
+   private static final Set<String> PROFESSION_ID_PREFIXES = Set.of(
+      "farmer", "librarian", "cleric", "armorer", "weaponsmith", "toolsmith", "butcher",
+      "leatherworker", "mason", "cartographer", "fisherman", "fletcher", "shepherd", "nitwit"
+   );
+
+   private static boolean playerRecentlyReturnedFromDeath(ServerPlayer player) {
+      for (RecentActionsMemory.PlayerAction action : RecentActionsMemory.getRecentActions(player)) {
+         if (action.type == RecentActionsMemory.ActionType.DIED_AND_RETURNED) {
+            return true;
+         }
+      }
+
+      return false;
+   }
+
+   private static String inferProfessionFromDialogueId(String id) {
+      int underscore = id.indexOf('_');
+      if (underscore <= 0) {
+         return null;
+      } else {
+         String prefix = id.substring(0, underscore);
+         return PROFESSION_ID_PREFIXES.contains(prefix) ? prefix : null;
+      }
+   }
+
+   private static boolean isFreeStandingIdleChat(String id) {
+      return id.contains("_idle_")
+         || id.contains("_reality_")
+         || id.equals("emotional_existential_crisis")
+         || id.startsWith("idle_chat_")
+         || id.startsWith("gossip_") && !id.startsWith("gossip_gathering_")
+         || id.startsWith("child_secret_")
+         || id.startsWith("child_ghost_")
+         || id.startsWith("child_animal_")
+         || id.startsWith("child_strange_")
+         || id.startsWith("child_monster_")
+         || id.startsWith("child_game_")
+         || id.startsWith("child_observation_");
+   }
+
+   /**
+    * Neighbor small talk for plot owners. Entries whose premise can be checked
+    * are gated on it (storm damage on live bad weather, the cat complaint on an
+    * actual player-owned cat nearby); the rest presume nothing unverifiable.
+    */
+   private Dialogue getNeighborDialogue(ServerLevel world, Villager villager, ServerPlayer player, int reputation, ThreadLocalRandom rng) {
+      List<String> neighborIds = new ArrayList<>(List.of(
+         "neighbor_comment_positive",
+         "neighbor_comment_jealous",
+         "neighbor_morning_chat",
+         "neighbor_fence_comment",
+         "neighbor_noise_complaint",
+         "neighbor_borrowed_tools",
+         "neighbor_shared_crops",
+         "neighbor_plot_envy",
+         "neighbor_market_day",
+         "neighbor_suspicious"
+      ));
+      if (world.isRaining() || world.isThundering()) {
+         neighborIds.add("neighbor_storm_damage");
+      }
+
+      List<net.minecraft.world.entity.animal.feline.Cat> playerCats = world.getEntities(
+         EntityTypeTest.forClass(net.minecraft.world.entity.animal.feline.Cat.class),
+         new AABB(villager.blockPosition()).inflate(64.0),
+         cat -> cat.isTame() && cat.isOwnedBy(player)
+      );
+      if (!playerCats.isEmpty()) {
+         neighborIds.add("neighbor_cat_problem");
+      }
+
+      List<Dialogue> pool = new ArrayList<>();
+
+      for (String id : neighborIds) {
+         Dialogue d = this.getDialogue(id);
+         if (d != null && reputation >= d.getMinReputation() && reputation <= d.getMaxReputation()) {
+            pool.add(d);
+         }
+      }
+
+      if (pool.isEmpty()) {
+         return rng.nextDouble() < 0.7 ? this.getDialogue("neighbor_comment_positive") : this.getDialogue("neighbor_comment_jealous");
+      } else {
+         return pool.get(rng.nextInt(pool.size()));
+      }
+   }
+
    public void openMoodRefusal(ServerPlayer player, Villager villager, String refusalText) {
       DialogueStateManager.startDialogue(villager, player);
       String villagerName = VillageQuests.getNameManager().getName(villager);
@@ -345,7 +541,11 @@ public class DialogueManager {
       int reputation = VillageQuests.getReputationManager()
          .getReputation(player, VillageQuests.getVillageManager().findNearestVillage(player.level(), villager.blockPosition()));
       String reputationBand = VillageQuests.getReputationManager().getReputationLevel(reputation);
-      String displayText = villagerName + " " + refusalText;
+      // Refusal pools are first-person lines or *emotes*; only third-person fragments
+      // ("is busy talking to someone.") read correctly with the name prefixed.
+      String displayText = refusalText.startsWith("is ") || refusalText.startsWith("looks ")
+         ? villagerName + " " + refusalText
+         : refusalText;
       this.responseActionIds.put(player.getUUID(), new ArrayList<>(List.of("cancel")));
       this.responseIndexMappings.put(player.getUUID(), List.of(-1));
       PandoricalApi.screens().open(player,
@@ -770,8 +970,16 @@ public class DialogueManager {
                   }
 
                   String dialogueText = prefix + greetingText;
+                  // The greeting's own scripted replies only make sense if the villager
+                  // line the player sees is still (or still contains) the greeting they
+                  // were written against. Overrides (potion lines, weather, nitwit
+                  // observations, dawn lines...) replace the text outright; in that case
+                  // fall back to the generic option set. First meetings keep theirs:
+                  // every first-meeting text and reply is written to the same shape.
+                  boolean ownResponsesValid = pendingClue == null
+                     && (firstMeeting || greetingText.contains(greeting.getText()));
                   DialogueManager.FilteredResponses responses = this.buildFilteredResponses(
-                     greeting, villager, player, village, world, reputation, pendingClue != null
+                     greeting, villager, player, village, world, reputation, pendingClue != null, ownResponsesValid
                   );
                   this.responseIndexMappings.put(player.getUUID(), responses.originalIndices);
                   this.customDialogueOptions.put(player.getUUID(), responses.customOptionIds);
@@ -977,9 +1185,25 @@ public class DialogueManager {
             List<String> actionIds = new ArrayList<>(List.of("submit_quest_items", "abandon_quest", "cancel"));
             this.responseActionIds.put(player.getUUID(), actionIds);
             this.responseIndexMappings.put(player.getUUID(), List.of(-1, -1, -1));
-            PandoricalApi.screens().open(player,
-               DialogueScreens.buildScreen(villager.getUUID(), villagerName, profName, promptText, "quest_submit", reputationBand, List.of(submitText, quitText, cancelText), submitHint)
-            );
+            if (needItemForPrompt != null) {
+               // Item turn-ins get a pinned, icon-carrying button (response
+               // index 0 = submit, same action mapping) so handing the goods
+               // over is impossible to miss; quit/cancel scroll below it
+               String turnInItemName = needItemForPrompt
+                  .getName(new net.minecraft.world.item.ItemStack(needItemForPrompt)).getString();
+               int turnInCount = activeQuest.getSubmissionAmount();
+               String turnInLabel = "Here - the " + (turnInCount > 1 ? turnInCount + " " : "")
+                  + turnInItemName + " you asked for.";
+               PandoricalApi.screens().open(player,
+                  DialogueScreens.buildScreen(villager.getUUID(), villagerName, profName, promptText,
+                     "quest_submit", reputationBand, List.of(quitText, cancelText), null,
+                     DialogueScreens.TurnIn.of(needItemForPrompt, turnInCount, turnInLabel))
+               );
+            } else {
+               PandoricalApi.screens().open(player,
+                  DialogueScreens.buildScreen(villager.getUUID(), villagerName, profName, promptText, "quest_submit", reputationBand, List.of(submitText, quitText, cancelText), submitHint)
+               );
+            }
             return true;
          } else {
             boolean isMisnomer = activeQuest instanceof MisnomerQuest;
@@ -1145,7 +1369,7 @@ public class DialogueManager {
          }
 
          if (rng.nextDouble() < 0.2) {
-            Dialogue weatherDialogue = this.getWeatherDialogue(world, true, reputation);
+            Dialogue weatherDialogue = this.getWeatherDialogue(world, villager.blockPosition(), true, reputation);
             if (weatherDialogue != null) {
                return new DialogueManager.GreetingResult(weatherDialogue, false);
             }
@@ -1154,6 +1378,9 @@ public class DialogueManager {
          if (isNight && rng.nextDouble() < 0.3) {
             Dialogue nightDialogue = this.getNightSpecialDialogue(reputation, true);
             greeting = nightDialogue != null ? nightDialogue : this.getChildGreetingDialogue(reputation);
+         } else if (rng.nextDouble() < 0.3) {
+            Dialogue childIdle = this.getIdleChatDialogue(reputation, true, "child");
+            greeting = childIdle != null ? childIdle : this.getChildGreetingDialogue(reputation);
          } else {
             greeting = this.getChildGreetingDialogue(reputation);
          }
@@ -1169,7 +1396,7 @@ public class DialogueManager {
          } else if (canOfferPlot && rng.nextDouble() < 0.2) {
             greeting = this.getDialogue("plot_offer");
          } else if (ownsPlot && rng.nextDouble() < 0.15) {
-            greeting = rng.nextDouble() < 0.7 ? this.getDialogue("neighbor_comment_positive") : this.getDialogue("neighbor_comment_jealous");
+            greeting = this.getNeighborDialogue(world, villager, player, reputation, rng);
          } else if (village != null && VillagerGatheringSystem.hadRecentGathering(world, village.getId()) && rng.nextDouble() < 0.3) {
             if (VillagerGatheringSystem.didPlayerAttendRecently(world, village.getId(), player.getUUID())) {
                greeting = this.getGatheringAttendedGreeting();
@@ -1186,8 +1413,15 @@ public class DialogueManager {
             String[] deathIds = new String[]{"village_death_1", "village_death_2", "village_death_3", "village_death_4", "village_death_quiet"};
             Dialogue deathDialogue = this.getDialogue(deathIds[rng.nextInt(deathIds.length)]);
             greeting = deathDialogue != null ? deathDialogue : this.getGreetingDialogue(reputation);
+         } else if (playerRecentlyReturnedFromDeath(player) && rng.nextDouble() < 0.3) {
+            // "I thought you were dead. Don't ever do that again." — gated on
+            // the player actually having died and come back recently
+            Dialogue reliefDialogue = this.getDialogue("emotional_relief");
+            greeting = reliefDialogue != null && reputation >= reliefDialogue.getMinReputation()
+               ? reliefDialogue
+               : this.getGreetingDialogue(reputation);
          } else if (rng.nextDouble() < 0.2) {
-            Dialogue weatherDialogue = this.getWeatherDialogue(world, false, reputation);
+            Dialogue weatherDialogue = this.getWeatherDialogue(world, villager.blockPosition(), false, reputation);
             greeting = weatherDialogue != null ? weatherDialogue : this.getGreetingDialogue(reputation);
          } else if (isNight && rng.nextDouble() < 0.25) {
             Dialogue nightDialogue = this.getNightSpecialDialogue(reputation, false);
@@ -1198,7 +1432,19 @@ public class DialogueManager {
             if (impactDialogue != null && reputation >= impactDialogue.getMinReputation()) {
                greeting = impactDialogue;
             } else {
-               greeting = this.getGreetingDialogue(reputation);
+               String greetProfId = professionName((VillagerProfession)villager.getVillagerData().profession().value());
+               boolean greetHasProfession = !"none".equals(greetProfId) && !"nitwit".equals(greetProfId);
+               double greetRoll = rng.nextDouble();
+               if (greetHasProfession && ReputationBand.getBand(reputation).canTrade() && greetRoll < 0.08) {
+                  // Rare surplus opener: the villager brings up their own goods
+                  Dialogue tradeOffer = this.getTradeOfferDialogue(greetProfId, reputation);
+                  greeting = tradeOffer != null ? tradeOffer : this.getGreetingDialogue(reputation);
+               } else if (greetRoll < 0.38) {
+                  Dialogue idleChat = this.getIdleChatDialogue(reputation, false, greetProfId);
+                  greeting = idleChat != null ? idleChat : this.getGreetingDialogue(reputation);
+               } else {
+                  greeting = this.getGreetingDialogue(reputation);
+               }
             }
          }
 
@@ -1283,7 +1529,8 @@ public class DialogueManager {
    }
 
    private DialogueManager.FilteredResponses buildFilteredResponses(
-      Dialogue greeting, Villager villager, ServerPlayer player, Village village, ServerLevel world, int reputation, boolean hadClueText
+      Dialogue greeting, Villager villager, ServerPlayer player, Village village, ServerLevel world, int reputation, boolean hadClueText,
+      boolean includeOwnResponses
    ) {
       VillagerProfession villageProfession = (VillagerProfession)villager.getVillagerData().profession().value();
       Identifier profKey2 = BuiltInRegistries.VILLAGER_PROFESSION.getKey(villageProfession);
@@ -1308,15 +1555,72 @@ public class DialogueManager {
          actionIds.add("cancel");
          return new DialogueManager.FilteredResponses(responseTexts, originalIndices, customOptionIds, actionIds);
       } else {
-         if (hasProfession && band.canTrade()) {
+         boolean hasActiveQuest = ActiveQuestManager.hasActiveQuest(player);
+         VillagerQuest playerQuest = ActiveQuestManager.getActiveQuest(player);
+         boolean hasRedirectToThisVillager = playerQuest instanceof RedirectQuest rq && rq.getTargetUuid().equals(villager.getUUID());
+         boolean canTradeHere = hasProfession && band.canTrade();
+         boolean canAskForWork = !isFirstEncounter
+            && !villager.isBaby()
+            && band.canRequestWork()
+            && !cooldownActive
+            && !hasActiveQuest
+            && !InteractionLimiter.hasUsedToday(player.getUUID(), villager.getUUID(), "work");
+         boolean tradeOptionAdded = false;
+         boolean workOptionAdded = false;
+
+         // The greeting's own scripted replies come first: they are the player-voice
+         // answers written against this exact villager line. Trade/work replies
+         // authored on the greeting are gated by the same rules as the generated
+         // options; plain conversational replies always show.
+         boolean tradeOfferGreeting = greeting.getType() == Dialogue.DialogueType.TRADE_OFFER;
+         if (includeOwnResponses) {
+            List<Dialogue.DialogueResponse> ownResponses = greeting.getResponses();
+
+            for (int i = 0; i < ownResponses.size(); i++) {
+               Dialogue.DialogueResponse ownResponse = ownResponses.get(i);
+               if (tradeOfferGreeting) {
+                  // Surplus openers: every authored reply is a way of saying
+                  // "show me" — resolve all of them into the trade screen.
+                  if (!canTradeHere) {
+                     break;
+                  }
+
+                  responseTexts.add(ownResponse.getText());
+                  originalIndices.add(-1);
+                  actionIds.add("open_trade");
+                  tradeOptionAdded = true;
+                  continue;
+               }
+
+               String next = ownResponse.getNextDialogueId();
+               if ("open_trade".equals(next)) {
+                  if (!canTradeHere || tradeOptionAdded) {
+                     continue;
+                  }
+
+                  tradeOptionAdded = true;
+               } else if ("work_inquiry".equals(next)) {
+                  if (!canAskForWork || workOptionAdded || hasRedirectToThisVillager) {
+                     continue;
+                  }
+
+                  workOptionAdded = true;
+               } else if (ownResponse.offersQuest() && hasActiveQuest) {
+                  continue;
+               }
+
+               responseTexts.add(ownResponse.getText());
+               originalIndices.add(i);
+               actionIds.add("dialogue_response");
+            }
+         }
+
+         if (canTradeHere && !tradeOptionAdded) {
             responseTexts.add(DialogueContent.generateTradeText(villager, player, reputation));
             originalIndices.add(-1);
             actionIds.add("open_trade");
          }
 
-         boolean hasActiveQuest = ActiveQuestManager.hasActiveQuest(player);
-         VillagerQuest playerQuest = ActiveQuestManager.getActiveQuest(player);
-         boolean hasRedirectToThisVillager = playerQuest instanceof RedirectQuest rq && rq.getTargetUuid().equals(villager.getUUID());
          if (!isFirstEncounter && hasRedirectToThisVillager) {
             String referrerName = ((RedirectQuest)playerQuest).getRequesterName();
             ThreadLocalRandom btnRng = ThreadLocalRandom.current();
@@ -1329,11 +1633,7 @@ public class DialogueManager {
             responseTexts.add(redirectLabels[btnRng.nextInt(redirectLabels.length)]);
             originalIndices.add(-1);
             actionIds.add("work_inquiry");
-         } else if (!isFirstEncounter
-            && band.canRequestWork()
-            && !cooldownActive
-            && !hasActiveQuest
-            && !InteractionLimiter.hasUsedToday(player.getUUID(), villager.getUUID(), "work")) {
+         } else if (canAskForWork && !workOptionAdded) {
             responseTexts.add(DialogueContent.generateWorkInquiryText(villager, player, reputation, false, 0L));
             originalIndices.add(-1);
             actionIds.add("work_inquiry");
@@ -1443,6 +1743,7 @@ public class DialogueManager {
             || greetingId.contains("grief")
             || greetingId.contains("death");
          responseTexts.add(this.getCancelText(world, villager, reputation, emotionalContext));
+         originalIndices.add(-1);
          actionIds.add("cancel");
          return new DialogueManager.FilteredResponses(responseTexts, originalIndices, customOptionIds, actionIds);
       }
@@ -1461,9 +1762,45 @@ public class DialogueManager {
          }
 
          if ("decline_work".equals(actionId)) {
+            this.pendingWorkQuests.remove(player.getUUID());
             DialogueStateManager.endDialogue(villager.getUUID());
             this.customDialogueOptions.remove(player.getUUID());
             this.responseIndexMappings.remove(player.getUUID());
+            return;
+         }
+
+         if ("work_show_payment".equals(actionId)) {
+            this.responseIndexMappings.remove(player.getUUID());
+            this.customDialogueOptions.remove(player.getUUID());
+            this.sendNegotiationBeat(player, villager, "work_payment");
+            return;
+         }
+
+         if ("work_show_negotiation".equals(actionId)) {
+            List<Integer> negotiationMapping = this.responseIndexMappings.remove(player.getUUID());
+            int pressIndex = negotiationMapping != null && responseIndex < negotiationMapping.size()
+               ? negotiationMapping.get(responseIndex)
+               : responseIndex;
+            // "That's a bit vague." carries its authored haggling cost
+            this.applyResponseReputation(player, villager, world, dialogueId, pressIndex);
+            this.customDialogueOptions.remove(player.getUUID());
+            this.sendNegotiationBeat(player, villager, "work_negotiation");
+            return;
+         }
+
+         if ("accept_pending_work".equals(actionId)) {
+            List<Integer> acceptMapping = this.responseIndexMappings.remove(player.getUUID());
+            int acceptIndex = acceptMapping != null && responseIndex < acceptMapping.size()
+               ? acceptMapping.get(responseIndex)
+               : responseIndex;
+            this.applyResponseReputation(player, villager, world, dialogueId, acceptIndex);
+            VillagerQuest pendingQuest = this.pendingWorkQuests.remove(player.getUUID());
+            Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
+            if (pendingQuest != null && village != null) {
+               ActiveQuestManager.acceptQuest(player, pendingQuest, village);
+            }
+
+            this.customDialogueOptions.remove(player.getUUID());
             return;
          }
 
@@ -1492,7 +1829,38 @@ public class DialogueManager {
             VillagerQuest activeQuest = ActiveQuestManager.getActiveQuest(player);
             if (activeQuest != null && activeQuest.checkCompletion(player)) {
                Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
+               Item submissionItem = activeQuest.getSubmissionItem();
+               boolean foodHandover = submissionItem != null
+                  && (
+                     submissionItem.components().has(net.minecraft.core.component.DataComponents.FOOD)
+                        || submissionItem.components().has(net.minecraft.core.component.DataComponents.VILLAGER_FOOD)
+                        || submissionItem == Items.WHEAT
+                  );
                ActiveQuestManager.completeQuest(player, village, activeQuest.getReputationShift());
+               this.customDialogueOptions.remove(player.getUUID());
+               this.responseIndexMappings.remove(player.getUUID());
+               // The villager reacts to the handover instead of the screen just
+               // closing. Reaction pool is reputation-banded; responses carry
+               // their own small deltas through the dialogue_response fallback.
+               int reactRep = VillageQuests.getReputationManager().getReputation(player, village);
+               Dialogue reaction = this.getQuestCompleteDialogue(reactRep);
+               if (reaction != null && !foodHandover && "quest_complete_high".equals(reaction.getId())) {
+                  // "The children will eat tonight" presumes food changed hands;
+                  // don't say it after e.g. a tool repair or clearing mobs
+                  reaction = this.getDialogue("quest_complete");
+               }
+
+               if (reaction != null) {
+                  this.sendDialogue(player, villager, reaction);
+               }
+
+               return;
+            } else if (activeQuest != null) {
+               // The items left the inventory between screen-open and click:
+               // refuse gracefully, quest stays ready for next time
+               String refuseName = VillageQuests.getNameManager().getName(villager);
+               player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                  refuseName + ": \"...You had it a second ago. Come back when it's actually on you.\""), false);
             }
 
             this.customDialogueOptions.remove(player.getUUID());
@@ -1563,7 +1931,13 @@ public class DialogueManager {
 
          if ("mystery_accuse".equals(actionId)) {
             if (ActiveQuestManager.getActiveQuest(player) instanceof MysteryQuest mysteryAccQ) {
-               mysteryAccQ.makeAccusation(responseIndex);
+               // Map the screen button index back to the accusation-option index
+               // through the stored mapping rather than trusting screen order
+               List<Integer> accuseMapping = this.responseIndexMappings.get(player.getUUID());
+               int accusedOption = accuseMapping != null && responseIndex < accuseMapping.size()
+                  ? accuseMapping.get(responseIndex)
+                  : responseIndex;
+               mysteryAccQ.makeAccusation(accusedOption);
                Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
                if (village != null) {
                   ActiveQuestManager.completeQuest(player, village, mysteryAccQ.getReputationShift());
@@ -1991,6 +2365,19 @@ public class DialogueManager {
          responseTexts = List.of(acceptLabel, refuseLabel, coldRefuseLabel);
       }
 
+      // Fresh mappings: index order here (0=accept, 1=refuse, 2=cold refuse) is the
+      // contract the "misnomer_offer" branch in handleResponse resolves against.
+      List<String> misnomerActionIds = new ArrayList<>();
+      List<Integer> misnomerIndices = new ArrayList<>();
+
+      for (int i = 0; i < responseTexts.size(); i++) {
+         misnomerActionIds.add("dialogue_response");
+         misnomerIndices.add(i);
+      }
+
+      this.responseActionIds.put(player.getUUID(), misnomerActionIds);
+      this.responseIndexMappings.put(player.getUUID(), misnomerIndices);
+      this.customDialogueOptions.remove(player.getUUID());
       PandoricalApi.screens().open(player,
          DialogueScreens.buildScreen(villager.getUUID(), villagerName, professionName, dialogueText, "misnomer_offer", reputationBand, responseTexts)
       );
@@ -2108,12 +2495,85 @@ public class DialogueManager {
          }
       }
 
-      List<String> responseTexts = List.of(acceptText, declineText);
-      this.responseActionIds.put(player.getUUID(), new ArrayList<>(List.of("accept_work", "decline_work")));
-      this.responseIndexMappings.put(player.getUUID(), List.of(0, 1));
+      List<String> responseTexts = new ArrayList<>(List.of(acceptText, declineText));
+      List<String> offerActionIds = new ArrayList<>(List.of("accept_work", "decline_work"));
+      List<Integer> offerIndices = new ArrayList<>(List.of(0, 1));
+      // Occasional second beat: asking about payment routes through the
+      // work_payment / work_negotiation dialogues before committing.
+      if (!hasActiveQuest && rng.nextDouble() < 0.25 && this.getDialogue("work_payment") != null) {
+         responseTexts.add("What's in it for me?");
+         offerActionIds.add("work_show_payment");
+         offerIndices.add(-1);
+      }
+
+      this.responseActionIds.put(player.getUUID(), offerActionIds);
+      this.responseIndexMappings.put(player.getUUID(), offerIndices);
       PandoricalApi.screens().open(player,
          DialogueScreens.buildScreen(villager.getUUID(), villagerName, professionName, dialogueText, "work_available_direct", reputationBand, responseTexts, itemHint)
       );
+   }
+
+   /**
+    * The haggling interlude ("work_payment" then optionally "work_negotiation").
+    * Screen labels and villager text come straight from the registered
+    * dialogues; actions are resolved from each response's authored metadata
+    * (offersQuest -> accept the PENDING quest, next id work_negotiation ->
+    * press further, anything else -> walk away). The registry fallback can't
+    * be used here: its offersQuest path would generate a fresh random quest
+    * instead of the one this villager just described.
+    */
+   private void sendNegotiationBeat(ServerPlayer player, Villager villager, String dialogueId) {
+      Dialogue dialogue = this.getDialogue(dialogueId);
+      if (dialogue == null) {
+         DialogueStateManager.endDialogue(villager.getUUID());
+      } else {
+         ServerLevel world = player.level();
+         Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
+         int reputation = VillageQuests.getReputationManager().getReputation(player, village);
+         String villagerName = VillageQuests.getNameManager().getName(villager);
+         String reputationBand = VillageQuests.getReputationManager().getReputationLevel(reputation);
+         String profName = professionName((VillagerProfession)villager.getVillagerData().profession().value());
+         List<String> responseTexts = new ArrayList<>();
+         List<String> beatActionIds = new ArrayList<>();
+         List<Integer> beatIndices = new ArrayList<>();
+
+         for (int i = 0; i < dialogue.getResponses().size(); i++) {
+            Dialogue.DialogueResponse response = dialogue.getResponses().get(i);
+            String action;
+            if (response.offersQuest()) {
+               action = "accept_pending_work";
+            } else if ("work_negotiation".equals(response.getNextDialogueId())) {
+               action = "work_show_negotiation";
+            } else {
+               action = "decline_work";
+            }
+
+            responseTexts.add(response.getText());
+            beatActionIds.add(action);
+            beatIndices.add(i);
+         }
+
+         this.responseActionIds.put(player.getUUID(), beatActionIds);
+         this.responseIndexMappings.put(player.getUUID(), beatIndices);
+         this.customDialogueOptions.remove(player.getUUID());
+         PandoricalApi.screens().open(player,
+            DialogueScreens.buildScreen(villager.getUUID(), villagerName, profName, dialogue.getText(), dialogueId, reputationBand, responseTexts)
+         );
+      }
+   }
+
+   /** Applies the authored reputation delta of the clicked negotiation response. */
+   private void applyResponseReputation(ServerPlayer player, Villager villager, ServerLevel world, String dialogueId, int responseIndex) {
+      Dialogue dialogue = this.getDialogue(dialogueId);
+      if (dialogue != null && responseIndex >= 0 && responseIndex < dialogue.getResponses().size()) {
+         int delta = dialogue.getResponses().get(responseIndex).getReputationChange();
+         if (delta != 0) {
+            Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
+            if (village != null) {
+               VillageQuests.getReputationManager().modifyReputation(player, village, delta);
+            }
+         }
+      }
    }
 
    private void sendDialogue(ServerPlayer player, Villager villager, Dialogue dialogue) {
@@ -2128,6 +2588,21 @@ public class DialogueManager {
       String professionName = isChild ? "child" : professionName(profession);
       boolean hasQuests = !ActiveQuestManager.hasActiveQuest(player);
       String reputationBand = VillageQuests.getReputationManager().getReputationLevel(reputation);
+      // Always install fresh mappings for this screen. Without this, a screen
+      // dismissed with Escape leaves the previous screen's action ids behind,
+      // and a click here would fire whatever action sat at that index on the
+      // OLD screen (e.g. "I see." on an absence recap opening the trade screen).
+      List<String> ownActionIds = new ArrayList<>();
+      List<Integer> ownIndices = new ArrayList<>();
+
+      for (int i = 0; i < responseTexts.size(); i++) {
+         ownActionIds.add("dialogue_response");
+         ownIndices.add(i);
+      }
+
+      this.responseActionIds.put(player.getUUID(), ownActionIds);
+      this.responseIndexMappings.put(player.getUUID(), ownIndices);
+      this.customDialogueOptions.remove(player.getUUID());
       PandoricalApi.screens().open(player,
          DialogueScreens.buildScreen(villager.getUUID(), villagerName, professionName, dialogueText, dialogue.getId(), reputationBand, responseTexts)
       );
@@ -2201,7 +2676,7 @@ public class DialogueManager {
                case SABOTAGE_REFUSED:
                case THEFT_REFUSED:
                   String[] refusalLines = new String[]{
-                     "What you did... what you didn't do. I've been thinking about it.", "I asked you to do something wrong. And you said no. That matters."
+                     "What you did... what you didn't do. I've been thinking about it.", "I asked you to do something wrong. And you said no."
                   };
                   return refusalLines[rng.nextInt(refusalLines.length)];
                case MYSTERY_RESOLVED:
@@ -2351,7 +2826,7 @@ public class DialogueManager {
                      String[] mailMessages = new String[]{
                         "I didn't ask for that. I'm glad you brought it anyway.\n\n- " + villagerName,
                         "The " + itemDesc + " helped more than you know. I keep it by my bed.\n\n- " + villagerName,
-                        "Nobody else noticed. You did. That's not nothing.\n\n- " + villagerName
+                        "Nobody else noticed. You did.\n\n- " + villagerName
                      };
                      String message = mailMessages[mailRng.nextInt(mailMessages.length)];
                      MailSystemIntegration.sendLetterFromVillager(server, playerId, villagerName, "A note", message);
@@ -3104,7 +3579,7 @@ public class DialogueManager {
       int respectCount = VillagerMemory.getIndependenceRespectedCount(villagerUuid);
       if (reputation >= 75 && respectCount >= 5 && rng.nextFloat() < 0.2F) {
          String[] highRepLines = new String[]{
-            "Most people push. You don't. That matters.",
+            "Most people push. You don't.",
             "You've never once made me feel like I owe you something. That's rare.",
             "*quiet* I know if I asked, you'd show up. I don't need to test that."
          };

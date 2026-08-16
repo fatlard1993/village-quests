@@ -157,12 +157,15 @@ The difference: moonfaced prose strips specificity until only atmosphere remains
 3. **The Silence Test**: Could silence work better here?
 4. **The Center Test**: Is this about the villager or the player?
 5. **The Variety Test**: Does this sound like the last three lines you wrote? If yes, find a different shape.
+6. **The Pool Test**: Look at the whole variant pool you're adding to. If more than a quarter of it shares one shape (trail-offs, bare emotes, aphorism closers), the pool is a formula — vary the pool, not just the line.
+7. **The Button Test** (player-voice options only): buttons are the PLAYER speaking, and clicking does something. Does the label say what happens next? A trade button must ask to trade.
+8. **The Scene Test**: before cutting a line for matching the banned lists, read the two lines before it. Earned payoffs stay; lines carrying profundity alone go.
 
 ## Formatting Patterns
 
-- `*action in asterisks*` for physical actions
+- `*action in asterisks*` for physical actions — **also sparingly.** Most lines need no stage direction; when every line opens with `*wipes hands*` the body reads as template.
 - `...` for trailing off; **use sparingly, earns its weight through rarity**
-- Short sentences. Fragments even.
+- Short sentences. Fragments even. **But not for everyone** — some villagers ramble, over-explain, or lose the thread. Uniform terseness is its own tic.
 - Interruptions that don't finish
 - Subject changes that say more than the confession would have
 

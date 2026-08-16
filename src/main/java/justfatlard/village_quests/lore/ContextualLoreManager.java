@@ -875,26 +875,29 @@ public class ContextualLoreManager {
       if (villager.isBaby()) {
          return null;
       } else {
+         // The unsaid thing shouldn't always take the same shape. Trail-offs are
+         // kept where they land; the rest show the not-saying through subject
+         // changes, busy hands, or looking at something specific instead.
          String[] almostSaid = new String[]{
             "Be careful in the— no. You know.",
-            "That place isn't safe. Not for— never mind.",
+            "That place isn't safe. *goes back to work*",
             "Watch out for the— you've seen them.",
             "Don't go near the— but you will anyway.",
             "The night brings— you know what it brings.",
             "You should probably— no, you'll figure it out.",
             "If I were you I'd— but I'm not you.",
-            "The smart thing would be to— forget it.",
+            "*opens mouth, closes it, nods at the sky* Weather's turning.",
             "Most people would— but you're not most people.",
-            "They say that long ago— doesn't matter now.",
+            "*starts to say something, then just gestures at the old well*",
             "The old stories tell of— old stories lie.",
-            "Legend has it that— legends aren't facts.",
-            "I heard once that— hearing isn't knowing.",
-            "I wish things were— wishing changes nothing.",
-            "Sometimes I wonder if— wondering is dangerous.",
-            "It would be nice if— 'nice' isn't how the world works.",
-            "You look different since— never mind.",
+            "*laughs at nothing, shakes their head* Ask the cleric. Actually, don't.",
+            "I heard something once. *long pause* I was younger then.",
+            "*quiet for a moment* My mother used to talk about this. I stopped listening too late.",
+            "Sometimes I wonder about it. Then the bell rings and there's work.",
+            "*shrugs mid-sentence and picks the tool back up*",
+            "*studies your face a second too long, then looks away*",
             "Something about you seems— it's nothing.",
-            "Your eyes have that— forget I mentioned it.",
+            "*glances at your eyes, then very deliberately at the floor*",
             "The way you move is— not important."
          };
          if ("cleric".equals(profession)) {

@@ -12,7 +12,7 @@ public enum ReputationBand {
       "Hostile",
       -100,
       -50,
-      ChatFormatting.AQUA,
+      ChatFormatting.RED,
       "Villagers avoid eye contact",
       "Conversations stop when you enter a room",
       "An uneasy silence follows you"
@@ -93,7 +93,7 @@ public enum ReputationBand {
             message = narrative + ".";
          }
 
-         return Component.literal(message).withStyle(ascending ? ChatFormatting.GREEN : ChatFormatting.AQUA);
+         return Component.literal(message).withStyle(ascending ? ChatFormatting.GREEN : ChatFormatting.RED);
       }
    }
 

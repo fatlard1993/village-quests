@@ -51,6 +51,14 @@ public final class DialogueScreens {
     private static final int BUTTON_GAP = 4;
     private static final int BUTTON_W = SCREEN_W - (PADDING * 2);
 
+    // Response list scrolling: up to this many buttons show at once; longer
+    // lists live in a scroll panel (client-side wheel scroll + scrollbar).
+    // With 3 or fewer responses the panel is sized to content and renders
+    // identically to the old absolute layout.
+    private static final int VISIBLE_BUTTONS = 3;
+    private static final int BUTTON_STRIDE = BUTTON_H + BUTTON_GAP;
+    private static final int SCROLLBAR_ALLOWANCE = 8;
+
     /** Item requirement shown below dialogue text. Null means no item display. */
     public record ItemHint(String itemId, int count, String label, boolean isGive) {
         public static ItemHint need(net.minecraft.world.item.Item item, int count) {
@@ -76,6 +84,19 @@ public final class DialogueScreens {
         return buildScreen(villagerUUID, villagerName, profName, dialogueText, dialogueId, reputationBand, responses, null);
     }
 
+    /**
+     * A pinned turn-in option: rendered as the first response (index 0),
+     * above the scroll area so it can never scroll out of sight, carrying
+     * the quest item's icon composed over the button (the icon has no click
+     * handling, so clicks fall through to the button beneath).
+     */
+    public record TurnIn(String itemId, int count, String label) {
+        public static TurnIn of(net.minecraft.world.item.Item item, int count, String label) {
+            net.minecraft.resources.Identifier key = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item);
+            return new TurnIn(key != null ? key.toString() : "minecraft:air", count, label);
+        }
+    }
+
     public static OpenScreenS2C buildScreen(
             UUID villagerUUID,
             String villagerName,
@@ -85,6 +106,19 @@ public final class DialogueScreens {
             String reputationBand,
             List<String> responses,
             ItemHint itemHint) {
+        return buildScreen(villagerUUID, villagerName, profName, dialogueText, dialogueId, reputationBand, responses, itemHint, null);
+    }
+
+    public static OpenScreenS2C buildScreen(
+            UUID villagerUUID,
+            String villagerName,
+            String profName,
+            String dialogueText,
+            String dialogueId,
+            String reputationBand,
+            List<String> responses,
+            ItemHint itemHint,
+            TurnIn turnIn) {
 
         String screenId = "vq_dialogue:" + villagerUUID + ":" + dialogueId;
         String titleText = villagerName + " (" + profName + ")";
@@ -117,14 +151,50 @@ public final class DialogueScreens {
                    ));
         }
 
-        for (int i = 0; i < responses.size(); i++) {
-            int btnY = BUTTONS_TOP + i * (BUTTON_H + BUTTON_GAP);
-            // Encode index + villager UUID + dialogueId into the component ID.
-            String btnId = "response_" + i + ":" + villagerUUID + ":" + dialogueId;
-            builder.button(btnId, PADDING, btnY, BUTTON_W, BUTTON_H, Map.of(
-                    ComponentType.PROP_LABEL, responses.get(i)
+        // A turn-in option (when present) is pinned above the scroll area as
+        // response index 0, with the quest item's icon composed over the
+        // button; the scrollable responses then start at index 1 so the
+        // fallback handler's index-to-action mapping is untouched.
+        int firstResponseIndex = 0;
+        int scrollTop = BUTTONS_TOP;
+        if (turnIn != null) {
+            String turnInId = "response_0:" + villagerUUID + ":" + dialogueId;
+            builder.button(turnInId, PADDING, BUTTONS_TOP, BUTTON_W, BUTTON_H, Map.of(
+                    // Leading spaces clear the label off the icon
+                    ComponentType.PROP_LABEL, "     " + turnIn.label()
             ));
+            builder.itemIcon(turnInId + ":icon", PADDING + 3, BUTTONS_TOP + 1, turnIn.itemId(), turnIn.count());
+            firstResponseIndex = 1;
+            scrollTop = BUTTONS_TOP + BUTTON_STRIDE;
         }
+
+        // Response buttons live in a scroll panel: short lists render exactly
+        // like the old absolute layout (panel sized to content, no scrollbar),
+        // longer lists clip to VISIBLE_BUTTONS and wheel-scroll. Button ids
+        // keep the exact "response_{index}:{uuid}:{dialogueId}" encoding the
+        // fallback handler parses.
+        boolean scrolls = responses.size() > VISIBLE_BUTTONS;
+        int visibleCount = Math.min(responses.size(), VISIBLE_BUTTONS);
+        int panelHeight = Math.max(1, visibleCount * BUTTON_STRIDE - BUTTON_GAP);
+        int buttonWidth = scrolls ? BUTTON_W - SCROLLBAR_ALLOWANCE : BUTTON_W;
+
+        java.util.List<justfatlard.pandorical.protocol.ComponentDef> buttons = new java.util.ArrayList<>();
+        for (int i = 0; i < responses.size(); i++) {
+            // Encode index + villager UUID + dialogueId into the component ID.
+            String btnId = "response_" + (i + firstResponseIndex) + ":" + villagerUUID + ":" + dialogueId;
+            buttons.add(new justfatlard.pandorical.api.ComponentBuilder(btnId, ComponentType.BUTTON)
+                    .bounds(0, i * BUTTON_STRIDE, buttonWidth, BUTTON_H)
+                    .prop(ComponentType.PROP_LABEL, responses.get(i))
+                    .build());
+        }
+        builder.scrollPanel("responses:" + villagerUUID + ":" + dialogueId,
+                PADDING, scrollTop, BUTTON_W, panelHeight,
+                Map.of(
+                        "item_height", String.valueOf(BUTTON_STRIDE),
+                        "visible_items", String.valueOf(VISIBLE_BUTTONS),
+                        "total_items", String.valueOf(responses.size())
+                ),
+                buttons);
 
         return builder.build();
     }
@@ -137,9 +207,13 @@ public final class DialogueScreens {
      * Component ID format: "response_{index}:{villagerUUID}:{dialogueId}"
      */
     public static void registerHandlers() {
-        // Clean up dialogue state when the screen is closed without a button click (Escape, etc.)
-        PandoricalApi.screens().onClose(SCREEN_TYPE, player ->
-                DialogueStateManager.cleanupPlayerDialogues(player.getUUID()));
+        // Clean up dialogue state when the screen is closed without a button click
+        // (Escape, etc.) — including the per-player click mappings, so a dismissed
+        // screen's action ids can't be consumed by a later screen at the same index.
+        PandoricalApi.screens().onClose(SCREEN_TYPE, player -> {
+            DialogueStateManager.cleanupPlayerDialogues(player.getUUID());
+            VillageQuests.getDialogueManager().clearResponseState(player.getUUID());
+        });
 
         PandoricalApi.screens().onActionFallback(SCREEN_TYPE, (player, data) -> {
             String componentId = data.get("_componentId");

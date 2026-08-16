@@ -1083,7 +1083,7 @@ class DialogueContent {
          registry,
          new Dialogue(
                "night_whisper_memory",
-               "*lowers voice* Sometimes I remember things that haven't happened yet. I knew the storm was coming before the clouds did. Time bends here.",
+               "*lowers voice* Sometimes I remember things that haven't happened yet. I knew the storm was coming before the clouds did. Don't ask me how.",
                40,
                999,
                Dialogue.DialogueType.NIGHT_SPECIAL
@@ -1495,14 +1495,14 @@ class DialogueContent {
       );
       register(
          registry,
-         new Dialogue("weather_rainbow", "Rainbow over the eastern hills. My grandmother said they bring luck.", 50, 999, Dialogue.DialogueType.IDLE_CHAT)
+         new Dialogue("weather_rainbow", "Saw a rainbow over the eastern hills after the last rain. My grandmother said they bring luck.", 50, 999, Dialogue.DialogueType.IDLE_CHAT)
             .addResponse(new Dialogue.DialogueResponse("We could use some.", 0))
             .addResponse(new Dialogue.DialogueResponse("Beautiful.", 1))
             .setProfession("any")
       );
       register(
          registry,
-         new Dialogue("weather_drought", "Three weeks without rain. The well's showing bottom.", -999, 999, Dialogue.DialogueType.IDLE_CHAT)
+         new Dialogue("weather_drought", "Feels like weeks since a real rain. The well's showing bottom.", -999, 999, Dialogue.DialogueType.IDLE_CHAT)
             .addResponse(new Dialogue.DialogueResponse("Should we ration water?", 0))
             .setProfession("any")
       );
@@ -2138,7 +2138,7 @@ class DialogueContent {
       );
       register(
          registry,
-         new Dialogue("neighbor_noise_complaint", "Your parties have been lively. The whole village can hear them.", 50, 999, Dialogue.DialogueType.IDLE_CHAT)
+         new Dialogue("neighbor_noise_complaint", "I hear you working over there at all hours. The wall between our plots is thinner than you think.", 50, 999, Dialogue.DialogueType.IDLE_CHAT)
             .addResponse(new Dialogue.DialogueResponse("Sorry, I'll keep it down.", 1))
             .addResponse(new Dialogue.DialogueResponse("You're welcome to join.", 2))
             .setProfession("any")
@@ -2186,13 +2186,26 @@ class DialogueContent {
       );
       register(
          registry,
-         new Dialogue("neighbor_suspicious", "Strange noises from your basement lately. Everything alright?", 25, 999, Dialogue.DialogueType.IDLE_CHAT)
+         new Dialogue("neighbor_suspicious", "Heard digging under your place late last night. That was you... right?", 25, 999, Dialogue.DialogueType.IDLE_CHAT)
             .addResponse(new Dialogue.DialogueResponse("Just moving stuff around down there.", 0))
             .setProfession("any")
       );
    }
 
    private static void registerWorkDialogues(Map<String, Dialogue> registry) {
+      // Anchor entry for the misnomer offer screen. The screen labels themselves come
+      // from MisnomerQuest.getMisnomerAccept/Refuse/ColdRefuseLabel; this entry exists
+      // so handleResponse can resolve the clicked index against a registered dialogue
+      // (without it, every button on the misnomer offer screen silently did nothing).
+      // Index order is the contract: 0 = accept, 1 = refuse, 2 = cold refuse.
+      // Reputation deltas stay 0 here; MisnomerQuest handles all consequences itself.
+      register(
+         registry,
+         new Dialogue("misnomer_offer", "*asks for something they shouldn't*", -999, 999, Dialogue.DialogueType.QUEST_OFFER)
+            .addResponse(new Dialogue.DialogueResponse("...Fine.", 0))
+            .addResponse(new Dialogue.DialogueResponse("No.", 0))
+            .addResponse(new Dialogue.DialogueResponse("No. And don't ask again.", 0))
+      );
       register(
          registry,
          new Dialogue("work_available_direct", "Good timing. There's something that needs doing.", -999, 999, Dialogue.DialogueType.QUEST_OFFER)
@@ -2654,7 +2667,7 @@ class DialogueContent {
             }
 
             if (isRaining) {
-               options.add("Rain must be good for the crops.");
+               options.add("Rain's good for your crops. Anything picked before it hit?");
             }
             break;
          case "librarian":
@@ -2662,7 +2675,7 @@ class DialogueContent {
             options.add("I'll browse the shelves.");
             options.add("What do you have in stock?");
             if (isEvening) {
-               options.add("Good night for reading.");
+               options.add("Good night for reading. What do you have?");
             }
 
             if (isThundering) {
@@ -2735,7 +2748,7 @@ class DialogueContent {
             options.add("What came out of the water?");
             options.add("I'll take some fish.");
             if (isRaining) {
-               options.add("They must be biting in this weather.");
+               options.add("They must be biting in this weather. What'd you pull in?");
             }
             break;
          case "fletcher":
@@ -2776,9 +2789,9 @@ class DialogueContent {
       }
 
       if (isThundering) {
-         options.add("Quick, before the storm gets worse.");
+         options.add("Quick trade, before the storm gets worse.");
       } else if (isRaining) {
-         options.add("While we're both stuck here.");
+         options.add("Might as well trade while we're both stuck in here.");
       }
 
       return options.get(random.nextInt(options.size()));
@@ -2797,16 +2810,18 @@ class DialogueContent {
       ThreadLocalRandom random = ThreadLocalRandom.current();
       List<String> options = new ArrayList<>();
       if (isOnCooldown) {
+         // These label the PLAYER's button (the player asking about work again
+         // too soon), so they must be player-voice, not the villager's brush-off.
          long daysRemaining = cooldownRemaining / 24000L;
          if (daysRemaining > 1L) {
-            options.add("Give it time.");
-            options.add("Not yet. Ask me later.");
+            options.add("I know it's soon, but... anything?");
+            options.add("Still nothing for me, I figure.");
          } else if (daysRemaining == 1L) {
-            options.add("Give it time.");
-            options.add("Not today. Maybe tomorrow.");
+            options.add("Any chance something's come up?");
+            options.add("Nothing yet, huh. Tomorrow, maybe?");
          } else {
-            options.add("Too soon. Give it time.");
-            options.add("Already asked. Later.");
+            options.add("Asking again. Worth a shot.");
+            options.add("Anything change since I asked?");
          }
 
          return options.get(random.nextInt(options.size()));
@@ -2858,7 +2873,7 @@ class DialogueContent {
                options.add("Any stonework to be done?");
                options.add("Walls need building?");
                if (!isRaining) {
-                  options.add("Good weather to build.");
+                  options.add("Good weather to build. Need hands?");
                }
                break;
             case "cartographer":
@@ -2869,7 +2884,7 @@ class DialogueContent {
                options.add("Nets need mending?");
                options.add("Need help on the water?");
                if (isRaining) {
-                  options.add("Good weather for fishing.");
+                  options.add("Good weather for fish. Need help on the lines?");
                }
                break;
             case "fletcher":
@@ -3353,7 +3368,7 @@ class DialogueContent {
          } else {
             String[] lines = new String[]{
                "If someone ever brought me " + itemName + ", I'd probably cry.",
-               "I'd trade half my stock for a good " + itemName + " right now.",
+               "I'd trade half my stock for " + itemName + " right now.",
                "You ever just think about " + itemName + "? No? Just me then.",
                "I keep almost asking people for " + itemName + ". Never do though."
             };
