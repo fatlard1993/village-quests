@@ -6,6 +6,7 @@
   "description": "Villages are communities, not content. Villagers remember, forget, and live whether you're there or not.",
   "authors": ["justfatlard"],
   "license": "MIT",
+  "icon": "assets/village-quests-justfatlard/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": ["justfatlard.village_quests.VillageQuests"]
