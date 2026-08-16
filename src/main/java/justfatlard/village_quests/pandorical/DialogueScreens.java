@@ -37,7 +37,7 @@ public final class DialogueScreens {
 
     // Screen dimensions
     private static final int SCREEN_W = 300;
-    private static final int SCREEN_H = 200;
+    private static final int SCREEN_H = 222;
 
     // Layout constants
     private static final int PADDING = 10;
@@ -55,8 +55,48 @@ public final class DialogueScreens {
     // lists live in a scroll panel (client-side wheel scroll + scrollbar).
     // With 3 or fewer responses the panel is sized to content and renders
     // identically to the old absolute layout.
-    private static final int VISIBLE_BUTTONS = 3;
+    private static final int VISIBLE_BUTTONS = 4;
     private static final int BUTTON_STRIDE = BUTTON_H + BUTTON_GAP;
+
+    /**
+     * What a button does, said in colour before it is read.
+     *
+     * <p>Muted on purpose: these sit against Pandorical's one grey button and are
+     * meant to be sortable at a glance from a couch, not to look like a toolbar.
+     * Conversation gets no accent at all, so colour means "this does something"
+     * and its absence means "this says something".
+     */
+    private static final String ACCENT_FINISH = "#5CC85C";  // hand in, deliver, teach
+    private static final String ACCENT_TRADE  = "#17A05A";  // open the trade screen
+    private static final String ACCENT_WORK   = "#D9A441";  // ask for work
+    private static final String ACCENT_SPECIAL= "#9B7BD4";  // mystery, secrets, gifts
+    private static final String ACCENT_LEAVE  = "#6B6B6B";  // the way out
+
+    /** Item drawn on the button, for the actions worth recognising without reading. */
+    private static final String ICON_TRADE = "minecraft:emerald";
+    private static final String ICON_WORK  = "minecraft:written_book";
+
+    private static String accentFor(String actionId) {
+        if (actionId == null) return null;
+        return switch (actionId) {
+            case "submit_quest_items", "deliver_misnomer_item", "teach_safely" -> ACCENT_FINISH;
+            case "open_trade" -> ACCENT_TRADE;
+            case "work_inquiry" -> ACCENT_WORK;
+            case "mystery_inquiry", "mystery_accuse", "mystery_protect_secret",
+                 "secret_reveal", "secret_silence", "gift_item", "caretaking_gift" -> ACCENT_SPECIAL;
+            case "cancel" -> ACCENT_LEAVE;
+            default -> null;
+        };
+    }
+
+    private static String iconFor(String actionId) {
+        if (actionId == null) return null;
+        return switch (actionId) {
+            case "open_trade" -> ICON_TRADE;
+            case "work_inquiry" -> ICON_WORK;
+            default -> null;
+        };
+    }
     private static final int SCROLLBAR_ALLOWANCE = 8;
 
     /** Item requirement shown below dialogue text. Null means no item display. */
@@ -119,6 +159,22 @@ public final class DialogueScreens {
             List<String> responses,
             ItemHint itemHint,
             TurnIn turnIn) {
+        return buildScreen(villagerUUID, villagerName, profName, dialogueText, dialogueId, reputationBand,
+                responses, itemHint, turnIn, null);
+    }
+
+    /** {@code actionIds} runs parallel to {@code responses}; it is what colours and marks each button. */
+    public static OpenScreenS2C buildScreen(
+            UUID villagerUUID,
+            String villagerName,
+            String profName,
+            String dialogueText,
+            String dialogueId,
+            String reputationBand,
+            List<String> responses,
+            ItemHint itemHint,
+            TurnIn turnIn,
+            List<String> actionIds) {
 
         String screenId = "vq_dialogue:" + villagerUUID + ":" + dialogueId;
         String titleText = villagerName + " (" + profName + ")";
@@ -161,7 +217,8 @@ public final class DialogueScreens {
             String turnInId = "response_0:" + villagerUUID + ":" + dialogueId;
             builder.button(turnInId, PADDING, BUTTONS_TOP, BUTTON_W, BUTTON_H, Map.of(
                     // Leading spaces clear the label off the icon
-                    ComponentType.PROP_LABEL, "     " + turnIn.label()
+                    ComponentType.PROP_LABEL, "     " + turnIn.label(),
+                    ComponentType.PROP_ACCENT, ACCENT_FINISH
             ));
             builder.itemIcon(turnInId + ":icon", PADDING + 3, BUTTONS_TOP + 1, turnIn.itemId(), turnIn.count());
             firstResponseIndex = 1;
@@ -182,10 +239,28 @@ public final class DialogueScreens {
         for (int i = 0; i < responses.size(); i++) {
             // Encode index + villager UUID + dialogueId into the component ID.
             String btnId = "response_" + (i + firstResponseIndex) + ":" + villagerUUID + ":" + dialogueId;
-            buttons.add(new justfatlard.pandorical.api.ComponentBuilder(btnId, ComponentType.BUTTON)
+            String actionId = actionIds != null && i < actionIds.size() ? actionIds.get(i) : null;
+            String accent = accentFor(actionId);
+            String icon = iconFor(actionId);
+
+            var button = new justfatlard.pandorical.api.ComponentBuilder(btnId, ComponentType.BUTTON)
                     .bounds(0, i * BUTTON_STRIDE, buttonWidth, BUTTON_H)
-                    .prop(ComponentType.PROP_LABEL, responses.get(i))
-                    .build());
+                    // Leading spaces clear the label off the icon, same as the turn-in
+                    .prop(ComponentType.PROP_LABEL, icon != null ? "     " + responses.get(i) : responses.get(i));
+            if (accent != null) {
+                button.prop(ComponentType.PROP_ACCENT, accent);
+            }
+            buttons.add(button.build());
+
+            if (icon != null) {
+                // Composed over the button; the icon has no click handling of its
+                // own, so presses fall through to the button beneath it.
+                buttons.add(new justfatlard.pandorical.api.ComponentBuilder(btnId + ":icon", ComponentType.ITEM_ICON)
+                        .bounds(3, i * BUTTON_STRIDE + 1, 16, 16)
+                        .prop(ComponentType.PROP_ITEM_ID, icon)
+                        .prop(ComponentType.PROP_ITEM_COUNT, "1")
+                        .build());
+            }
         }
         builder.scrollPanel("responses:" + villagerUUID + ":" + dialogueId,
                 PADDING, scrollTop, BUTTON_W, panelHeight,

@@ -997,7 +997,8 @@ public class DialogueManager {
                   String professionName = isChild ? "child" : (profKey != null ? profKey.getPath() : "none");
                   LOGGER.info("[VQ] Sending dialogue screen to {} for {}", player.getName().getString(), villagerName);
                   PandoricalApi.screens().open(player,
-                     DialogueScreens.buildScreen(villager.getUUID(), villagerName, professionName, dialogueText, greeting.getId(), reputationBand, responses.texts)
+                     DialogueScreens.buildScreen(villager.getUUID(), villagerName, professionName, dialogueText, greeting.getId(), reputationBand,
+                        responses.texts, null, null, responses.actionIds)
                   );
                   this.recordConversationTopic(
                      player.getUUID(), villager.getUUID(), firstMeeting, hadWeatherOverride, isNight, greeting.getId(), hasQuests
@@ -1561,7 +1562,7 @@ public class DialogueManager {
          responseTexts.add(ackLabels[confRng.nextInt(ackLabels.length)]);
          originalIndices.add(-1);
          actionIds.add("cancel");
-         return new DialogueManager.FilteredResponses(responseTexts, originalIndices, customOptionIds, actionIds);
+         return new DialogueManager.FilteredResponses(responseTexts, originalIndices, customOptionIds, actionIds).ordered();
       } else {
          boolean hasActiveQuest = ActiveQuestManager.hasActiveQuest(player);
          VillagerQuest playerQuest = ActiveQuestManager.getActiveQuest(player);
@@ -1595,6 +1596,28 @@ public class DialogueManager {
                ? ThreadLocalRandom.current().nextInt(ownResponses.size())
                : -1;
 
+            // Replies that lead nowhere and cost nothing are the same reply written
+            // three ways: whichever you pick, the conversation ends and the village
+            // thinks exactly what it thought before. Show one.
+            //
+            // This only fires when EVERY reply is inert. Most greetings differ by a
+            // point or two of reputation, and those are the whole mechanic — an
+            // invisible choice is still a choice, and collapsing them would delete
+            // the thing this mod is about.
+            int flavourPick = -1;
+            if (!tradeOfferGreeting && ownResponses.size() > 1) {
+               boolean allInert = true;
+               for (Dialogue.DialogueResponse r : ownResponses) {
+                  if (r.getNextDialogueId() != null || r.getReputationChange() != 0 || r.offersQuest()) {
+                     allInert = false;
+                     break;
+                  }
+               }
+               if (allInert) {
+                  flavourPick = ThreadLocalRandom.current().nextInt(ownResponses.size());
+               }
+            }
+
             for (int i = 0; i < ownResponses.size(); i++) {
                Dialogue.DialogueResponse ownResponse = ownResponses.get(i);
                if (tradeOfferGreeting) {
@@ -1626,6 +1649,10 @@ public class DialogueManager {
 
                   workOptionAdded = true;
                } else if (ownResponse.offersQuest() && hasActiveQuest) {
+                  continue;
+               }
+
+               if (flavourPick >= 0 && i != flavourPick) {
                   continue;
                }
 
@@ -1769,7 +1796,7 @@ public class DialogueManager {
          responseTexts.add(this.getCancelText(world, villager, reputation, emotionalContext));
          originalIndices.add(-1);
          actionIds.add("cancel");
-         return new DialogueManager.FilteredResponses(responseTexts, originalIndices, customOptionIds, actionIds);
+         return new DialogueManager.FilteredResponses(responseTexts, originalIndices, customOptionIds, actionIds).ordered();
       }
    }
 
@@ -3624,6 +3651,51 @@ public class DialogueManager {
    }
 
    private record FilteredResponses(List<String> texts, List<Integer> originalIndices, List<String> customOptionIds, List<String> actionIds) {
+
+      /**
+       * Reorder so the options that do something come before the ones that only
+       * say something.
+       *
+       * <p>Only three or four buttons are visible at once and the rest scroll.
+       * Authored replies were added first, so the visible ones were routinely all
+       * conversation while trading, asking for work, or handing in a finished
+       * quest sat below the fold, invisible unless you thought to scroll. That
+       * reads as a villager with nothing to offer.
+       *
+       * <p>Within a rank the original order is kept, so the writing's own
+       * sequencing survives. Leaving is always last, where a way out belongs.
+       */
+      FilteredResponses ordered() {
+         List<Integer> order = new java.util.ArrayList<>();
+         for (int i = 0; i < texts.size(); i++) order.add(i);
+         order.sort(java.util.Comparator.comparingInt(i -> rank(actionIds.get(i))));
+
+         List<String> t = new java.util.ArrayList<>();
+         List<Integer> o = new java.util.ArrayList<>();
+         List<String> c = new java.util.ArrayList<>();
+         List<String> a = new java.util.ArrayList<>();
+         for (int i : order) {
+            t.add(texts.get(i));
+            o.add(originalIndices.get(i));
+            c.add(i < customOptionIds.size() ? customOptionIds.get(i) : null);
+            a.add(actionIds.get(i));
+         }
+         return new FilteredResponses(t, o, c, a);
+      }
+
+      private static int rank(String actionId) {
+         if (actionId == null) return 50;
+         return switch (actionId) {
+            // Finishing something you already committed to outranks starting anything
+            case "submit_quest_items", "deliver_misnomer_item", "teach_safely" -> 0;
+            case "open_trade" -> 10;
+            case "work_inquiry" -> 20;
+            case "mystery_inquiry", "mystery_accuse", "mystery_protect_secret",
+                 "secret_reveal", "secret_silence", "gift_item", "caretaking_gift" -> 30;
+            case "cancel" -> 90;
+            default -> 50; // plain conversation, including custom: options
+         };
+      }
    }
 
    private record GreetingResult(Dialogue greeting, boolean hasQuests) {
