@@ -139,6 +139,19 @@ public class VillageQuests implements ModInitializer {
       }
    }
 
+   /**
+    * A key for what {@code /quest} prints, because a command needs a keyboard and
+    * a controller has none. Claimed from Pandorical's pooled slots with no
+    * preferred key, so it takes the first free one and appears in the client's
+    * controls screen as "Quest Status" for players to bind where they like.
+    */
+   private void registerQuestStatusKeybind() {
+      justfatlard.pandorical.api.PandoricalApi.keybinds().register(
+         "village-quests:status", 0, "Quest Status",
+         player -> player.sendSystemMessage(
+            justfatlard.village_quests.manager.ActiveQuestManager.getQuestReminder(player), false));
+   }
+
    public void onInitialize() {
       VillageQuestsConfig.load();
       nameManager = new VillagerNameManager();
@@ -150,6 +163,7 @@ public class VillageQuests implements ModInitializer {
       workRequestManager = new WorkRequestManager();
       VillageQuestsNetworking.registerServerPackets();
       VillageQuestsCommands.register();
+      registerQuestStatusKeybind();
       this.registerEntityEvents();
       this.registerBlockEvents();
       this.registerTickEvents();

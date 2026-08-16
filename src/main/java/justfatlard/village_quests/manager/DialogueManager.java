@@ -1622,13 +1622,17 @@ public class DialogueManager {
          }
 
          if (!isFirstEncounter && hasRedirectToThisVillager) {
-            String referrerName = ((RedirectQuest)playerQuest).getRequesterName();
+            // Answers the greeting instead of repeating it. This villager opens with
+            // "X sent you? Good, I do need a hand" (see the referral acknowledgment
+            // above), so a button saying "X sent me your way" has the player
+            // announcing what they were just told, and reads as though the game
+            // forgot the last line. The player's move here is to accept.
             ThreadLocalRandom btnRng = ThreadLocalRandom.current();
             String[] redirectLabels = new String[]{
-               referrerName + " told me you might need some help.",
-               referrerName + " sent me your way.",
-               "I was talking to " + referrerName + ". They said you could use a hand.",
-               "Hey — " + referrerName + " mentioned you?"
+               "What do you need?",
+               "I'm listening.",
+               "Happy to help. What is it?",
+               "Tell me what needs doing."
             };
             responseTexts.add(redirectLabels[btnRng.nextInt(redirectLabels.length)]);
             originalIndices.add(-1);
