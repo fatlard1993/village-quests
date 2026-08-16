@@ -313,10 +313,10 @@ class BuildHomeQuest extends CreationQuest {
          "I don't know what to say. It's... it's a house. They have a house now."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      VillagerVoice.queue(player, this.villagerUuid, response);
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, response);
 
       for (String observation : this.getBuildQualityObservations(player)) {
-         VillagerVoice.queue(player, this.villagerUuid, observation);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, observation);
       }
 
       String anticipation = this.getAnticipationLine();

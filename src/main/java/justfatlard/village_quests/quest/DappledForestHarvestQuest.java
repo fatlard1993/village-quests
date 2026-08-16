@@ -5,6 +5,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import justfatlard.village_quests.util.InventoryHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -74,10 +75,7 @@ public class DappledForestHarvestQuest extends VillagerQuest {
             requesterName + ": \"These are fresh. You didn't have to go far then."
                 + " The forest is closer than most people think — they just don't look for it.\""
         };
-        player.sendSystemMessage(
-            Component.literal(messages[rng.nextInt(messages.length)]).withStyle(ChatFormatting.GREEN),
-            true
-        );
+        VillagerVoice.queue(player, this.villagerUuid, this.requesterName, messages[rng.nextInt(messages.length)]);
         this.completed = true;
     }
 }

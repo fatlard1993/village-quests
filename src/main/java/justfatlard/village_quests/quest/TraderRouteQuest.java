@@ -9,6 +9,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityTypes;
@@ -187,10 +188,7 @@ public class TraderRouteQuest extends VillagerQuest {
                 + " I drink the potion, I disappear, I watch. That's how you stay alive on the road."
                 + " *looks at you* Your friend in the village must have sent you. Thank them for me.\""
         };
-        player.sendSystemMessage(
-            Component.literal(messages[rng.nextInt(messages.length)]).withStyle(ChatFormatting.GREEN),
-            true
-        );
+        VillagerVoice.queue(player, this.villagerUuid, this.requesterName, messages[rng.nextInt(messages.length)]);
 
         ScheduledMessages.schedule(
             player,

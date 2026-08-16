@@ -91,7 +91,7 @@ class SignalFireQuest extends CreationQuest {
          "*stares at the smoke for a long time* I hope someone's there to see it."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      VillagerVoice.queue(player, this.villagerUuid, response);
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, response);
       ServerLevel village = player.level();
       if (village instanceof ServerLevel) {
          Village villagex = VillageQuests.getVillageManager().findNearestVillage(village, player.blockPosition());

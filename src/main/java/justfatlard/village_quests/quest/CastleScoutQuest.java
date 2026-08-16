@@ -6,6 +6,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Blocks;
@@ -113,10 +114,7 @@ public class CastleScoutQuest extends VillagerQuest {
             requesterName + ": \"*leaning in* So it's real. I knew it. What was it like? Stone? How tall?\"",
             requesterName + ": \"*sits down slowly* You went. You actually went. Tell me everything.\""
         };
-        player.sendSystemMessage(
-            Component.literal(messages[rng.nextInt(messages.length)]).withStyle(ChatFormatting.GREEN),
-            true
-        );
+        VillagerVoice.queue(player, this.villagerUuid, this.requesterName, messages[rng.nextInt(messages.length)]);
 
         // Follow-up detail after a pause
         int followupIdx = rng.nextInt(3);

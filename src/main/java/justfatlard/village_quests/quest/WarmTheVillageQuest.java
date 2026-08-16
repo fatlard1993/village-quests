@@ -110,7 +110,7 @@ class WarmTheVillageQuest extends CreationQuest {
          "My hands are warm for the first time in days. I forgot what that felt like."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      VillagerVoice.queue(player, this.villagerUuid, response);
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, response);
       this.scheduleAftermathLetter(
          player,
          new String[]{

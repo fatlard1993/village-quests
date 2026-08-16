@@ -487,7 +487,7 @@ public class MisnomerQuest extends VillagerQuest {
       this.refusalTime = System.currentTimeMillis();
       this.recognitionDelay = getRandomRecognitionDelay();
       String reaction = this.getImmediateReaction();
-      VillagerVoice.queue(player, this.villagerUuid, reaction);
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, reaction);
       UUID playerId = player.getUUID();
       long recognitionTime = System.currentTimeMillis() + this.recognitionDelay;
       DELAYED_RECOGNITIONS.computeIfAbsent(playerId, k -> new HashMap<>())
@@ -501,7 +501,7 @@ public class MisnomerQuest extends VillagerQuest {
       this.refusalTime = System.currentTimeMillis();
       this.recognitionDelay = getRandomRecognitionDelay();
       String reaction = this.getColdImmediateReaction();
-      VillagerVoice.queue(player, this.villagerUuid, reaction);
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, reaction);
       UUID playerId = player.getUUID();
       long recognitionTime = System.currentTimeMillis() + this.recognitionDelay;
       DELAYED_RECOGNITIONS.computeIfAbsent(playerId, k -> new HashMap<>())
@@ -696,12 +696,12 @@ public class MisnomerQuest extends VillagerQuest {
             bonus = Math.min(bonus, 10);
             VillageQuests.getReputationManager().modifyReputation(player, village, bonus);
             String recognition = this.getColdRecognitionMessage();
-            VillagerVoice.queue(player, this.villagerUuid, recognition);
+            VillagerVoice.queue(player, this.villagerUuid, this.requesterName, recognition);
          } else {
             int bonus = Math.max(1, (int)(VillageQuests.getReputationManager().getReputation(player, village) * 0.03));
             VillageQuests.getReputationManager().modifyReputation(player, village, bonus);
             String recognition = this.getRecognitionMessage();
-            VillagerVoice.queue(player, this.villagerUuid, recognition);
+            VillagerVoice.queue(player, this.villagerUuid, this.requesterName, recognition);
          }
       }
 
@@ -797,8 +797,7 @@ public class MisnomerQuest extends VillagerQuest {
                String[] violenceMsgs = new String[]{
                   "Somewhere nearby, a door closes.", "The village is quieter than it was.", this.requesterName + " won't look at anyone."
                };
-               player.sendSystemMessage(
-                  Component.literal(violenceMsgs[ThreadLocalRandom.current().nextInt(violenceMsgs.length)]).withStyle(ChatFormatting.DARK_RED), true               );
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, violenceMsgs[ThreadLocalRandom.current().nextInt(violenceMsgs.length)]);
                player.sendSystemMessage(
                   Component.literal(this.requesterName + ": I didn't — it wasn't supposed to — oh no. Oh no.")
                      .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
@@ -813,8 +812,7 @@ public class MisnomerQuest extends VillagerQuest {
                   "A child stops and stares at the wreckage. Then walks away.",
                   "The sound of it breaking carried further than you expected."
                };
-               player.sendSystemMessage(
-                  Component.literal(sabotageMsgs[ThreadLocalRandom.current().nextInt(sabotageMsgs.length)]).withStyle(ChatFormatting.AQUA), true               );
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, sabotageMsgs[ThreadLocalRandom.current().nextInt(sabotageMsgs.length)]);
                break;
             case THEFT:
                if (this.taughtSafely) {
@@ -827,7 +825,7 @@ public class MisnomerQuest extends VillagerQuest {
                         + ": \"*takes the bread with both hands* I was going to steal. You know that, right? And you just... brought us food instead.\"",
                      this.requesterName + ": \"*voice breaks* The kids can eat tonight. Without me doing something I can't take back. Thank you.\""
                   };
-                  player.sendSystemMessage(Component.literal(feedMsgs[feedRng.nextInt(feedMsgs.length)]).withStyle(ChatFormatting.GREEN), true);
+                  VillagerVoice.queue(player, this.villagerUuid, this.requesterName, feedMsgs[feedRng.nextInt(feedMsgs.length)]);
                   ScheduledMessages.schedule(
                      player,
                      Component.literal(
@@ -851,8 +849,7 @@ public class MisnomerQuest extends VillagerQuest {
                      "A window shutter pulls closed as you pass. Someone was watching.",
                      this.requesterName + ": \"Good. *tucks it away* " + this.targetDescription + " won't even notice. Probably.\""
                   };
-                  player.sendSystemMessage(
-                     Component.literal(theftMsgs[ThreadLocalRandom.current().nextInt(theftMsgs.length)]).withStyle(ChatFormatting.AQUA), true                  );
+                  VillagerVoice.queue(player, this.villagerUuid, this.requesterName, theftMsgs[ThreadLocalRandom.current().nextInt(theftMsgs.length)]);
                }
                break;
             case PANIC:
@@ -863,8 +860,7 @@ public class MisnomerQuest extends VillagerQuest {
                   "Ash settles on the crops. A farmer brushes it off, says nothing.",
                   "The fire's out. What's left doesn't look like corruption. Just someone's things."
                };
-               player.sendSystemMessage(
-                  Component.literal(panicMsgs[ThreadLocalRandom.current().nextInt(panicMsgs.length)]).withStyle(ChatFormatting.AQUA), true               );
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, panicMsgs[ThreadLocalRandom.current().nextInt(panicMsgs.length)]);
                break;
             case SUBSTANCE:
                InventoryHelper.removeItem(player.getInventory(), Items.GLOWSTONE_DUST, 4);
@@ -875,10 +871,7 @@ public class MisnomerQuest extends VillagerQuest {
                   this.requesterName + "'s eyes go wide. The dust disappears. They're smiling. It's not a good smile.",
                   "The yellow powder catches the light as " + this.requesterName + " holds it up. Their hands have stopped shaking. Everything else is worse."
                };
-               player.sendSystemMessage(
-                  Component.literal(substanceMsgs[ThreadLocalRandom.current().nextInt(substanceMsgs.length)]).withStyle(ChatFormatting.GOLD),
-                  true
-               );
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, substanceMsgs[ThreadLocalRandom.current().nextInt(substanceMsgs.length)]);
                ScheduledMessages.schedule(
                   player,
                   Component.literal(this.requesterName + " is sitting by the wall. Rocking. The glow fades from their eyes.")
@@ -896,7 +889,7 @@ public class MisnomerQuest extends VillagerQuest {
                      this.requesterName + ": \"It's not a boom. It's a... a sky boom?\" *watches with mouth open* \"Do it again. Do it again!\"",
                      this.requesterName + ": \"*jumping up and down* THAT'S BETTER THAN TNT! Can I have another one? Please? PLEASE?\""
                   };
-                  player.sendSystemMessage(Component.literal(fwMsgs[fwRng.nextInt(fwMsgs.length)]).withStyle(ChatFormatting.GREEN), true);
+                  VillagerVoice.queue(player, this.villagerUuid, this.requesterName, fwMsgs[fwRng.nextInt(fwMsgs.length)]);
                   ServerLevel skyBox = player.level();
                   if (skyBox instanceof ServerLevel) {
                      AABB skyBoxx = new AABB(player.blockPosition()).inflate(48.0);
@@ -936,7 +929,7 @@ public class MisnomerQuest extends VillagerQuest {
                      this.requesterName + ": \"Wait — you're letting me light it? With you here?\" *hands shaking with excitement* \"This is the best day.\"",
                      this.requesterName + ": \"*stares at the campfire* It's warm. I made it warm.\" *looks up at you* \"Thank you for not just saying no.\""
                   };
-                  player.sendSystemMessage(Component.literal(safeMsgs[safeRng.nextInt(safeMsgs.length)]).withStyle(ChatFormatting.GREEN), true);
+                  VillagerVoice.queue(player, this.villagerUuid, this.requesterName, safeMsgs[safeRng.nextInt(safeMsgs.length)]);
                   ScheduledMessages.schedule(
                      player,
                      Component.literal(
@@ -966,8 +959,7 @@ public class MisnomerQuest extends VillagerQuest {
                   this.requesterName + ": \"Good. Good.\" *wrapping the potato in cloth* \"They won't taste anything wrong. I made sure.\"",
                   "The potato changes hands. " + this.requesterName + " is already walking away. They don't look back."
                };
-               player.sendSystemMessage(
-                  Component.literal(poisonMsgs[ThreadLocalRandom.current().nextInt(poisonMsgs.length)]).withStyle(ChatFormatting.DARK_RED), true               );
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, poisonMsgs[ThreadLocalRandom.current().nextInt(poisonMsgs.length)]);
                ScheduledMessages.schedule(
                   player,
                   Component.literal(

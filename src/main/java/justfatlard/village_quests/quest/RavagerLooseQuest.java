@@ -8,6 +8,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
@@ -62,7 +63,7 @@ class RavagerLooseQuest extends MobEventQuest {
             "It left on its own. Nobody's sure where it went. " + this.requesterName + " checked the door lock three times.",
             "Someone heard it crash through the fence at the edge of the village. Then nothing."
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.YELLOW), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          if (world instanceof ServerLevel) {
             Village v = VillageQuests.getVillageManager().findNearestVillage(world, player.blockPosition());
             if (v != null) {
@@ -75,7 +76,7 @@ class RavagerLooseQuest extends MobEventQuest {
             this.requesterName + ": \"I can still hear it. In my head. But the square is quiet now.\"",
             this.requesterName + ": \"My hands won't stop shaking. But I can go home. Thank you.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          this.scheduleAftermathLetter(
             player,
             new String[]{this.requesterName + " started sleeping with the shutters open again.", "The fence is rebuilt. Stronger this time. Nobody said why."}

@@ -5,6 +5,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import justfatlard.village_quests.util.InventoryHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -75,10 +76,7 @@ public class NameTagCraftQuest extends VillagerQuest {
             requesterName + ": \"*looks at them for a moment* My mother would approve."
                 + " The names go back on tomorrow morning. Thank you.\""
         };
-        player.sendSystemMessage(
-            Component.literal(messages[rng.nextInt(messages.length)]).withStyle(ChatFormatting.GREEN),
-            true
-        );
+        VillagerVoice.queue(player, this.villagerUuid, this.requesterName, messages[rng.nextInt(messages.length)]);
         this.completed = true;
     }
 }

@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
@@ -63,8 +64,7 @@ class FishHatQuest extends TimeSensitiveQuest {
             this.requesterName + ": \"...I watched it go.\"",
             "The water's still moving. The " + this.hatType + " isn't."
          };
-         player.sendSystemMessage(
-            Component.literal(expiryMsgs[ThreadLocalRandom.current().nextInt(expiryMsgs.length)]).withStyle(ChatFormatting.AQUA), true         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, expiryMsgs[ThreadLocalRandom.current().nextInt(expiryMsgs.length)]);
          ConversationMemory.recordTopic(player.getUUID(), this.villagerUuid, ConversationMemory.ConversationTopic.QUEST_GIVEN);
          ServerLevel v = player.level();
          if (v instanceof ServerLevel) {

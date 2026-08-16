@@ -5,6 +5,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import justfatlard.village_quests.util.InventoryHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -89,10 +90,7 @@ public class SulfurCubeCaptureQuest extends VillagerQuest {
                 + " I want to watch it for a while before I try anything."
                 + " You did a remarkable thing going down there to get this.\""
         };
-        player.sendSystemMessage(
-            Component.literal(messages[rng.nextInt(messages.length)]).withStyle(ChatFormatting.GREEN),
-            true
-        );
+        VillagerVoice.queue(player, this.villagerUuid, this.requesterName, messages[rng.nextInt(messages.length)]);
         this.completed = true;
     }
 }

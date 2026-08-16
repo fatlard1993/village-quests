@@ -5,6 +5,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import justfatlard.village_quests.util.InventoryHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
@@ -77,10 +78,7 @@ public class CarpetShortageQuest extends VillagerQuest {
             requesterName + ": \"*folds them neatly* These are perfect. My grandmother would have made carpet from these herself,"
                 + " on a quiet evening. Now it takes a trip and a trade. Times change, I suppose.\""
         };
-        player.sendSystemMessage(
-            Component.literal(messages[rng.nextInt(messages.length)]).withStyle(ChatFormatting.GREEN),
-            true
-        );
+        VillagerVoice.queue(player, this.villagerUuid, this.requesterName, messages[rng.nextInt(messages.length)]);
         this.completed = true;
     }
 }

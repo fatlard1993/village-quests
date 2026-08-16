@@ -20,6 +20,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -507,7 +508,7 @@ public class HolidayQuest {
             this.requesterName
                + ": \"*counting under breath* ...sixty-two, sixty-three, sixty-four. That's a stack. That's a forest. You just planted a forest.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          ServerLevel v = player.level();
          if (v instanceof ServerLevel) {
             Village vx = VillageQuests.getVillageManager().findNearestVillage(v, player.blockPosition());
@@ -576,7 +577,7 @@ public class HolidayQuest {
             this.requesterName + ": \"A black cat. On Friday the 13th. And it's just... sitting there? Fine. Fine. I'm going inside.\"",
             this.requesterName + ": \"Did it look at you? It looked at me. Like it knew something. *shakes head* It's a cat. I'm being ridiculous.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          ScheduledMessages.schedule(
             player,
             Component.literal("The black cat is sitting on " + this.requesterName + "'s windowsill. It lives there now, apparently.")
@@ -652,7 +653,7 @@ public class HolidayQuest {
                + this.animalWord
                + " looks confused. Everyone's confused. But at least gravity works again.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          ScheduledMessages.schedule(
             player,
             Component.literal(
@@ -730,7 +731,7 @@ public class HolidayQuest {
                "The bone horse stopped coming. Nobody knows why. " + this.requesterName + " still checks the window every night.",
                "It hasn't been back in two days. " + this.requesterName + " says that's worse. The waiting."
             };
-            player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.YELLOW), true);
+            VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          } else {
             String[] msgs = new String[]{
                this.requesterName
@@ -739,7 +740,7 @@ public class HolidayQuest {
                   + ": \"I heard the bones hit the ground from inside my house. That's a sound I'll be hearing for a while. But it's over. Thank you.\"",
                this.requesterName + ": \"The kids wanted to keep the skull. I said absolutely not. *pause* ...Where did you put the skull?\""
             };
-            player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
+            VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
             this.scheduleAftermathLetter(
                player,
                new String[]{
@@ -1017,7 +1018,7 @@ public class HolidayQuest {
             this.requesterName + ": \"*can barely breathe* The SOUND they made. I'm going to remember that forever. You're terrible. Thank you.\"",
             this.requesterName + ": \"*wiping tears* They're going to be so mad. That was awful. That was the best thing I've seen all year.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          ScheduledMessages.schedule(
             player,
             Component.literal("Word got around. Half the village thinks it's hilarious. The other half isn't speaking to you. Worth it.")
@@ -1104,8 +1105,7 @@ public class HolidayQuest {
             this.requesterName + ": \"*exhales* I've been thinking about doing that for months. Thank you. Don't tell anyone.\"",
             this.requesterName + ": \"Was it weird? Standing at their door? ...Yeah, it would've been worse if I did it. Thanks.\""
          };
-         player.sendSystemMessage(
-            Component.literal(completions[ThreadLocalRandom.current().nextInt(completions.length)]).withStyle(ChatFormatting.GREEN), true         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, completions[ThreadLocalRandom.current().nextInt(completions.length)]);
          ScheduledMessages.schedule(
             player,
             Component.literal(this.targetName + " is holding something. Turning it over in their hands. They keep looking around.")
@@ -1182,7 +1182,7 @@ public class HolidayQuest {
                + ": \"I'm not going to ask where they came from. I'm not going to ask why they had names. I'm just going to go inside and pretend this didn't happen.\"",
             this.requesterName + ": \"One of the kids adopted one. Named it. It already had a name. They renamed it. I can't anymore. Thank you.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          ServerLevel squidBox = player.level();
          if (squidBox instanceof ServerLevel) {
             AABB squidBoxx = new AABB(this.villageCenter).inflate(48.0);
@@ -1252,7 +1252,7 @@ public class HolidayQuest {
                + ": \"Something about that rabbit. It just sits there, calm as anything. Like it belongs here. Like it was always supposed to be here.\"",
             this.requesterName + ": \"The kids are feeding it carrots. It won't eat from anyone else. Just them. *quiet* It's a good rabbit.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          ScheduledMessages.schedule(
             player,
             Component.literal("Toast is still by the well. The children bring it flowers. It seems happy.")
@@ -1332,8 +1332,7 @@ public class HolidayQuest {
             this.requesterName + ": \"I could see the smoke from my window. Someone's warm tonight who wasn't before. That's enough.\"",
             this.requesterName + ": \"*quiet for a long time* ...Yeah. That's what this time of year is supposed to be about.\""
          };
-         player.sendSystemMessage(
-            Component.literal(completions[ThreadLocalRandom.current().nextInt(completions.length)]).withStyle(ChatFormatting.GREEN), true         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, completions[ThreadLocalRandom.current().nextInt(completions.length)]);
          VillagerMemory.recordMemory(this.villagerUuid, VillagerMemory.MemoryType.STRANGER_WARMED);
          ScheduledMessages.schedule(
             player,
@@ -1419,7 +1418,7 @@ public class HolidayQuest {
             this.requesterName + ": \"*barely containing it* Did they see you? No? Perfect. Now we wait. I've been waiting all year for this.\"",
             this.requesterName + ": \"*whispering* Beautiful. Just sitting there on the step. They're going to be so confused. Best day of the year.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          ScheduledMessages.schedule(
             player,
             Component.literal(

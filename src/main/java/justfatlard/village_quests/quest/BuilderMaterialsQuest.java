@@ -5,6 +5,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import justfatlard.village_quests.util.InventoryHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -60,10 +61,7 @@ public class BuilderMaterialsQuest extends VillagerQuest {
             requesterName + ": \"Perfect. This is exactly what we needed. The builder can finally get going.\"",
             requesterName + ": \"*nods, counting the stack* That'll do it. Thank you — the village needed this.\""
         };
-        player.sendSystemMessage(
-            Component.literal(messages[rng.nextInt(messages.length)]).withStyle(ChatFormatting.GREEN),
-            true
-        );
+        VillagerVoice.queue(player, this.villagerUuid, this.requesterName, messages[rng.nextInt(messages.length)]);
         this.completed = true;
     }
 }

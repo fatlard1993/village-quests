@@ -8,6 +8,7 @@ import justfatlard.village_quests.util.ScheduledMessages;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -71,7 +72,7 @@ public abstract class DeepQuest extends VillagerQuest {
 
       @Override
       protected void deliverDialogue(ServerPlayer player) {
-         player.sendSystemMessage(Component.literal(this.requesterName + ": \"I never thanked you properly.\"").withStyle(ChatFormatting.GRAY), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"I never thanked you properly.\"");
          ScheduledMessages.schedule(
             player,
             Component.literal(this.requesterName + ": \"I was angry. At you. At myself. At the world.\"").withStyle(ChatFormatting.GRAY),
@@ -162,8 +163,7 @@ public abstract class DeepQuest extends VillagerQuest {
                );
                break;
             case "regret":
-               player.sendSystemMessage(
-                  Component.literal(this.requesterName + ": \"I should have been kinder.\"").withStyle(ChatFormatting.GRAY), true               );
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"I should have been kinder.\"");
                ScheduledMessages.schedule(
                   player,
                   Component.literal(this.requesterName + ": \"There was a moment. I knew what to say. I didn't say it.\"")
@@ -184,7 +184,7 @@ public abstract class DeepQuest extends VillagerQuest {
                );
                break;
             case "fear":
-               player.sendSystemMessage(Component.literal(this.requesterName + ": \"I'm scared.\"").withStyle(ChatFormatting.GRAY), true);
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"I'm scared.\"");
                ScheduledMessages.schedule(
                   player, Component.literal(this.requesterName + ": \"Every night. The window. I count.\"").withStyle(ChatFormatting.GRAY), 30
                );
@@ -202,8 +202,7 @@ public abstract class DeepQuest extends VillagerQuest {
                );
                break;
             default:
-               player.sendSystemMessage(
-                  Component.literal(this.requesterName + ": \"I don't even know what I wanted to say.\"").withStyle(ChatFormatting.GRAY), true               );
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"I don't even know what I wanted to say.\"");
                ScheduledMessages.schedule(player, Component.literal(this.requesterName + ": \"...\"").withStyle(ChatFormatting.GRAY), 120);
          }
       }
@@ -229,7 +228,7 @@ public abstract class DeepQuest extends VillagerQuest {
 
       @Override
       protected void deliverDialogue(ServerPlayer player) {
-         player.sendSystemMessage(Component.literal(this.requesterName + ": \"Was I wrong to ask?\"").withStyle(ChatFormatting.GRAY), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"Was I wrong to ask?\"");
          ScheduledMessages.schedule(
             player,
             Component.literal(this.requesterName + ": \"I keep going over it. What I said. What you did.\"").withStyle(ChatFormatting.GRAY),
@@ -275,7 +274,7 @@ public abstract class DeepQuest extends VillagerQuest {
             }
          }
 
-         player.sendSystemMessage(Component.literal(this.requesterName + ": \"I keep going back and forth.\"").withStyle(ChatFormatting.GRAY), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"I keep going back and forth.\"");
          ScheduledMessages.schedule(
             player,
             Component.literal(this.requesterName + ": \"One minute I hate you. The next I remember what you did.\"")
@@ -314,7 +313,7 @@ public abstract class DeepQuest extends VillagerQuest {
 
       @Override
       protected void deliverDialogue(ServerPlayer player) {
-         player.sendSystemMessage(Component.literal(this.requesterName + ": \"He would have liked you.\"").withStyle(ChatFormatting.GRAY), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"He would have liked you.\"");
          ScheduledMessages.schedule(
             player,
             Component.literal(this.requesterName + ": \"Always said tools outlive their makers. Guess he was right.\"")

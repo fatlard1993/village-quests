@@ -6,6 +6,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -121,7 +122,7 @@ class AnimalInHouseQuest extends MobEventQuest {
          String msg = alive
             ? this.homeOwnerName + ": \"It's out. The " + this.animalWord + " looked offended when it left. My curtains are ruined.\""
             : this.homeOwnerName + ": \"It's gone. The house smells like " + this.animalWord + ". But it's mine again.\"";
-         player.sendSystemMessage(Component.literal(msg).withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msg);
          this.scheduleAftermathLetter(
             player,
             new String[]{

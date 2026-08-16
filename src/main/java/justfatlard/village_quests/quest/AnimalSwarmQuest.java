@@ -6,6 +6,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -108,7 +109,7 @@ class AnimalSwarmQuest extends MobEventQuest {
             this.requesterName + ": \"My house smells like " + this.animalWord + ". But at least the square is clear. I think.\"",
             this.requesterName + ": \"One of the children is crying because they wanted to keep one. *sighs* I'm going to regret this.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          this.scheduleAftermathLetter(
             player,
             new String[]{

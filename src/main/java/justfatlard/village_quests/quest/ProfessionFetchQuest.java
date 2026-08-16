@@ -13,6 +13,7 @@ import justfatlard.village_quests.util.InventoryHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.npc.villager.Villager;
@@ -53,10 +54,7 @@ class ProfessionFetchQuest extends FetchItemQuest {
                && this.requiredItem != Items.GHAST_TEAR) {
                super.onComplete(player);
             } else {
-               player.sendSystemMessage(
-                  Component.literal(this.requesterName + ": \"Good. I can finish now. Don't ask what it is.\"").withStyle(ChatFormatting.GREEN),
-                  true
-               );
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"Good. I can finish now. Don't ask what it is.\"");
                InventoryHelper.removeItem(player.getInventory(), this.requiredItem, this.requiredAmount);
                this.completed = true;
             }
@@ -117,7 +115,7 @@ class ProfessionFetchQuest extends FetchItemQuest {
          line = this.requesterName + ": Good. One less thing between me and the harvest.";
       }
 
-      player.sendSystemMessage(Component.literal(line).withStyle(ChatFormatting.GREEN), true);
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, line);
       InventoryHelper.removeItem(player.getInventory(), this.requiredItem, this.requiredAmount);
       this.completed = true;
    }
@@ -171,8 +169,7 @@ class ProfessionFetchQuest extends FetchItemQuest {
       if (ThreadLocalRandom.current().nextDouble() < 0.4) {
          String loreText = this.pickRandomLibrarianLore();
          if (loreText != null) {
-            player.sendSystemMessage(
-               Component.literal(this.requesterName + ": Since you asked... *pulls out a worn book*").withStyle(ChatFormatting.GRAY), true            );
+            VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": Since you asked... *pulls out a worn book*");
             player.sendSystemMessage(
                Component.literal("  \"" + loreText + "\"").withStyle(new ChatFormatting[]{ChatFormatting.DARK_AQUA, ChatFormatting.ITALIC}), true            );
          }

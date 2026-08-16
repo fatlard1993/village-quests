@@ -10,6 +10,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -89,7 +90,7 @@ class JockeyHarassmentQuest extends MobEventQuest {
          String[] msgs = new String[]{
             "The jockeys scattered when the sun came up. The fence needs fixing.", "The animals calmed down eventually. A few are still missing."
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.YELLOW), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          if (world instanceof ServerLevel) {
             Village v = VillageQuests.getVillageManager().findNearestVillage(world, player.blockPosition());
             if (v != null) {
@@ -101,7 +102,7 @@ class JockeyHarassmentQuest extends MobEventQuest {
             this.requesterName + ": \"They're quiet now. The sheep stopped screaming. I'm going to count them.\"",
             this.requesterName + ": \"Bones and webs on the ground. The chickens are still hiding. But it's over.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          this.scheduleAftermathLetter(
             player,
             new String[]{

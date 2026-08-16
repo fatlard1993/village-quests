@@ -6,6 +6,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.animal.golem.IronGolem;
 import net.minecraft.world.level.entity.EntityTypeTest;
@@ -80,12 +81,12 @@ class RetryHealGolemQuest extends CreationQuest {
             String failMsg = this.attempt == 1
                ? this.requesterName + ": \"Twice now. Maybe it's not the iron. Maybe it's this place.\""
                : this.requesterName + ": \"I don't know why we keep trying. ...I do know. But I can't say it out loud.\"";
-            player.sendSystemMessage(Component.literal(failMsg).withStyle(ChatFormatting.GREEN), true);
+            VillagerVoice.queue(player, this.villagerUuid, this.requesterName, failMsg);
          } else {
             String successMsg = this.attempt == 1
                ? this.requesterName + ": \"It worked. *stares* ...It actually worked this time.\""
                : this.requesterName + ": \"Third time. *watches* ...I stopped hoping. That's when it worked.\"";
-            player.sendSystemMessage(Component.literal(successMsg).withStyle(ChatFormatting.GREEN), true);
+            VillagerVoice.queue(player, this.villagerUuid, this.requesterName, successMsg);
             VillagerQuest.clearFailureHistory(this.villagerUuid);
          }
 

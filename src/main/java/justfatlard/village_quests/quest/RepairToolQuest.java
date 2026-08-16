@@ -5,6 +5,7 @@ import justfatlard.village_quests.util.InventoryHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
@@ -54,10 +55,7 @@ class RepairToolQuest extends CreationQuest {
       InventoryHelper.removeFirst(
          player.getInventory(), stack -> stack.has(DataComponents.CUSTOM_NAME) && stack.getHoverName().getString().equals(this.toolName)
       );
-      player.sendSystemMessage(
-         Component.literal(this.requesterName + ": \"It's like new again. My grandfather would be proud.\"").withStyle(ChatFormatting.GREEN),
-         true
-      );
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"It's like new again. My grandfather would be proud.\"");
       this.scheduleAftermathLetter(
          player,
          new String[]{

@@ -126,7 +126,7 @@ public class FetchItemQuest extends VillagerQuest {
          "*nods* The work continues."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      VillagerVoice.queue(player, this.villagerUuid, response);
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, response);
       if (player.level() instanceof ServerLevel chainWorld) {
          if (this.placeOnCompleteBlock == Blocks.OAK_FENCE) {
             QuestChainSeeds.plantFenceSavedAnimals(player, this.placeNearVillagerUuid, this.requesterName, chainWorld);

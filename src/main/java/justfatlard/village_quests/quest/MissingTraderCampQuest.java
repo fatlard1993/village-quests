@@ -14,6 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -172,10 +173,7 @@ public class MissingTraderCampQuest extends VillagerQuest {
             requesterName + ": \"*sets the compass down slowly* Left on purpose. That's the signal — leave the compass,"
                 + " burn the hay, disappear. " + traderName + " is alive. But they ran from something.\""
         };
-        player.sendSystemMessage(
-            Component.literal(messages[rng.nextInt(messages.length)]).withStyle(ChatFormatting.GREEN),
-            true
-        );
+        VillagerVoice.queue(player, this.villagerUuid, this.requesterName, messages[rng.nextInt(messages.length)]);
 
         ScheduledMessages.schedule(
             player,

@@ -14,6 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.item.DyeColor;
@@ -143,7 +144,7 @@ public class ApprenticeQuest extends VillagerQuest {
          this.requesterName + ": \"Perfect. *positions it* The kid's been watching from behind the fence for weeks. Tomorrow I'll wave them over.\"",
          this.requesterName + ": \"*steps back, looks at both stations* Side by side. That's how my master taught me. Same way.\""
       };
-      player.sendSystemMessage(Component.literal(msgsx[rng.nextInt(msgsx.length)]).withStyle(ChatFormatting.GREEN), true);
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgsx[rng.nextInt(msgsx.length)]);
       ScheduledMessages.schedule(
          player,
          Component.literal(
@@ -421,7 +422,7 @@ public class ApprenticeQuest extends VillagerQuest {
             this.requesterName + ": \"*nods slowly* These'll do. " + this.childName + "'s hands are small but steady. Mostly steady.\"",
             this.requesterName + ": \"Perfect. *sets them on the workbench* " + this.childName + " won't know what to do at first. That's the point.\""
          };
-         player.sendSystemMessage(Component.literal(msgsx[rng.nextInt(msgsx.length)]).withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgsx[rng.nextInt(msgsx.length)]);
          ScheduledMessages.schedule(
             player,
             Component.literal(this.requesterName + ": '*watching from across the room* They broke two already. That's normal. I broke four my first day.'")

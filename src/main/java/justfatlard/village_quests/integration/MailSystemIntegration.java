@@ -88,7 +88,8 @@ public class MailSystemIntegration {
       } else {
          boolean sent = buildAndSendMail(server, villagerUuid, villagerName, player.getUUID(), "PERSONAL", letterContent, gift);
          if (sent) {
-            player.sendSystemMessage(Component.literal("A letter arrived. From " + villagerName + ".").withStyle(ChatFormatting.YELLOW), true);
+            // village-mail's unread badge is the notification; a floating line here
+            // duplicates it and is exactly the drive-by text this mod is dropping.
          } else {
             dropUndeliverable(player, villagerName, letterContent, "misnomer thank-you letter (reflection failure)");
          }

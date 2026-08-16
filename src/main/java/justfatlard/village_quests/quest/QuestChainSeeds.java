@@ -17,6 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.npc.villager.Villager;
@@ -270,7 +271,7 @@ public class QuestChainSeeds {
                villagerName
                   + ": '*looks up, and for the first time you see something other than worry* She's okay. She's going to be okay. The honey... it helped. She baked something. For you. Said it was the least she could do.'"
             };
-            player.sendSystemMessage(Component.literal(greetings[rng.nextInt(greetings.length)]).withStyle(ChatFormatting.GREEN), true);
+            VillagerVoice.queue(player, villager.getUUID(), villagerName, greetings[rng.nextInt(greetings.length)]);
             ScheduledMessages.schedule(
                player,
                Component.literal(""),
@@ -588,8 +589,7 @@ public class QuestChainSeeds {
 
       @Override
       protected void deliverDialogue(ServerPlayer player) {
-         player.sendSystemMessage(
-            Component.literal(this.requesterName + ": '*holds the message to their chest*'").withStyle(ChatFormatting.GRAY), true         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": '*holds the message to their chest*'");
          ScheduledMessages.schedule(
             player,
             Component.literal(

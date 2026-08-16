@@ -8,6 +8,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -88,7 +89,7 @@ class BuildingAttackQuest extends MobEventQuest {
             "Someone else chased them off. " + this.requesterName + " doesn't know who.",
             this.targetName + " bolted the door and waited. They left before dawn."
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.YELLOW), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          if (world instanceof ServerLevel) {
             Village v = VillageQuests.getVillageManager().findNearestVillage(world, player.blockPosition());
             if (v != null) {
@@ -100,7 +101,7 @@ class BuildingAttackQuest extends MobEventQuest {
             this.requesterName + ": \"" + this.targetName + " came out. Finally. They're shaking but they're okay.\"",
             this.requesterName + ": \"The door's still standing. That's what matters.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          this.scheduleAftermathLetter(
             player,
             new String[]{

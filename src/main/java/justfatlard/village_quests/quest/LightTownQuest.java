@@ -118,7 +118,7 @@ class LightTownQuest extends CreationQuest {
          "I walked the whole village tonight. Every path. I could see my feet the whole way."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      VillagerVoice.queue(player, this.villagerUuid, response);
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, response);
       this.scheduleAftermathLetter(
          player,
          new String[]{

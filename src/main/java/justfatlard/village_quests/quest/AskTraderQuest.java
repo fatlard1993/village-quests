@@ -9,6 +9,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.npc.wanderingtrader.WanderingTrader;
@@ -73,8 +74,7 @@ class AskTraderQuest extends TimeSensitiveQuest {
             this.requesterName + ": \"I keep thinking I see them. But no.\"",
             "The spot where the trader stood is just empty ground now."
          };
-         player.sendSystemMessage(
-            Component.literal(expiryMsgs[ThreadLocalRandom.current().nextInt(expiryMsgs.length)]).withStyle(ChatFormatting.YELLOW), true         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, expiryMsgs[ThreadLocalRandom.current().nextInt(expiryMsgs.length)]);
          ConversationMemory.recordTopic(player.getUUID(), this.villagerUuid, ConversationMemory.ConversationTopic.QUEST_GIVEN);
       } else {
          player.sendSystemMessage(Component.literal("Wandering Trader: \"" + this.traderResponse + "\"").withStyle(ChatFormatting.AQUA), true);
@@ -94,7 +94,7 @@ class AskTraderQuest extends TimeSensitiveQuest {
             completion = defaults[ThreadLocalRandom.current().nextInt(defaults.length)];
          }
 
-         player.sendSystemMessage(Component.literal(completion).withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, completion);
          ConversationMemory.recordTopic(player.getUUID(), this.villagerUuid, ConversationMemory.ConversationTopic.QUEST_GIVEN);
          ScheduledMessages.schedule(
             player, Component.literal(this.requesterName + " has been quiet since you told them.").withStyle(ChatFormatting.GRAY), 600

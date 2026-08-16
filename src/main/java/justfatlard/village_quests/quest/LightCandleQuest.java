@@ -71,7 +71,7 @@ class LightCandleQuest extends CreationQuest {
          "*stands quietly for a long time*", "...Thank you.", "*watches the flame* " + this.deceasedName + " would have liked you."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      VillagerVoice.queue(player, this.villagerUuid, response);
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, response);
       this.completed = true;
    }
 }

@@ -80,7 +80,7 @@ class ReplaceStolenBedsQuest extends CreationQuest {
          "I heard someone snoring last night and I almost cried. That sounds strange. But I did."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      VillagerVoice.queue(player, this.villagerUuid, response);
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, response);
       this.scheduleAftermathLetter(
          player,
          new String[]{

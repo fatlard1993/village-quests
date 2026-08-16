@@ -44,7 +44,9 @@ public class PlotPurchaseQuest {
             "Welcome home. *hands you a key that doesn't go to anything specific* It's symbolic.",
             "The elders agreed. You've been here long enough. It's yours."
          };
-         player.sendSystemMessage(Component.literal(welcomeMessages[rng.nextInt(welcomeMessages.length)]).withStyle(ChatFormatting.GREEN), true);
+         // No villager identity reaches this path, so there is nobody to hold the line
+         // for; the elders' decision is announced rather than spoken.
+         player.sendSystemMessage(Component.literal(welcomeMessages[rng.nextInt(welcomeMessages.length)]).withStyle(ChatFormatting.GREEN), false);
          ServerLevel world = player.level();
          PlotManager.Plot plot = plotManager.getVillagePlots(world, this.villageCenter)
             .stream()

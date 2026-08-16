@@ -125,7 +125,7 @@ class ShelterAnimalsQuest extends CreationQuest {
          "I don't know why I'm getting worked up about chickens. But look at them in there."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      VillagerVoice.queue(player, this.villagerUuid, response);
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, response);
       this.scheduleAftermathLetter(
          player,
          new String[]{

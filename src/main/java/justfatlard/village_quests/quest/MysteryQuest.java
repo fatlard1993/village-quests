@@ -15,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.item.ItemStack;
@@ -252,13 +253,13 @@ public class MysteryQuest extends VillagerQuest {
       if (this.secretProtected) {
          this.handleSecretProtectionOutcome(player);
       } else if (this.accusationMade && this.accusedCorrectly) {
-         player.sendSystemMessage(Component.literal(this.requesterName + ": \"" + resolution + "\"").withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, resolution);
          if (this.hasSecretCollision && this.secretConfiderUuid != null) {
             this.handleSecretBetrayalOutcome(player);
          }
       } else if (this.accusationMade && !this.accusedCorrectly) {
          String wrongName = this.accusationOptions[this.correctAccusationIndex == 0 ? 1 : 0];
-         player.sendSystemMessage(Component.literal(this.requesterName + ": \"" + resolution + "\"").withStyle(ChatFormatting.YELLOW), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, resolution);
          player.sendSystemMessage(
             Component.literal("*" + wrongName + " hasn't spoken to you since.*")
                .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
@@ -266,7 +267,7 @@ public class MysteryQuest extends VillagerQuest {
          );
          this.scheduleGuiltLetter(player, wrongName);
       } else {
-         player.sendSystemMessage(Component.literal(this.requesterName + ": \"" + resolution + "\"").withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, resolution);
       }
 
       this.completed = true;

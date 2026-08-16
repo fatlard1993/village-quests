@@ -8,6 +8,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -109,7 +110,7 @@ class ZombieVillagerQuest extends MobEventQuest {
             this.requesterName + ": \"" + this.deceasedName + "? *reaches out, then pulls back* Is it really...?\"",
             this.requesterName + ": \"Their eyes. Their eyes are clear. *starts crying* It's them.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.LIGHT_PURPLE), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          this.scheduleAftermathLetter(
             player,
             new String[]{
@@ -122,7 +123,7 @@ class ZombieVillagerQuest extends MobEventQuest {
             this.requesterName + ": \"It's done. *won't look at the spot* That wasn't them anymore. I know that.\"",
             this.requesterName + ": \"Thank you. I couldn't have — *long pause* I'm going to go sit down.\""
          };
-         player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GRAY), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          this.scheduleAftermathLetter(
             player,
             new String[]{

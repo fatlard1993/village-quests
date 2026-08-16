@@ -10,6 +10,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -167,7 +168,7 @@ class StolenAnimalQuest extends MobEventQuest {
                this.requesterName + ": \"" + this.animalName + "! *kneels down* Oh, you're okay. You're okay.\"",
                this.requesterName + ": \"They're shaking. But they're home. *voice breaks* Thank you.\""
             };
-            player.sendSystemMessage(Component.literal(msgs[ThreadLocalRandom.current().nextInt(msgs.length)]).withStyle(ChatFormatting.GREEN), true);
+            VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
             VillagerMemory.recordMemory(this.villagerUuid, VillagerMemory.MemoryType.ANIMAL_RESCUED);
             this.scheduleAftermathLetter(
                player,

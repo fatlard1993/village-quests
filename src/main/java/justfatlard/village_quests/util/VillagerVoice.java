@@ -49,10 +49,12 @@ public final class VillagerVoice {
 	 * @param line         what they say, without a name prefix; the dialogue screen
 	 *                     presents it as speech
 	 */
-	public static void queue(ServerPlayer player, UUID villagerUuid, String line) {
+	public static void queue(ServerPlayer player, UUID villagerUuid, String speakerName, String line) {
 		if (player == null || villagerUuid == null || line == null || line.isBlank()) {
 			return;
 		}
+
+		line = stripAttribution(speakerName, line);
 
 		Deque<String> queue = pending
 			.computeIfAbsent(player.getUUID(), k -> new ConcurrentHashMap<UUID, Deque<String>>())
@@ -64,6 +66,33 @@ public final class VillagerVoice {
 			}
 			queue.addLast(line);
 		}
+	}
+
+	/**
+	 * Drop a {@code Name: "..."} wrapper if the line carries one.
+	 *
+	 * <p>These lines were written for chat, where every one had to say who was
+	 * talking. In a conversation with that villager the attribution is already on
+	 * screen, and repeating it reads as a transcript rather than as speech.
+	 */
+	private static String stripAttribution(String speakerName, String line) {
+		String result = line.trim();
+
+		if (speakerName != null && !speakerName.isBlank()) {
+			String prefix = speakerName + ": ";
+			if (result.startsWith(prefix)) {
+				result = result.substring(prefix.length()).trim();
+			}
+		}
+
+		// Only when the whole line is quoted; a line that merely contains a quoted
+		// aside keeps its punctuation.
+		if (result.length() > 1 && result.startsWith("\"") && result.endsWith("\"")
+			&& result.indexOf('"', 1) == result.length() - 1) {
+			result = result.substring(1, result.length() - 1).trim();
+		}
+
+		return result;
 	}
 
 	/** Everything this villager has been holding, oldest first, cleared as it is read. */

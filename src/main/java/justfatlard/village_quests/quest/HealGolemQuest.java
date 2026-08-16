@@ -112,7 +112,7 @@ class HealGolemQuest extends CreationQuest {
             "The children ran up to it this morning. It let them. *voice catches* It let them."
          };
          String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-         VillagerVoice.queue(player, this.villagerUuid, response);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, response);
          String anticipation = this.getAnticipationLine();
          if (anticipation != null) {
             player.sendSystemMessage(

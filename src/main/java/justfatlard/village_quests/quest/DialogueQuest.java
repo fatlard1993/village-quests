@@ -9,6 +9,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
@@ -270,7 +271,7 @@ public class DialogueQuest extends VillagerQuest {
          completionMessage = this.requesterName + ": \"Right. That's handled, then.\"";
       }
 
-      player.sendSystemMessage(Component.literal(completionMessage).withStyle(ChatFormatting.GREEN), true);
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, completionMessage);
       if (this.dialogueType == DialogueQuest.DialogueType.DELIVER_MESSAGE || this.dialogueType == DialogueQuest.DialogueType.DELIVER_APOLOGY) {
          ServerLevel var10 = player.level();
          if (var10 instanceof ServerLevel) {

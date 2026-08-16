@@ -145,7 +145,7 @@ class DrainFloodingQuest extends CreationQuest {
             "Blaze it all, I thought the whole field was done for. But it's draining. It's actually draining."
          };
          String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-         VillagerVoice.queue(player, this.villagerUuid, response);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, response);
          this.scheduleAftermathLetter(
             player, new String[]{"The seedlings are still alive. Barely, but alive.", "Mud everywhere. But it's drying. That's something."}
          );
