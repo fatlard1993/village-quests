@@ -2,9 +2,7 @@
 
 A Minecraft Fabric mod. Villages are communities, not content hubs.
 
-**Mod ID:** `village-quests-justfatlard`
-
-Targets the Minecraft, Fabric Loader, and Java versions declared in this mod's `gradle.properties` and `fabric.mod.json`: check there for the exact currently-supported version.
+**Mod ID:** `village-quests-justfatlard`. Note the suffix: an integration guarding on the bare `village-quests` silently never fires.
 
 ## What This Mod Does
 
@@ -31,34 +29,9 @@ Villages become places where:
 - **Behavioral Reputation Events**: Breaking beds, destroying job blocks, opening village chests, hitting villagers, and killing iron golems all affect reputation. Building beds, placing job blocks, crafting golems, and spending time in the village improve it.
 - **Villager Names**: Every villager gets a persistent name.
 
-### Architecture
-
-The mod is organized around these systems:
-
-- **DialogueManager** (~1,276 lines): Dialogue flow, reputation-based response filtering, quest presentation, work request coordination, first-meeting persistence
-- **DialogueContent** (~2,963 lines): All dialogue registration including trade text, work inquiry text, weather greetings, crowd/privacy prefixes, first-meeting greetings, gossip (hardcoded in Java, no external data files)
-- **ReputationManager**: 8-band system with percentage-based scaling. High trust is fragile; redemption paths stay open.
-- **VillageManager**: Village discovery via POI bed clusters, center tracking, caching
-- **Quest system**: Abstract `VillagerQuest` with 9 concrete types. External mods can register generators via `QuestRegistry`.
-- **DialogueRegistry**: API for external mods to add custom dialogue response options and handlers
-- **PresenceTracker**: Per-player, per-village presence density and behavior tracking
-- **ContextualLoreManager**: Item-triggered, biome-aware, reputation-gated lore delivery
-- **VillageQuestsConfig**: Configuration system (16 tunable values) loaded from `config/village-quests.properties`
-- **VillageQuestsCommands**: Player commands (`/quest`)
-- **VillagerPersonality**: Per-villager personality traits
-- **FirstEncounterTracker**: First-time player guidance
-- **ScheduledMessages**: Delayed message delivery
-- **RandomKindnessHandler**: Rare villager gift events (children at 25+ rep, adults at 75+)
-- **ZombieDoorBreakMixin**: Zombie door break detection (7th mixin alongside VillagerEntity, VillagerMovement, VillagerDamage, BlockBreak, ContainerAccess, and FireUse)
-
 ### Mod Integration API
 
-External mods can extend Village Quests through two registries:
-
-- **`QuestRegistry`**: Register profession-specific or universal quest generators
-- **`DialogueRegistry`**: Register custom dialogue options and response handlers
-
-Both are in `justfatlard.village_quests.api`. See Javadoc on each class for usage.
+External mods extend Village Quests through two registries in `justfatlard.village_quests.api`: `QuestRegistry` for profession-specific or universal quest generators, and `DialogueRegistry` for custom dialogue options and response handlers. Usage is on the Javadoc of each.
 
 ### Optional: `village-mail` Companion Mod
 
@@ -95,36 +68,32 @@ All dialogue is hardcoded in Java inside `DialogueContent.java` and individual q
 
 | File | Responsibility |
 |------|---------------|
-| `VillageQuests.java` | Mod entry point, event registration, tick scheduling |
-| `DialogueManager.java` | Dialogue flow and response handling |
-| `DialogueContent.java` | All dialogue definitions |
-| `ReputationManager.java` | Reputation persistence and events |
-| `VillageManager.java` | Village discovery and tracking |
+| `VillageQuests.java` | Entry point, event registration, tick scheduling |
+| `DialogueManager.java` | Dialogue flow, reputation-based response filtering, quest presentation, work requests |
+| `DialogueContent.java` | Every dialogue line, hardcoded in Java; no external data files |
+| `ReputationManager.java` | The 8 bands, percentage scaling, persistence. High trust is fragile; redemption stays open |
+| `VillageManager.java` | Village discovery via POI bed clusters, center tracking, caching |
 | `ActiveQuestManager.java` | Quest lifecycle |
-| `VillagerQuest.java` | Quest base class and generation |
+| `VillagerQuest.java` | Quest base class and generation; 9 concrete types |
 | `MisnomerQuest.java` | Ethical test quests |
-| `VillageQuestsConfig.java` | Configuration (16 tunable values) |
-| `VillageQuestsCommands.java` | `/quest` commands |
+| `PresenceTracker.java` | Per-player, per-village presence density and behavior |
+| `ContextualLoreManager.java` | Item-triggered, biome-aware, reputation-gated lore |
+| `RandomKindnessHandler.java` | Rare villager gifts (children at 25+ rep, adults at 75+) |
 | `VillagerPersonality.java` | Per-villager personality traits |
 | `FirstEncounterTracker.java` | First-time player guidance |
 | `ScheduledMessages.java` | Delayed message delivery |
+| `VillageQuestsConfig.java` | The 16 tunable values in `config/village-quests.properties` |
+| `VillageQuestsCommands.java` | `/quest` |
 
 ## Installation
 
-Install alongside its declared dependencies (see `fabric.mod.json`). Optionally install `village-mail` for the full mail experience.
-
-### For Modpack Developers
-
-- **Mod ID:** `village-quests-justfatlard` (note the suffix: integrations that guard on the bare `village-quests` silently never fire)
-- **Hard dependencies:** Fabric API and Pandorical
-- **Optional dependency:** `village-mail` (soft dependency, reflection-based)
+Install server-side alongside its declared dependencies (see `fabric.mod.json`); connecting clients need only Pandorical. Version targets live in `gradle.properties` (Minecraft, loader, Fabric API) and `fabric.mod.json` (Java).
 
 ## Commands
 
 - **`/quest`**: Shows your current quest progress and description. No active quest? It tells you.
 - **`/quest abandon`**: Begin abandoning your active quest. The villager will remember.
 - **`/quest abandon confirm`**: Confirm the abandonment. There's no undo.
-
 
 ## Configuration
 
@@ -142,7 +111,7 @@ The built jar will be in `build/libs/`.
 
 ## License
 
-MIT License; see the LICENSE file for details.
+MIT, see [LICENSE](LICENSE).
 
 ## The Core Truth
 
