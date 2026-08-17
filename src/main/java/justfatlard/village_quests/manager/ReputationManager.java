@@ -13,6 +13,7 @@ import justfatlard.village_quests.VillageQuestsConfig;
 import justfatlard.village_quests.reputation.ReputationBand;
 import justfatlard.village_quests.reputation.ReputationEvent;
 import justfatlard.village_quests.util.MessagePacer;
+import justfatlard.village_quests.util.ReputationFeedback;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.nbt.CompoundTag;
@@ -55,6 +56,7 @@ public class ReputationManager {
          int current = data.getReputation(player.getUUID(), village.getId());
          data.setReputation(player.getUUID(), village.getId(), current + change);
          data.setDirty();
+         ReputationFeedback.show(player, change);
       }
    }
 
@@ -75,6 +77,7 @@ public class ReputationManager {
          int newRep = currentRep + change;
          data.setReputation(player.getUUID(), village.getId(), newRep);
          data.setDirty();
+         ReputationFeedback.show(player, change);
          ReputationBand newBand = ReputationBand.getBand(newRep);
          if (oldBand != newBand) {
             Component transitionMsg = ReputationBand.getTransitionMessage(currentRep, newRep);

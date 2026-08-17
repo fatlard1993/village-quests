@@ -44,6 +44,8 @@ import justfatlard.village_quests.reputation.InteractionLimiter;
 import justfatlard.village_quests.reputation.ReputationEvent;
 import justfatlard.village_quests.util.JobBlockHelper;
 import justfatlard.village_quests.util.MessagePacer;
+import justfatlard.village_quests.util.VillageChestMarker;
+import justfatlard.village_quests.util.VillageContainers;
 import justfatlard.village_quests.util.ReputationHelper;
 import justfatlard.village_quests.util.ScheduledMessages;
 import net.fabricmc.api.ModInitializer;
@@ -428,33 +430,27 @@ public class VillageQuests implements ModInitializer {
                      }
                   }
 
-                  BlockState blockState = world.getBlockState(hitResult.getBlockPos());
-                  Block blockAtHit = blockState.getBlock();
-                  if ((blockAtHit instanceof ChestBlock || blockAtHit instanceof BarrelBlock) && !player.isShiftKeyDown()) {
-                     BlockPos chestPos = hitResult.getBlockPos();
-                     if (village != null && chestPos.closerThan(village.getCenter(), 64.0)) {
-                        PlotManager.Plot plotAtChest = plotManager != null ? plotManager.getPlotAt((ServerLevel)world, chestPos) : null;
-                        boolean isOwnPlot = plotAtChest != null && plotAtChest.isOwnedBy(serverPlayer.getUUID());
-                        if (!isOwnPlot) {
-                           String cooldownKey = serverPlayer.getUUID()
-                              + ":"
-                              + chestPos.getX()
-                              + ":"
-                              + chestPos.getY()
-                              + ":"
-                              + chestPos.getZ();
-                           long currentTime = System.currentTimeMillis();
-                           Long lastOpen = chestOpenCooldowns.get(cooldownKey);
-                           if (lastOpen == null || currentTime - lastOpen >= VillageQuestsConfig.getChestPenaltyCooldownMs()) {
-                              chestOpenCooldowns.put(cooldownKey, currentTime);
-                              reputationManager.applyReputationEvent(serverPlayer, village, ReputationEvent.THEFT);
-                              RecentActionsMemory.recordAction(
-                                 serverPlayer, RecentActionsMemory.ActionType.THEFT, chestPos, village.getName() != null ? village.getName() : "the village"
-                              );
-                              chestOpenCooldowns.entrySet()
-                                 .removeIf(entry -> currentTime - entry.getValue() > VillageQuestsConfig.getChestPenaltyCooldownMs() * 10L);
-                           }
-                        }
+                  BlockPos chestPos = hitResult.getBlockPos();
+                  BlockState blockState = world.getBlockState(chestPos);
+                  if (!player.isShiftKeyDown()
+                     && VillageContainers.isVillageOwned((ServerLevel)world, serverPlayer, village, chestPos, blockState)) {
+                     String cooldownKey = serverPlayer.getUUID()
+                        + ":"
+                        + chestPos.getX()
+                        + ":"
+                        + chestPos.getY()
+                        + ":"
+                        + chestPos.getZ();
+                     long currentTime = System.currentTimeMillis();
+                     Long lastOpen = chestOpenCooldowns.get(cooldownKey);
+                     if (lastOpen == null || currentTime - lastOpen >= VillageQuestsConfig.getChestPenaltyCooldownMs()) {
+                        chestOpenCooldowns.put(cooldownKey, currentTime);
+                        reputationManager.applyReputationEvent(serverPlayer, village, ReputationEvent.THEFT);
+                        RecentActionsMemory.recordAction(
+                           serverPlayer, RecentActionsMemory.ActionType.THEFT, chestPos, village.getName() != null ? village.getName() : "the village"
+                        );
+                        chestOpenCooldowns.entrySet()
+                           .removeIf(entry -> currentTime - entry.getValue() > VillageQuestsConfig.getChestPenaltyCooldownMs() * 10L);
                      }
                   }
 
@@ -524,6 +520,11 @@ public class VillageQuests implements ModInitializer {
          }
 
          safeTick(() -> this.processOvernightStays(server), "overnight");
+         safeTick(() -> {
+            for (ServerLevel level : server.getAllLevels()) {
+               VillageChestMarker.tick(level);
+            }
+         }, "chest-marker");
          if (tick % 24000L == 0L) {
             safeTick(() -> this.processDailyEvents(server), "daily");
          }
