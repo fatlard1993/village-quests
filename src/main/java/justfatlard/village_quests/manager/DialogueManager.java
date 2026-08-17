@@ -1710,6 +1710,18 @@ public class DialogueManager {
                   continue;
                }
 
+               // A reply that leads nowhere, costs nothing and offers nothing is a
+               // goodbye, and the writing knows it: the pools are full of "*nods*",
+               // "I should go." and "*leaves quietly*". The generated cancel below is
+               // drawn from that same vocabulary, so keeping both put two ways to
+               // leave on almost every screen. The cancel wins because it is the one
+               // actually wired to ending the conversation.
+               if (!ownResponse.offersQuest()
+                  && ownResponse.getNextDialogueId() == null
+                  && ownResponse.getReputationChange() == 0) {
+                  continue;
+               }
+
                if (!ownResponse.offersQuest()) {
                   spentRichTalkNow = true;
                }
@@ -1855,6 +1867,9 @@ public class DialogueManager {
             || greetingId.contains("emotional")
             || greetingId.contains("grief")
             || greetingId.contains("death");
+         // Always present, and deliberately the only one. This is the option wired
+         // to endDialogue; an authored dead-end reply just sits there, so the exit
+         // has to be this one rather than a line that happens to read like goodbye.
          responseTexts.add(this.getCancelText(world, villager, reputation, emotionalContext));
          originalIndices.add(-1);
          actionIds.add("cancel");
