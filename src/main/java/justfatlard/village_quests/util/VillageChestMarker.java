@@ -65,7 +65,7 @@ public final class VillageChestMarker {
 					BlockPos pos = blockEntity.getBlockPos();
 					if (!pos.closerThan(origin, RADIUS)) continue;
 
-					if (VillageContainers.isVillageOwned(world, player, village, pos, blockEntity.getBlockState())) {
+					if (VillageContainers.isVillageOwned(world, player, village, pos)) {
 						world.sendParticles(player, MARK, false, true,
 							pos.getX() + 0.5, pos.getY() + 1.05, pos.getZ() + 0.5,
 							1, 0.0, 0.0, 0.0, 0.0);

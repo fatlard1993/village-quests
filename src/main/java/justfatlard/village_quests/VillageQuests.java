@@ -46,6 +46,7 @@ import justfatlard.village_quests.util.JobBlockHelper;
 import justfatlard.village_quests.util.MessagePacer;
 import justfatlard.village_quests.util.VillageChestMarker;
 import justfatlard.village_quests.util.VillageContainers;
+import justfatlard.village_quests.util.VillageLootChests;
 import justfatlard.village_quests.util.ReputationHelper;
 import justfatlard.village_quests.util.ScheduledMessages;
 import net.fabricmc.api.ModInitializer;
@@ -56,6 +57,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents.AfterRespawn;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.Load;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.ServerStarted;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.ServerStopping;
@@ -431,9 +433,8 @@ public class VillageQuests implements ModInitializer {
                   }
 
                   BlockPos chestPos = hitResult.getBlockPos();
-                  BlockState blockState = world.getBlockState(chestPos);
                   if (!player.isShiftKeyDown()
-                     && VillageContainers.isVillageOwned((ServerLevel)world, serverPlayer, village, chestPos, blockState)) {
+                     && VillageContainers.isVillageOwned((ServerLevel)world, serverPlayer, village, chestPos)) {
                      String cooldownKey = serverPlayer.getUUID()
                         + ":"
                         + chestPos.getX()
@@ -460,8 +461,16 @@ public class VillageQuests implements ModInitializer {
                }
             }
          );
+      // A generated chest names its loot table until the moment someone opens it,
+      // and a chunk always loads before that can happen, so this is the one
+      // reliable window in which a village chest can still be told apart from a
+      // chest a player set down inside a village.
+      ServerChunkEvents.CHUNK_LOAD.register((world, chunk, newlyGenerated) ->
+         safeTick(() -> VillageLootChests.scanChunk(world, chunk), "loot-chest-scan"));
+
       PlayerBlockBreakEvents.AFTER.register((After)(world, player, pos, state, blockEntity) -> {
          if (!world.isClientSide() && player instanceof ServerPlayer serverPlayer) {
+            VillageLootChests.forget((ServerLevel)world, pos);
             Block block = state.getBlock();
             Village village = getCachedVillage(serverPlayer);
             if (village != null && pos.closerThan(village.getCenter(), 64.0)) {
