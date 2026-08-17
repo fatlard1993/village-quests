@@ -76,10 +76,20 @@ public final class DialogueScreens {
     private static final String ICON_TRADE = "minecraft:emerald";
     private static final String ICON_WORK  = "minecraft:written_book";
 
+    /**
+     * Must agree with {@code DialogueManager.FilteredResponses.rank}: an option
+     * sorted as consequential and painted as small talk is worse than either
+     * choice made consistently. The two drifted once already — quest accepts and
+     * another mod's options were ranked at the top and left uncoloured, so they
+     * sat above the trade button looking like chatter.
+     */
     private static String accentFor(String actionId) {
         if (actionId == null) return null;
+        if (actionId.startsWith("custom:")) return ACCENT_SPECIAL;
+
         return switch (actionId) {
-            case "submit_quest_items", "deliver_misnomer_item", "teach_safely" -> ACCENT_FINISH;
+            case "submit_quest_items", "deliver_misnomer_item", "teach_safely",
+                 "dialogue_response_quest" -> ACCENT_FINISH;
             case "open_trade" -> ACCENT_TRADE;
             case "work_inquiry" -> ACCENT_WORK;
             case "mystery_inquiry", "mystery_accuse", "mystery_protect_secret",
