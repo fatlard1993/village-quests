@@ -555,6 +555,11 @@ public abstract class VillagerQuest {
             if (banner != null) {
                return banner;
             }
+
+            LampPostQuest lamps = LampPostQuest.tryCreate(villagerName, villager, world, flagVillage);
+            if (lamps != null) {
+               return lamps;
+            }
          }
 
          return (VillagerQuest)(var32 < devEnd
