@@ -219,6 +219,16 @@ public abstract class VillagerQuest {
          }
       }
 
+      // Land first, when it is on the table at all. It is rare, it is the thing
+      // reputation was being saved for, and it should not lose a coin flip to
+      // somebody wanting eight feathers.
+      if (playerId != null && villager.level() instanceof ServerLevel plotWorld) {
+         VillagerQuest deed = tryOfferPlot(villager, villagerName, reputation, plotWorld, playerId);
+         if (deed != null) {
+            return deed;
+         }
+      }
+
       Village uniquenessVillage = null;
       if (villager.level() instanceof ServerLevel sw) {
          uniquenessVillage = VillageQuests.getVillageManager().findNearestVillage(sw, villager.blockPosition());
@@ -779,6 +789,31 @@ public abstract class VillagerQuest {
       }
    }
 
+   /**
+    * A deed, if this player has earned one and there is land spare.
+    *
+    * <p>Only from a villager who has not already been asked, and only once: a
+    * second plot in the same village is refused later anyway, and offering it
+    * would be the village forgetting it already took you in.
+    */
+   private static VillagerQuest tryOfferPlot(Villager villager, String villagerName, int reputation,
+         ServerLevel world, UUID playerId) {
+      if (!PlotPurchaseQuest.canOfferPlot(reputation)) return null;
+
+      justfatlard.village_quests.manager.PlotManager plots = VillageQuests.getPlotManager();
+      if (plots == null) return null;
+
+      Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
+      if (village == null || plots.ownsPlotInVillage(world, playerId, village)) return null;
+
+      java.util.List<justfatlard.village_quests.manager.PlotManager.Plot> free =
+         plots.getAvailablePlots(world, village);
+      if (free.isEmpty()) return null;
+
+      return new PlotDeedQuest(villagerName, villager.getUUID(), free.get(0).getId(),
+         village.getCenter(), village.getName() != null ? village.getName() : "the village");
+   }
+
    private static VillagerQuest generateBasicQuest(
       Villager villager, String villagerName, VillagerProfession profession, Random random, int reputation, VillagerQuest.WorldContext ctx, String biome
    ) {
@@ -884,7 +919,6 @@ public abstract class VillagerQuest {
          case "farmer" -> new Object[][]{
             {Items.BONE_MEAL, 4, "The east field isn't growing. Bone meal might wake it up. Skeletons drop bones — you can grind those down."},
             {Items.BUCKET, 1, "My bucket rusted through. Can't water anything without it."},
-            {Items.WHEAT_SEEDS, 8, "I'm replanting the south row. Need fresh seeds."},
             {Items.HONEY_BOTTLE, 1, "My wife's been coughing all week. Honey helps. There's bee nests in the flower forests — use a bottle under one."},
             {Items.APPLE, 3, "The kids want apple pie. I don't have a tree."},
             {Items.COOKIE, 4, "My daughter's birthday is tomorrow. I promised her cookies."},
@@ -909,8 +943,7 @@ public abstract class VillagerQuest {
             {Items.COAL, 4, "Smoker's running low. Coal keeps the temperature even."},
             {Items.RABBIT, 2, "Someone ordered rabbit stew. I'm a butcher, not a hunter."},
             {Items.MUSHROOM_STEW, 1, "The wife's sick. Could you bring mushroom stew? I'm no cook."},
-            {Items.COOKED_BEEF, 2, "I burned the last batch. Don't tell anyone. Just bring me two cooked pieces."},
-            {Items.FLOWER_POT, 1, "My wife says the shop is depressing. A flower pot might shut her up. I mean cheer her up."}
+            {Items.COOKED_BEEF, 2, "I burned the last batch. Don't tell anyone. Just bring me two cooked pieces."}
          };
          case "librarian" -> new Object[][]{
             {Items.INK_SAC, 3, "I'm almost out of ink. Can't write without it."},
@@ -953,7 +986,6 @@ public abstract class VillagerQuest {
          };
          case "toolsmith" -> new Object[][]{
             {Items.IRON_INGOT, 2, "Pickaxe head cracked. Two ingots and I can reforge it."},
-            {Items.STICK, 8, "Handles. Everyone breaks handles. I go through eight a week."},
             {Items.FLINT, 2, "Flint edges. Old technique but it works for lighter tools."},
             {Items.DIAMOND, 1, "I've got a commission. One diamond. I'll make it count. Deep down. Below the deepslate. You know the kind of deep I mean."}
          };
@@ -991,12 +1023,10 @@ public abstract class VillagerQuest {
          case "mason" -> new Object[][]{
             {Items.CLAY_BALL, 6, "Clay for mortar. Six balls and I can seal the cracks."},
             {Items.BRICK, 4, "Bricks for the chimney repair. Four should do it."},
-            {Items.STONE, 8, "Stone. Always need stone. Walls don't fix themselves."},
             {Items.QUARTZ, 2, "Quartz for the elder's hearth. Decorative. But they asked nice. You find it past the portal, in the pale stone."},
             {Items.ITEM_FRAME, 1, "I build walls all day. Nice to put something on one for once."}
          };
          case "nitwit" -> new Object[][]{
-            {Items.COOKIE, 2, "I like cookies. That's the whole reason. Is that okay?"},
             {Items.DANDELION, 1, "I want a flower. Nobody ever brings me flowers."},
             {Items.CAKE, 1, "I heard cake exists. I've never had cake. Can you get me cake?"},
             {
@@ -1008,11 +1038,8 @@ public abstract class VillagerQuest {
          };
          default -> new Object[][]{
             {Items.BREAD, 2, "Haven't eaten since yesterday. Bread would help."},
-            {Items.TORCH, 4, "My end of the village is dark. Four torches and I can see my door."},
             {Items.COAL, 3, "Furnace is out. Coal to get it going again."},
-            {Items.APPLE, 2, "Could use something fresh. Apples, if you find any."},
-            {Items.STICK, 8, "I need sticks for a repair. Nothing fancy, just a handful."},
-            {Items.FLOWER_POT, 1, "I want to put a flower on my windowsill. Need a pot first.", Blocks.FLOWER_POT}
+            {Items.APPLE, 2, "Could use something fresh. Apples, if you find any."}
          };
       };
    }

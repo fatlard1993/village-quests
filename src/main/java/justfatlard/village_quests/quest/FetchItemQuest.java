@@ -70,7 +70,17 @@ public class FetchItemQuest extends VillagerQuest {
    @Override
    public String getObjective() {
       String itemName = this.requiredItem.getName(this.requiredItem.getDefaultInstance()).getString().toLowerCase();
-      return this.requesterName + " needs " + itemName;
+
+      // How many, because "needs iron" is not an instruction, and where, because
+      // without somewhere to go every one of these plays the same.
+      StringBuilder out = new StringBuilder()
+         .append(this.requesterName).append(" needs ")
+         .append(this.requiredAmount).append(" ").append(itemName);
+
+      String where = justfatlard.village_quests.util.WhereToLook.forItem(this.requiredItem);
+      if (where != null) out.append(" - ").append(where);
+
+      return out.toString();
    }
 
    @Override
