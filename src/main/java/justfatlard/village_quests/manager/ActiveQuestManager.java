@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 import justfatlard.village_quests.Village;
 import justfatlard.village_quests.VillageQuests;
@@ -46,7 +47,26 @@ import net.minecraft.world.level.saveddata.SavedDataType;
 import org.slf4j.LoggerFactory;
 
 public class ActiveQuestManager {
-   private static final Map<UUID, VillagerQuest> activeQuests = new ConcurrentHashMap<>();
+   private static final Map<UUID, List<VillagerQuest>> activeQuests = new ConcurrentHashMap<>();
+
+   /**
+    * How many promises a person can be carrying.
+    *
+    * <p>One was too few for the reason redirects exist: a villager pointing you
+    * at their neighbour is the town introducing itself, and it should not cost
+    * you the only thing you were allowed to be doing. Three is still few enough
+    * that you have to choose, which was the point of the limit.
+    */
+   private static final int MAX_ACTIVE = 3;
+
+   /**
+    * How long an untouched quest waits before the villager stops expecting you.
+    *
+    * <p>Real time, not play time: a promise made an hour ago has aged whether or
+    * not you were logged in to watch it age. Without this, three slots would
+    * simply be three quests you never finish.
+    */
+   private static final long DECAY_MS = 30L * 60L * 1000L;
    private static final Map<UUID, Boolean> alreadyHadItems = new ConcurrentHashMap<>();
    private static final String STORAGE_KEY = "village_quests_active";
    private static final SavedDataType<ActiveQuestManager.InterruptedQuestState> INTERRUPTED_STATE_TYPE = new SavedDataType<>(
@@ -57,13 +77,102 @@ public class ActiveQuestManager {
       return alreadyHadItems.remove(playerId) != null;
    }
 
-   public static boolean hasActiveQuest(ServerPlayer player) {
-      return activeQuests.containsKey(player.getUUID());
+   /** Every quest this player is carrying, oldest first. Never null. */
+   public static List<VillagerQuest> getActiveQuests(ServerPlayer player) {
+      return activeQuests.getOrDefault(player.getUUID(), List.of());
    }
 
-   public static void abandonQuest(ServerPlayer player, Village villageCenter) {
-      VillagerQuest quest = activeQuests.remove(player.getUUID());
+   /** The quest this particular villager is waiting on, if any. */
+   public static VillagerQuest getQuestFrom(ServerPlayer player, UUID villagerUuid) {
+      if (villagerUuid == null) return null;
+
+      for (VillagerQuest quest : getActiveQuests(player)) {
+         if (villagerUuid.equals(quest.getVillagerUuid())) return quest;
+      }
+      return null;
+   }
+
+   /**
+    * The first quest of a given kind this player is carrying.
+    *
+    * <p>For the handlers that ask "am I on a mystery?" rather than "what does
+    * this villager want?". With one slot the two questions had the same answer;
+    * with three they do not.
+    */
+   public static <T extends VillagerQuest> T getQuestOfType(ServerPlayer player, Class<T> type) {
+      for (VillagerQuest quest : getActiveQuests(player)) {
+         if (type.isInstance(quest)) return type.cast(quest);
+      }
+      return null;
+   }
+
+   /**
+    * The quest this villager has anything to do with: the one they asked for, or
+    * the one someone else asked you to bring to them.
+    *
+    * <p>A delivery has two villagers in it and the giver is not the one standing
+    * in front of you when it matters, so matching on the giver alone would make
+    * the target forget they were expecting anything.
+    */
+   public static VillagerQuest getQuestInvolving(ServerPlayer player, UUID villagerUuid) {
+      if (villagerUuid == null) return null;
+
+      VillagerQuest own = getQuestFrom(player, villagerUuid);
+      if (own != null) return own;
+
+      for (VillagerQuest quest : getActiveQuests(player)) {
+         if (quest instanceof justfatlard.village_quests.quest.DialogueQuest dq
+            && villagerUuid.equals(dq.getTargetVillagerUuid())) {
+            return quest;
+         }
+      }
+      return null;
+   }
+
+   public static boolean hasActiveQuest(ServerPlayer player) {
+      return !getActiveQuests(player).isEmpty();
+   }
+
+   public static boolean isFull(ServerPlayer player) {
+      return getActiveQuests(player).size() >= MAX_ACTIVE;
+   }
+
+   private static List<VillagerQuest> questsOf(UUID playerId) {
+      return activeQuests.computeIfAbsent(playerId, key -> new CopyOnWriteArrayList<>());
+   }
+
+   private static void drop(ServerPlayer player, VillagerQuest quest) {
+      List<VillagerQuest> mine = activeQuests.get(player.getUUID());
+      if (mine != null) mine.remove(quest);
+   }
+
+   /**
+    * Retire quests nobody has touched in a while, so a full slate empties itself
+    * rather than needing to be tidied by hand.
+    *
+    * <p>No reputation is lost. Letting a promise go cold is not the same as
+    * refusing it to someone's face, and the mod already charges for that.
+    */
+   public static void decayStale(ServerPlayer player) {
+      List<VillagerQuest> mine = activeQuests.get(player.getUUID());
+      if (mine == null || mine.isEmpty()) return;
+
+      long now = System.currentTimeMillis();
+      for (VillagerQuest quest : mine) {
+         if (now - quest.getAcceptedAtMs() < DECAY_MS) continue;
+         if (quest.checkCompletion(player)) continue;
+
+         mine.remove(quest);
+         player.sendSystemMessage(
+            Component.literal(quest.getRequesterName() + " stopped expecting you.")
+               .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
+            false);
+      }
+   }
+
+   public static void abandonQuest(ServerPlayer player, VillagerQuest quest, Village villageCenter) {
       if (quest != null) {
+         drop(player, quest);
          if (quest instanceof MobEventQuest mobQuest) {
             ServerLevel var5 = player.level();
             if (var5 instanceof ServerLevel) {
@@ -78,26 +187,26 @@ public class ActiveQuestManager {
    }
 
    public static boolean hasActiveQuestFrom(ServerPlayer player, UUID villagerUuid) {
-      VillagerQuest quest = activeQuests.get(player.getUUID());
-      return quest != null && villagerUuid.equals(quest.getVillagerUuid());
-   }
-
-   public static VillagerQuest getActiveQuest(ServerPlayer player) {
-      return activeQuests.get(player.getUUID());
+      return getQuestFrom(player, villagerUuid) != null;
    }
 
    public static boolean acceptQuest(ServerPlayer player, VillagerQuest newQuest, Village villageCenter) {
-      VillagerQuest currentQuest = activeQuests.get(player.getUUID());
-      if (currentQuest != null && !currentQuest.isCompleted()) {
+      decayStale(player);
+
+      // Being full is not a broken promise. Nothing was refused and nobody was
+      // walked away from; there is simply no room, and saying so is kinder and
+      // truer than quietly dropping whatever was oldest.
+      if (isFull(player)) {
          player.sendSystemMessage(
-            Component.literal(currentQuest.getRequesterName() + " watches you go.")
+            Component.literal("You have enough on your plate already.")
                .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
             true
          );
-         VillageQuests.getReputationManager().applyReputationEvent(player, villageCenter, ReputationEvent.BROKEN_PROMISE);
+         return false;
       }
 
-      activeQuests.put(player.getUUID(), newQuest);
+      newQuest.markAccepted();
+      questsOf(player.getUUID()).add(newQuest);
       if (newQuest instanceof justfatlard.village_quests.quest.TimeSensitiveQuest ts) {
          ts.initAtAcceptance(player.level().getServer().getTickCount());
       }
@@ -112,8 +221,7 @@ public class ActiveQuestManager {
       return true;
    }
 
-   public static void completeQuest(ServerPlayer player, Village villageCenter, int reputationReward) {
-      VillagerQuest quest = activeQuests.get(player.getUUID());
+   public static void completeQuest(ServerPlayer player, VillagerQuest quest, Village villageCenter, int reputationReward) {
       if (quest != null) {
          if (quest.getQuestId() != null) {
             BehaviorReputationTracker.processQuestCompletion(player, quest.getQuestId(), true);
@@ -191,8 +299,7 @@ public class ActiveQuestManager {
       }
    }
 
-   public static void abandonQuest(ServerPlayer player, BlockPos villageCenter) {
-      VillagerQuest quest = activeQuests.get(player.getUUID());
+   public static void abandonQuest(ServerPlayer player, VillagerQuest quest, BlockPos villageCenter) {
       if (quest != null) {
          if (quest.getQuestId() != null) {
             BehaviorReputationTracker.processQuestCompletion(player, quest.getQuestId(), false);
@@ -224,8 +331,8 @@ public class ActiveQuestManager {
 
    public static void onVillagerDeath(UUID villagerUuid, String villagerName, MinecraftServer server) {
       if (villagerUuid != null && server != null) {
-         for (Entry<UUID, VillagerQuest> entry : activeQuests.entrySet()) {
-            VillagerQuest quest = entry.getValue();
+         for (Entry<UUID, List<VillagerQuest>> entry : activeQuests.entrySet()) {
+            for (VillagerQuest quest : new ArrayList<>(entry.getValue())) {
             if (!quest.isCompleted()) {
                UUID playerId = entry.getKey();
                ServerPlayer player = server.getPlayerList().getPlayer(playerId);
@@ -290,18 +397,21 @@ public class ActiveQuestManager {
          }
       }
    }
+            }
 
    public static void migrateVillagerUuid(UUID oldUuid, UUID newUuid) {
-      for (VillagerQuest quest : activeQuests.values()) {
-         if (oldUuid.equals(quest.getVillagerUuid())) {
-            quest.setVillagerUuid(newUuid);
+      for (List<VillagerQuest> mine : activeQuests.values()) {
+         for (VillagerQuest quest : mine) {
+            if (oldUuid.equals(quest.getVillagerUuid())) {
+               quest.setVillagerUuid(newUuid);
+            }
          }
       }
    }
 
    public static Component getQuestReminder(ServerPlayer player) {
-      VillagerQuest quest = activeQuests.get(player.getUUID());
-      if (quest == null) {
+      List<VillagerQuest> mine = getActiveQuests(player);
+      if (mine.isEmpty()) {
          return Component.literal("Nothing pressing.")
             .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC});
       }
@@ -309,16 +419,21 @@ public class ActiveQuestManager {
       // The description is how the villager put it; the objective is what you are
       // supposed to do about it, and it is the half that changes as you make
       // progress. A reminder carrying only the first is a reminder of the mood.
-      Component said = Component.literal(quest.getDescription())
-         .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC});
-      String objective = quest.getObjective();
-      if (objective == null || objective.isBlank()) {
-         return said;
-      }
+      net.minecraft.network.chat.MutableComponent out = Component.empty();
+      for (int i = 0; i < mine.size(); i++) {
+         VillagerQuest quest = mine.get(i);
+         if (i > 0) out.append(Component.literal("\n"));
 
-      return said.copy()
-         .append(Component.literal("\n"))
-         .append(Component.literal(objective).withStyle(ChatFormatting.YELLOW));
+         out.append(Component.literal(quest.getDescription())
+            .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}));
+
+         String objective = quest.getObjective();
+         if (objective != null && !objective.isBlank()) {
+            out.append(Component.literal("\n"))
+               .append(Component.literal(objective).withStyle(ChatFormatting.YELLOW));
+         }
+      }
+      return out;
    }
 
    /**
@@ -346,11 +461,17 @@ public class ActiveQuestManager {
     * left roaming, and a quest whose mobs are gone cannot be finished anyway.
     */
    public static void onPlayerDisconnect(UUID playerId, MinecraftServer server) {
-      VillagerQuest quest = activeQuests.get(playerId);
-      if (quest == null || quest.isCompleted()) {
+      List<VillagerQuest> mine = activeQuests.get(playerId);
+      if (mine == null || mine.isEmpty()) {
          activeQuests.remove(playerId);
          return;
       }
+      mine.removeIf(VillagerQuest::isCompleted);
+      if (mine.isEmpty()) {
+         activeQuests.remove(playerId);
+         return;
+      }
+      VillagerQuest quest = mine.get(0);
 
       if (quest instanceof MobEventQuest mobQuest) {
          activeQuests.remove(playerId);
@@ -371,9 +492,11 @@ public class ActiveQuestManager {
          return;
       }
 
-      VillagerQuest quest = activeQuests.remove(playerId);
-      if (quest != null && !quest.isCompleted()) {
-         recordLapsed(server, playerId, quest);
+      List<VillagerQuest> lapsing = activeQuests.remove(playerId);
+      if (lapsing != null) {
+         for (VillagerQuest quest : lapsing) {
+            if (!quest.isCompleted()) recordLapsed(server, playerId, quest);
+         }
       }
    }
 
@@ -436,14 +559,15 @@ public class ActiveQuestManager {
          ActiveQuestManager.InterruptedQuestState state = (ActiveQuestManager.InterruptedQuestState)world.getDataStorage().computeIfAbsent(INTERRUPTED_STATE_TYPE);
          state.interrupted.clear();
 
-         for (Entry<UUID, VillagerQuest> entry : activeQuests.entrySet()) {
-            VillagerQuest quest = entry.getValue();
+         for (Entry<UUID, List<VillagerQuest>> entry : activeQuests.entrySet()) {
+            for (VillagerQuest quest : entry.getValue()) {
             if (!quest.isCompleted()) {
                if (quest instanceof MobEventQuest mobQuest) {
                   mobQuest.cleanupMobs(world);
                }
 
                state.interrupted.put(entry.getKey(), new ActiveQuestManager.InterruptedQuestInfo(quest.getRequesterName(), quest.getType().getDisplayName()));
+            }
             }
          }
 

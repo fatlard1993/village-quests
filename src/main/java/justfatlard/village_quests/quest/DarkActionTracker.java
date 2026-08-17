@@ -22,14 +22,14 @@ public class DarkActionTracker {
    private static final Map<UUID, Long> RECENT_FIRE_USE = new ConcurrentHashMap<>();
 
    public static void recordVillagerAttack(ServerPlayer player, Villager villager) {
-      if (ActiveQuestManager.getActiveQuest(player) instanceof MisnomerQuest misnomerQuest) {
+      if (ActiveQuestManager.getQuestOfType(player, MisnomerQuest.class) instanceof MisnomerQuest misnomerQuest) {
          RECENT_VILLAGER_ATTACKS.put(player.getUUID(), System.currentTimeMillis());
       }
    }
 
    public static void recordWorkstationBreak(ServerPlayer player, BlockPos pos, Block block) {
       if (isWorkstationBlock(block) && isNearVillage(player.level(), pos)) {
-         VillagerQuest quest = ActiveQuestManager.getActiveQuest(player);
+         VillagerQuest quest = ActiveQuestManager.getQuestOfType(player, MisnomerQuest.class);
          if (quest instanceof MisnomerQuest) {
             RECENT_WORKSTATION_BREAKS.put(player.getUUID(), System.currentTimeMillis());
          }
@@ -38,7 +38,7 @@ public class DarkActionTracker {
 
    public static void recordChestAccess(ServerPlayer player, BlockPos chestPos) {
       if (isNearVillage(player.level(), chestPos)) {
-         VillagerQuest quest = ActiveQuestManager.getActiveQuest(player);
+         VillagerQuest quest = ActiveQuestManager.getQuestOfType(player, MisnomerQuest.class);
          if (quest instanceof MisnomerQuest) {
             RECENT_CHEST_ACCESS.put(player.getUUID(), System.currentTimeMillis());
          }
@@ -47,7 +47,7 @@ public class DarkActionTracker {
 
    public static void recordFireUse(ServerPlayer player, BlockPos pos) {
       if (isNearVillage(player.level(), pos)) {
-         VillagerQuest quest = ActiveQuestManager.getActiveQuest(player);
+         VillagerQuest quest = ActiveQuestManager.getQuestOfType(player, MisnomerQuest.class);
          if (quest instanceof MisnomerQuest) {
             RECENT_FIRE_USE.put(player.getUUID(), System.currentTimeMillis());
          }

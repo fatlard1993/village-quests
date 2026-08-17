@@ -666,7 +666,7 @@ public class DialogueManager {
 
                   if (!firstMeeting
                      && !isChild
-                     && ActiveQuestManager.getActiveQuest(player) instanceof RedirectQuest redirectQuest
+                     && ActiveQuestManager.getQuestOfType(player, RedirectQuest.class) instanceof RedirectQuest redirectQuest
                      && redirectQuest.getTargetUuid().equals(villager.getUUID())) {
                      String referrerName = redirectQuest.getRequesterName();
                      String[] referralAcknowledgments = new String[]{
@@ -1036,7 +1036,7 @@ public class DialogueManager {
    }
 
    private boolean progressActiveQuest(ServerPlayer player, Villager villager) {
-      VillagerQuest activeQuest = ActiveQuestManager.getActiveQuest(player);
+      VillagerQuest activeQuest = ActiveQuestManager.getQuestInvolving(player, villager.getUUID());
       if (activeQuest instanceof MysteryQuest mysteryQuest) {
          if (!mysteryQuest.getVillagerUuid().equals(villager.getUUID())) {
             if (mysteryQuest.getCluesInvestigated() < 3) {
@@ -1124,7 +1124,7 @@ public class DialogueManager {
    }
 
    private boolean handleActiveQuestCompletion(ServerPlayer player, Villager villager, Village village) {
-      VillagerQuest activeQuest = ActiveQuestManager.getActiveQuest(player);
+      VillagerQuest activeQuest = ActiveQuestManager.getQuestFrom(player, villager.getUUID());
       if (activeQuest != null && activeQuest.getVillagerUuid() != null && activeQuest.getVillagerUuid().equals(villager.getUUID())) {
          String villagerName = VillageQuests.getNameManager().getName(villager);
          ThreadLocalRandom rng = ThreadLocalRandom.current();
@@ -1585,7 +1585,7 @@ public class DialogueManager {
          return new DialogueManager.FilteredResponses(responseTexts, originalIndices, customOptionIds, actionIds).ordered();
       } else {
          boolean hasActiveQuest = ActiveQuestManager.hasActiveQuest(player);
-         VillagerQuest playerQuest = ActiveQuestManager.getActiveQuest(player);
+         VillagerQuest playerQuest = ActiveQuestManager.getQuestOfType(player, RedirectQuest.class);
          boolean hasRedirectToThisVillager = playerQuest instanceof RedirectQuest rq && rq.getTargetUuid().equals(villager.getUUID());
          boolean canTradeHere = hasProfession && band.canTrade();
          boolean canAskForWork = !isFirstEncounter
@@ -1772,7 +1772,7 @@ public class DialogueManager {
             actionIds.add("work_inquiry");
          }
 
-         VillagerQuest activeQuest = ActiveQuestManager.getActiveQuest(player);
+         VillagerQuest activeQuest = ActiveQuestManager.getQuestOfType(player, MysteryQuest.class);
          if (!isFirstEncounter
             && activeQuest instanceof MysteryQuest mysteryQ
             && !mysteryQ.getVillagerUuid().equals(villager.getUUID())
@@ -1956,9 +1956,9 @@ public class DialogueManager {
          if ("work_inquiry".equals(actionId)) {
             InteractionLimiter.recordUsed(player.getUUID(), villager.getUUID(), "work");
             Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
-            if (ActiveQuestManager.getActiveQuest(player) instanceof RedirectQuest rq && rq.getTargetUuid().equals(villager.getUUID())) {
+            if (ActiveQuestManager.getQuestOfType(player, RedirectQuest.class) instanceof RedirectQuest rq && rq.getTargetUuid().equals(villager.getUUID())) {
                rq.markAskedTarget();
-               ActiveQuestManager.completeQuest(player, village, rq.getReputationShift());
+               ActiveQuestManager.completeQuest(player, rq, village, rq.getReputationShift());
             }
 
             this.handleWorkInquiryResponse(player, villager, world, village);
@@ -1968,7 +1968,7 @@ public class DialogueManager {
          }
 
          if (DELIVER_DIALOGUE_ITEM.equals(actionId)) {
-            VillagerQuest active = ActiveQuestManager.getActiveQuest(player);
+            VillagerQuest active = ActiveQuestManager.getQuestInvolving(player, villager.getUUID());
             if (active instanceof DialogueQuest dq
                && dq.getTargetVillagerUuid() != null
                && dq.getTargetVillagerUuid().equals(villager.getUUID())
@@ -2000,7 +2000,7 @@ public class DialogueManager {
          }
 
          if ("submit_quest_items".equals(actionId)) {
-            VillagerQuest activeQuest = ActiveQuestManager.getActiveQuest(player);
+            VillagerQuest activeQuest = ActiveQuestManager.getQuestFrom(player, villager.getUUID());
             if (activeQuest != null && activeQuest.checkCompletion(player)) {
                Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
                Item submissionItem = activeQuest.getSubmissionItem();
@@ -2010,7 +2010,7 @@ public class DialogueManager {
                         || submissionItem.components().has(net.minecraft.core.component.DataComponents.VILLAGER_FOOD)
                         || submissionItem == Items.WHEAT
                   );
-               ActiveQuestManager.completeQuest(player, village, activeQuest.getReputationShift());
+               ActiveQuestManager.completeQuest(player, activeQuest, village, activeQuest.getReputationShift());
                this.customDialogueOptions.remove(player.getUUID());
                this.responseIndexMappings.remove(player.getUUID());
                // The villager reacts to the handover instead of the screen just
@@ -2076,11 +2076,11 @@ public class DialogueManager {
          }
 
          if ("teach_safely".equals(actionId)) {
-            if (ActiveQuestManager.getActiveQuest(player) instanceof MisnomerQuest misnomerSafe && misnomerSafe.canTeachSafely(player)) {
+            if (ActiveQuestManager.getQuestOfType(player, MisnomerQuest.class) instanceof MisnomerQuest misnomerSafe && misnomerSafe.canTeachSafely(player)) {
                misnomerSafe.teachSafely(player);
                Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
                if (misnomerSafe.checkCompletion(player)) {
-                  ActiveQuestManager.completeQuest(player, village, misnomerSafe.getReputationShift());
+                  ActiveQuestManager.completeQuest(player, misnomerSafe, village, misnomerSafe.getReputationShift());
                }
             }
 
@@ -2090,11 +2090,11 @@ public class DialogueManager {
          }
 
          if ("deliver_misnomer_item".equals(actionId)) {
-            if (ActiveQuestManager.getActiveQuest(player) instanceof MisnomerQuest misnomer && misnomer.isItemDeliveryMisnomer()) {
+            if (ActiveQuestManager.getQuestOfType(player, MisnomerQuest.class) instanceof MisnomerQuest misnomer && misnomer.isItemDeliveryMisnomer()) {
                misnomer.deliverItem();
                Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
                if (misnomer.checkCompletion(player)) {
-                  ActiveQuestManager.completeQuest(player, village, misnomer.getReputationShift());
+                  ActiveQuestManager.completeQuest(player, misnomer, village, misnomer.getReputationShift());
                }
             }
 
@@ -2104,7 +2104,7 @@ public class DialogueManager {
          }
 
          if ("mystery_accuse".equals(actionId)) {
-            if (ActiveQuestManager.getActiveQuest(player) instanceof MysteryQuest mysteryAccQ) {
+            if (ActiveQuestManager.getQuestOfType(player, MysteryQuest.class) instanceof MysteryQuest mysteryAccQ) {
                // Map the screen button index back to the accusation-option index
                // through the stored mapping rather than trusting screen order
                List<Integer> accuseMapping = this.responseIndexMappings.get(player.getUUID());
@@ -2114,7 +2114,7 @@ public class DialogueManager {
                mysteryAccQ.makeAccusation(accusedOption);
                Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
                if (village != null) {
-                  ActiveQuestManager.completeQuest(player, village, mysteryAccQ.getReputationShift());
+                  ActiveQuestManager.completeQuest(player, mysteryAccQ, village, mysteryAccQ.getReputationShift());
                }
             }
 
@@ -2124,11 +2124,11 @@ public class DialogueManager {
          }
 
          if ("mystery_protect_secret".equals(actionId)) {
-            if (ActiveQuestManager.getActiveQuest(player) instanceof MysteryQuest mysteryProtQ) {
+            if (ActiveQuestManager.getQuestOfType(player, MysteryQuest.class) instanceof MysteryQuest mysteryProtQ) {
                mysteryProtQ.protectSecret();
                Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
                if (village != null) {
-                  ActiveQuestManager.completeQuest(player, village, 0);
+                  ActiveQuestManager.completeQuest(player, mysteryProtQ, village, 0);
                }
             }
 
@@ -2138,7 +2138,7 @@ public class DialogueManager {
          }
 
          if ("mystery_inquiry".equals(actionId)) {
-            if (ActiveQuestManager.getActiveQuest(player) instanceof MysteryQuest mq && mq.getCluesInvestigated() < 3) {
+            if (ActiveQuestManager.getQuestOfType(player, MysteryQuest.class) instanceof MysteryQuest mq && mq.getCluesInvestigated() < 3) {
                String witnessName = VillageQuests.getNameManager().getName(villager);
                int clueNumber = mq.getCluesInvestigated() + 1;
                String clueLine = MysteryQuest.getClueDialogue(mq.getMysteryType(), clueNumber, mq.getTargetDescription(), mq.getCulpritName(), witnessName);
@@ -2327,12 +2327,12 @@ public class DialogueManager {
    }
 
    private void doAbandonQuest(ServerPlayer player, Villager villager, ServerLevel world, Village village) {
-      VillagerQuest aq = ActiveQuestManager.getActiveQuest(player);
+      VillagerQuest aq = ActiveQuestManager.getQuestFrom(player, villager.getUUID());
       if (aq != null && aq.getVillagerUuid().equals(villager.getUUID())) {
          String vName = VillageQuests.getNameManager().getName(villager);
          if (aq instanceof MisnomerQuest misnomer && !misnomer.isCompleted()) {
             misnomer.refuse(player, "changed mind");
-            ActiveQuestManager.abandonQuest(player, (Village)null);
+            ActiveQuestManager.abandonQuest(player, aq, (Village)null);
             if (village != null) {
                QuestImpactTracker.recordMisnomerRefusal(village.getId());
             }
@@ -2346,7 +2346,7 @@ public class DialogueManager {
                Component.literal(misnomerAbandonMsgs[abandonRng.nextInt(misnomerAbandonMsgs.length)]).withStyle(ChatFormatting.GREEN), true
             );
          } else {
-            ActiveQuestManager.abandonQuest(player, village);
+            ActiveQuestManager.abandonQuest(player, aq, village);
          }
       }
    }

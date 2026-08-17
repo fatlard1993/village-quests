@@ -145,6 +145,17 @@ public abstract class VillagerQuest {
       return null;
    }
 
+   /** When this promise was made, in real time, for the slate to age it out. */
+   private long acceptedAtMs = System.currentTimeMillis();
+
+   public void markAccepted() {
+      this.acceptedAtMs = System.currentTimeMillis();
+   }
+
+   public long getAcceptedAtMs() {
+      return this.acceptedAtMs;
+   }
+
    public Item getSubmissionItem() {
       return null;
    }
@@ -771,7 +782,12 @@ public abstract class VillagerQuest {
    private static VillagerQuest generateBasicQuest(
       Villager villager, String villagerName, VillagerProfession profession, Random random, int reputation, VillagerQuest.WorldContext ctx, String biome
    ) {
-      if (random.nextDouble() < 0.3 && villager.level() instanceof ServerLevel redirectWorld) {
+      // A redirect is the town introducing itself, so it belongs to the part of the
+      // game where you do not know anyone yet. A stranger gets pointed around
+      // constantly; someone the village trusts has already met everybody and being
+      // sent away would read as a brush-off.
+      double redirectChance = Math.max(0.02, 0.45 - reputation * 0.01);
+      if (random.nextDouble() < redirectChance && villager.level() instanceof ServerLevel redirectWorld) {
          Villager redirectTarget = findNearbyVillagerTarget(redirectWorld, villager);
          if (redirectTarget != null) {
             String targetName = VillageQuests.getNameManager().getName(redirectTarget);

@@ -38,7 +38,7 @@ public class VillageQuestsCommands {
                               );
                               return 0;
                            } else {
-                              VillagerQuest quest = ActiveQuestManager.getActiveQuest(player);
+                              VillagerQuest quest = ActiveQuestManager.getActiveQuests(player).get(0);
                               player.sendSystemMessage(
                                  Component.literal("Are you sure? " + quest.getRequesterName() + " will remember this. (/quest abandon confirm)")
                                     .withStyle(ChatFormatting.YELLOW),
@@ -62,7 +62,13 @@ public class VillageQuestsCommands {
                                  return 0;
                               } else {
                                  Village village = VillageQuests.getCachedVillage(player);
-                                 ActiveQuestManager.abandonQuest(player, village != null ? village.getCenter() : player.blockPosition());
+                                 java.util.List<VillagerQuest> carrying = ActiveQuestManager.getActiveQuests(player);
+            if (!carrying.isEmpty()) {
+               // The oldest one, which is the one that has been waiting longest and
+               // the one /quest abandon named in its warning.
+               ActiveQuestManager.abandonQuest(player, carrying.get(0),
+                  village != null ? village.getCenter() : player.blockPosition());
+            }
                                  return 1;
                               }
                            }

@@ -539,6 +539,13 @@ public class VillageQuests implements ModInitializer {
          }
 
          safeTick(() -> this.processOvernightStays(server), "overnight");
+         if (tick % 200L == 0L) {
+            safeTick(() -> {
+               for (ServerPlayer online : server.getPlayerList().getPlayers()) {
+                  ActiveQuestManager.decayStale(online);
+               }
+            }, "quest-decay");
+         }
          if (tick % 24000L == 0L) {
             safeTick(() -> this.processDailyEvents(server), "daily");
          }
@@ -593,8 +600,8 @@ public class VillageQuests implements ModInitializer {
 
    private void processQuestReminders(MinecraftServer server) {
       for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-         VillagerQuest quest = ActiveQuestManager.getActiveQuest(player);
-         if (quest != null && !quest.isCompleted()) {
+         for (VillagerQuest quest : ActiveQuestManager.getActiveQuests(player)) {
+         if (!quest.isCompleted()) {
             String template = REMINDER_VARIANTS[this.reminderRotation % REMINDER_VARIANTS.length];
             String text = template.replace("%s", quest.getRequesterName()).replace("%o", quest.getObjective().toLowerCase());
             MessagePacer.queueMessage(
@@ -603,6 +610,7 @@ public class VillageQuests implements ModInitializer {
                MessagePacer.MessagePriority.ROUTINE,
                true
             );
+         }
          }
       }
 
