@@ -159,6 +159,11 @@ public class VillageQuests implements ModInitializer {
    }
 
    public void onInitialize() {
+      // Guarded class load: the tip registration names block-tip types.
+      if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("block-tip")) {
+         justfatlard.village_quests.util.ChestTips.register();
+      }
+
       VillageQuestsConfig.load();
       nameManager = new VillagerNameManager();
       reputationManager = new ReputationManager();
