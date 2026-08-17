@@ -301,9 +301,24 @@ public class ActiveQuestManager {
 
    public static Component getQuestReminder(ServerPlayer player) {
       VillagerQuest quest = activeQuests.get(player.getUUID());
-      return quest == null
-         ? Component.literal("Nothing pressing.").withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC})
-         : Component.literal(quest.getDescription()).withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC});
+      if (quest == null) {
+         return Component.literal("Nothing pressing.")
+            .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC});
+      }
+
+      // The description is how the villager put it; the objective is what you are
+      // supposed to do about it, and it is the half that changes as you make
+      // progress. A reminder carrying only the first is a reminder of the mood.
+      Component said = Component.literal(quest.getDescription())
+         .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC});
+      String objective = quest.getObjective();
+      if (objective == null || objective.isBlank()) {
+         return said;
+      }
+
+      return said.copy()
+         .append(Component.literal("\n"))
+         .append(Component.literal(objective).withStyle(ChatFormatting.YELLOW));
    }
 
    public static void onPlayerDisconnect(UUID playerId, MinecraftServer server) {
