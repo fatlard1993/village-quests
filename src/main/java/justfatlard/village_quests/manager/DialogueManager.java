@@ -1549,6 +1549,12 @@ public class DialogueManager {
       boolean cooldownActive = !workManager.canRequestWork(world, player.getUUID(), villager.getUUID());
       ReputationBand band = ReputationBand.getBand(reputation);
       boolean isFirstEncounter = greeting.getId().startsWith("first_encounter");
+      // A first meeting always gets the full set: it is the one conversation that
+      // introduces the villager, and spending the day's allowance on a greeting the
+      // player has never seen would be a strange welcome.
+      boolean richTalkSpent = !isFirstEncounter
+         && InteractionLimiter.hasUsedToday(player.getUUID(), villager.getUUID(), "talk");
+      boolean spentRichTalkNow = false;
       List<String> responseTexts = new ArrayList<>();
       List<Integer> originalIndices = new ArrayList<>();
       List<String> customOptionIds = new ArrayList<>();
@@ -1562,6 +1568,12 @@ public class DialogueManager {
          responseTexts.add(ackLabels[confRng.nextInt(ackLabels.length)]);
          originalIndices.add(-1);
          actionIds.add("cancel");
+         // Recorded only when small talk was actually offered, so a villager with
+         // nothing to say does not burn the day's conversation.
+         if (spentRichTalkNow) {
+            InteractionLimiter.recordUsed(player.getUUID(), villager.getUUID(), "talk");
+         }
+
          return new DialogueManager.FilteredResponses(responseTexts, originalIndices, customOptionIds, actionIds).ordered();
       } else {
          boolean hasActiveQuest = ActiveQuestManager.hasActiveQuest(player);
@@ -1685,6 +1697,21 @@ public class DialogueManager {
 
                if (questAcceptPick >= 0 && ownResponse.offersQuest() && i != questAcceptPick) {
                   continue;
+               }
+
+               // Conversation is once a day per villager. Around half of these
+               // replies carry a reputation change, so re-opening the screen with
+               // the same villager was a way to earn standing by clicking, which is
+               // the exact opposite of what reputation is supposed to measure. After
+               // the first talk they still trade, still hand over a finished quest,
+               // still take a new one — the necessities — but the small talk that
+               // pays is spent until tomorrow.
+               if (richTalkSpent && !ownResponse.offersQuest()) {
+                  continue;
+               }
+
+               if (!ownResponse.offersQuest()) {
+                  spentRichTalkNow = true;
                }
 
                responseTexts.add(ownResponse.getText());
@@ -1831,6 +1858,12 @@ public class DialogueManager {
          responseTexts.add(this.getCancelText(world, villager, reputation, emotionalContext));
          originalIndices.add(-1);
          actionIds.add("cancel");
+         // Recorded only when small talk was actually offered, so a villager with
+         // nothing to say does not burn the day's conversation.
+         if (spentRichTalkNow) {
+            InteractionLimiter.recordUsed(player.getUUID(), villager.getUUID(), "talk");
+         }
+
          return new DialogueManager.FilteredResponses(responseTexts, originalIndices, customOptionIds, actionIds).ordered();
       }
    }

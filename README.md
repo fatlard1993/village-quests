@@ -17,6 +17,7 @@ Villages become places where:
 
 - **Contextual Dialogue**: Villagers respond to time of day, weather, your reputation, and recent events. Dialogue is profession-aware, reputation-gated, and presence-sensitive. Right-click a villager to talk; sneak + right-click to go straight to vanilla trading.
 - **Reputation as Trust**: An 8-band reputation system (Shunned through Elder Friend) tracked per-village, per-player. Reputation is earned through presence, restraint, and behavior, not grinding. Never displayed as a number.
+- **One real conversation a day**: small talk with a given villager is offered once per day, because those replies carry reputation and re-opening the screen would let you earn standing by clicking. After that they still trade, still take a finished quest, still hand out a new one; only the chat that pays is spent.
 - **Single Active Quest**: One commitment at a time. Prevents hoarding, forces intentionality. Quest types: fetch/gather, creation/repair, misnomer ethical tests, deep conversation, mystery/investigation, dialogue-based errands, time-sensitive, village development, and plot purchase.
 - **Misnomer Quests**: Ethical tests where a villager asks you to do something harmful out of fear or anger. Refusal is the right choice. Recognition comes days later, if at all.
 - **Deep Quests**: Conversations disguised as quests. No clear objectives, minimal reputation shift, heavy emotional content. 13 variants (5 memory-driven, 8 contextual) covering trauma, existential doubt, and reconciliation.
