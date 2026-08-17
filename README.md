@@ -95,7 +95,7 @@ Install server-side alongside its declared dependencies (see `fabric.mod.json`);
 
 ## Commands
 
-- **`/quest`**: Shows your current quest progress and description. No active quest? It tells you.
+- **`/quest`**: Opens your quests as a book, one to a page. Same thing the "Quest Status" keybind opens, because a controller has no way to type a command. No quests? The book says so.
 - **`/quest abandon`**: Begin abandoning your active quest. The villager will remember.
 - **`/quest abandon confirm`**: Confirm the abandonment. There's no undo.
 

@@ -22,7 +22,7 @@ public class VillageQuestsCommands {
       dispatcher.register(
          (LiteralArgumentBuilder)((LiteralArgumentBuilder)Commands.literal("quest").executes(context -> {
                ServerPlayer player = ((CommandSourceStack)context.getSource()).getPlayerOrException();
-               player.sendSystemMessage(ActiveQuestManager.getQuestReminder(player), false);
+               justfatlard.village_quests.util.QuestBook.open(player);
                return 1;
             }))
             .then(

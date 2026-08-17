@@ -144,16 +144,18 @@ public class VillageQuests implements ModInitializer {
    }
 
    /**
-    * A key for what {@code /quest} prints, because a command needs a keyboard and
-    * a controller has none. Claimed from Pandorical's pooled slots with no
+    * A key that opens your quests as a book, because a command needs a keyboard
+    * and a controller has none. Claimed from Pandorical's pooled slots with no
     * preferred key, so it takes the first free one and appears in the client's
     * controls screen as "Quest Status" for players to bind where they like.
+    *
+    * <p>It used to print to chat, which worked for one quest and stopped working
+    * at three: the reminder scrolled away and could not be asked for again.
     */
    private void registerQuestStatusKeybind() {
       justfatlard.pandorical.api.PandoricalApi.keybinds().register(
          "village-quests:status", 0, "Quest Status",
-         player -> player.sendSystemMessage(
-            justfatlard.village_quests.manager.ActiveQuestManager.getQuestReminder(player), false));
+         justfatlard.village_quests.util.QuestBook::open);
    }
 
    public void onInitialize() {
