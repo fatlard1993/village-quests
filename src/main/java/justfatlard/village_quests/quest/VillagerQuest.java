@@ -540,6 +540,15 @@ public abstract class VillagerQuest {
             }
          }
 
+         // A dark patch is village development in the most literal sense, and it
+         // only exists as a quest when the ground is genuinely spawning things.
+         if (var32 < devEnd && random.nextFloat() < 0.35F) {
+            DarkCornerQuest dark = DarkCornerQuest.tryCreate(villagerName, villager, world);
+            if (dark != null) {
+               return dark;
+            }
+         }
+
          return (VillagerQuest)(var32 < devEnd
             ? generateSpecialQuest(villager, villagerName, random)
             : generateHarderFetchQuest(villager, villagerName, profession, random, ctx, biome));

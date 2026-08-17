@@ -24,6 +24,7 @@ Villages become places where:
 - **Deep Quests**: Conversations disguised as quests. No clear objectives, minimal reputation shift, heavy emotional content. 13 variants (5 memory-driven, 8 contextual) covering trauma, existential doubt, and reconciliation.
 - **Messages are things you carry**: A delivery or message quest hands you a named item — "Message for Rowena", "Apology for Tomas" — and handing it over is a button you press in her dialogue, not something that happens because you walked close enough. The reply comes back as an item too, so the walk home is carrying something and the quest ends with a second handover rather than a proximity check nobody sees.
 - **Delayed Recognition**: Actions have consequences days later, delivered through the mail system or changed dialogue tone.
+- **Puzzles the village keeps**: Some quests leave something standing. A stretch of ground that spawns things at night gets lit and stays lit, and the village ends up wearing what was learned in it. The dark corner also teaches the rule nobody can see: mobs need a block light of exactly zero, which is why torches that look sufficient are not.
 - **Village Presence Tracking**: The mod tracks your time in villages, social behaviors, and overnight stays. Presence is the foundation of trust.
 - **Villager Gatherings**: Invisible events you are rarely invited to. Life happens without you.
 - **Lore and Ontological Friction**: Villagers occasionally sense that something about their world is off. Lore is fragmentary, contradictory, and never fully explained.
