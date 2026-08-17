@@ -547,6 +547,14 @@ public abstract class VillagerQuest {
             if (dark != null) {
                return dark;
             }
+
+            // Only ever once: tryCreate refuses when a flag is already flying, so a
+            // busy server ends up with one flag rather than one per player.
+            Village flagVillage = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
+            VillageBannerQuest banner = VillageBannerQuest.tryCreate(villagerName, villager, world, flagVillage);
+            if (banner != null) {
+               return banner;
+            }
          }
 
          return (VillagerQuest)(var32 < devEnd
