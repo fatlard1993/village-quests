@@ -2,6 +2,8 @@ package justfatlard.village_quests.util;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,8 +65,10 @@ public final class VillageLootChests {
 	 * <p>Cheap enough to run on every load: a chunk holds a handful of block
 	 * entities, and the ones already known are a set lookup.
 	 */
-	public static void scanChunk(ServerLevel world, LevelChunk chunk) {
+	/** @return the chests newly learned about, for pushing to players who are watching. */
+	public static List<BlockPos> scanChunk(ServerLevel world, LevelChunk chunk) {
 		VillageLootChests.Data data = null;
+		List<BlockPos> discovered = List.of();
 
 		for (BlockEntity blockEntity : chunk.getBlockEntities().values()) {
 			if (!(blockEntity instanceof RandomizableContainer container)) continue;
@@ -73,10 +77,23 @@ public final class VillageLootChests {
 			if (table == null || !table.identifier().getPath().startsWith(VILLAGE_LOOT_PATH)) continue;
 
 			if (data == null) data = data(world);
-			data.add(blockEntity.getBlockPos());
+			BlockPos pos = blockEntity.getBlockPos();
+			if (data.add(pos)) {
+				if (discovered.isEmpty()) discovered = new ArrayList<>();
+				discovered.add(pos);
+			}
 		}
 
 		if (data != null && data.consumeAdded()) data.setDirty();
+		return discovered;
+	}
+
+	/** Every chest remembered in this level. */
+	public static List<BlockPos> all(ServerLevel world) {
+		VillageLootChests.Data data = data(world);
+		List<BlockPos> out = new ArrayList<>();
+		for (long packed : data.snapshot()) out.add(BlockPos.of(packed));
+		return out;
 	}
 
 	/**

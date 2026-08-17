@@ -44,7 +44,7 @@ import justfatlard.village_quests.reputation.InteractionLimiter;
 import justfatlard.village_quests.reputation.ReputationEvent;
 import justfatlard.village_quests.util.JobBlockHelper;
 import justfatlard.village_quests.util.MessagePacer;
-import justfatlard.village_quests.util.VillageChestMarker;
+import justfatlard.village_quests.util.VillageChestSkins;
 import justfatlard.village_quests.util.VillageContainers;
 import justfatlard.village_quests.util.VillageLootChests;
 import justfatlard.village_quests.util.ReputationHelper;
@@ -466,11 +466,13 @@ public class VillageQuests implements ModInitializer {
       // reliable window in which a village chest can still be told apart from a
       // chest a player set down inside a village.
       ServerChunkEvents.CHUNK_LOAD.register((world, chunk, newlyGenerated) ->
-         safeTick(() -> VillageLootChests.scanChunk(world, chunk), "loot-chest-scan"));
+         safeTick(() -> VillageChestSkins.onDiscovered(world, VillageLootChests.scanChunk(world, chunk)),
+            "loot-chest-scan"));
 
       PlayerBlockBreakEvents.AFTER.register((After)(world, player, pos, state, blockEntity) -> {
          if (!world.isClientSide() && player instanceof ServerPlayer serverPlayer) {
             VillageLootChests.forget((ServerLevel)world, pos);
+            VillageChestSkins.onForgotten((ServerLevel)world, pos);
             Block block = state.getBlock();
             Village village = getCachedVillage(serverPlayer);
             if (village != null && pos.closerThan(village.getCenter(), 64.0)) {
@@ -529,11 +531,6 @@ public class VillageQuests implements ModInitializer {
          }
 
          safeTick(() -> this.processOvernightStays(server), "overnight");
-         safeTick(() -> {
-            for (ServerLevel level : server.getAllLevels()) {
-               VillageChestMarker.tick(level);
-            }
-         }, "chest-marker");
          if (tick % 24000L == 0L) {
             safeTick(() -> this.processDailyEvents(server), "daily");
          }
@@ -749,8 +746,12 @@ public class VillageQuests implements ModInitializer {
 
    private void registerPlayerEvents() {
       // Coming back decides whether the quest you left behind is still yours.
-      ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
-         ActiveQuestManager.onPlayerJoin(handler.getPlayer().getUUID(), server));
+      ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+         ActiveQuestManager.onPlayerJoin(handler.getPlayer().getUUID(), server);
+         // The client keeps no chest marks across a reconnect, so say the whole
+         // set rather than guess what it still has.
+         safeTick(() -> VillageChestSkins.onJoin(handler.getPlayer()), "chest-skins-join");
+      });
 
       ServerPlayConnectionEvents.DISCONNECT.register((Disconnect)(handler, server) -> {
          ServerPlayer player = handler.getPlayer();

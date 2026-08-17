@@ -6,6 +6,9 @@ import justfatlard.village_quests.manager.PlotManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.BarrelBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.ChestBlock;
 
 /**
  * Which storage the village counts as its own.
@@ -23,8 +26,33 @@ public final class VillageContainers {
 	private VillageContainers() {}
 
 	public static boolean isVillageOwned(ServerLevel world, ServerPlayer player, Village village, BlockPos pos) {
-		if (village == null) return false;
+		return village != null && isVillageProperty(world, player, pos);
+	}
+
+	/**
+	 * The chest is one the village generated, and not standing on a plot this
+	 * player was granted.
+	 *
+	 * <p>Separate from {@link #isVillageOwned} because marking a chest and
+	 * charging for one need different things: charging happens inside a village
+	 * and needs to know which, while the mark is about the chest alone.
+	 */
+	public static boolean isVillageProperty(ServerLevel world, ServerPlayer player, BlockPos pos) {
 		if (!VillageLootChests.isVillageLoot(world, pos)) return false;
+
+		// A chest can leave without anyone breaking it by hand: creepers, fire, a
+		// world edit. A position remembered with nothing in it would eventually
+		// brand whatever gets built there, so reading it is also when it is checked.
+		// Only where the chunk is already loaded, though: loading one to answer a
+		// question about a chest nobody is near would be a strange way to spend a
+		// tick.
+		if (world.isLoaded(pos)) {
+			Block block = world.getBlockState(pos).getBlock();
+			if (!(block instanceof ChestBlock) && !(block instanceof BarrelBlock)) {
+				VillageLootChests.forget(world, pos);
+				return false;
+			}
+		}
 
 		PlotManager plots = VillageQuests.getPlotManager();
 		PlotManager.Plot plot = plots != null ? plots.getPlotAt(world, pos) : null;

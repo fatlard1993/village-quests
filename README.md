@@ -28,7 +28,7 @@ Villages become places where:
 - **Village Boss Bar**: Shows the village name when you are nearby. Decays for deeply trusted players; they don't need the reminder.
 - **Plot System**: At high reputation (75+), villages set aside residential plots. Land is earned through trust, not currency.
 - **Behavioral Reputation Events**: Breaking beds, destroying job blocks, opening a village's own chests, hitting villagers, and killing iron golems all affect reputation. Building beds, placing job blocks, crafting golems, and spending time in the village improve it. A change you cause shows as a small green or red burst, the only feedback there is: reputation is never a number.
-- **Village chests are marked**: A chest counts as the village's because the village generated it, read from its loot table at chunk load and remembered from then on. A chest you place is yours, wherever you place it. The ones that are not carry a red mote so the rule can be seen before it is broken. A chest looted before this existed cannot be recovered: its loot table is gone and nothing else tells it apart.
+- **Village chests are marked**: A chest counts as the village's because the village generated it, read from its loot table at chunk load and remembered from then on. A chest you place is yours, wherever you place it. The village's own are drawn with a villager's nose where the clasp would be, so the rule can be seen before it is broken; a plot you were granted stays plain for you and still warns a guest. Needs Pandorical on the client, which is what draws it. A chest looted before this existed cannot be recovered: its loot table is gone and nothing else tells it apart.
 - **Villager Names**: Every villager gets a persistent name.
 
 ### Mod Integration API
