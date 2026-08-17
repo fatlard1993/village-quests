@@ -127,6 +127,7 @@ public class DialogueManager {
    };
    private static final String[] WAITING_OPENERS = new String[]{"Hey. ", "Oh, you're back. ", "*looks up* "};
    private static final String SUBMIT_QUEST_ITEMS = "submit_quest_items";
+   private static final String DELIVER_DIALOGUE_ITEM = "deliver_dialogue_item";
    private ConversationMemory.ConversationTopic lastPrefixTopic;
    private static final String MET_STORAGE_KEY = "village_quests_met_villagers";
    private static final SavedDataType<DialogueManager.MetVillagersState> MET_STATE_TYPE = new SavedDataType<>(
@@ -1063,7 +1064,7 @@ public class DialogueManager {
          if (!dialogueQuest.isMessageDelivered()
             && dialogueQuest.getTargetVillagerUuid() != null
             && dialogueQuest.getTargetVillagerUuid().equals(villager.getUUID())) {
-            if (dialogueQuest.isItemDeliveryQuest() && !dialogueQuest.hasDeliveryItem(player)) {
+            if (!dialogueQuest.hasDeliveryItem(player)) {
                String tName = VillageQuests.getNameManager().getName(villager);
                String profN = villager.isBaby()
                   ? "child"
@@ -1082,33 +1083,40 @@ public class DialogueManager {
                return true;
             }
 
-            if (dialogueQuest.isItemDeliveryQuest()) {
-               dialogueQuest.consumeDeliveryItem(player);
-            }
-
-            dialogueQuest.deliverMessage();
-            String targetName = VillageQuests.getNameManager().getName(villager);
-            String reaction = dialogueQuest.getDeliveryReaction();
-            String profN2 = villager.isBaby()
+            // Offered, not performed. Walking into range used to hand the thing
+            // over by itself, which meant the one moment the quest is about
+            // happened to the player rather than being done by them.
+            String tName = VillageQuests.getNameManager().getName(villager);
+            String profN = villager.isBaby()
                ? "child"
                : professionName((VillagerProfession)villager.getVillagerData().profession().value());
-            int rep2 = VillageQuests.getReputationManager()
+            int rep = VillageQuests.getReputationManager()
                .getReputation(player, VillageQuests.getVillageManager().findNearestVillage(player.level(), villager.blockPosition()));
-            String repBand2 = VillageQuests.getReputationManager().getReputationLevel(rep2);
-            String cancelText2 = this.getCancelText(player.level(), villager, rep2);
-            this.responseActionIds.put(player.getUUID(), new ArrayList<>(List.of("cancel")));
-            this.responseIndexMappings.put(player.getUUID(), List.of(-1));
-            PandoricalApi.screens().open(player,
-               DialogueScreens.buildScreen(villager.getUUID(), targetName, profN2, reaction, "delivery_reaction", repBand2, List.of(cancelText2))
-            );
-            return true;
-         }
+            String repBand = VillageQuests.getReputationManager().getReputationLevel(rep);
+            String cancelText = this.getCancelText(player.level(), villager, rep);
 
-         if (dialogueQuest.isMessageDelivered()
-            && !dialogueQuest.checkCompletion(player)
-            && activeQuest.getVillagerUuid() != null
-            && activeQuest.getVillagerUuid().equals(villager.getUUID())) {
-            dialogueQuest.returnToGiver();
+            this.responseActionIds.put(player.getUUID(), new ArrayList<>(List.of(DELIVER_DIALOGUE_ITEM, "cancel")));
+            this.responseIndexMappings.put(player.getUUID(), List.of(-1, -1));
+
+            Item carried = dialogueQuest.getGiveItem();
+            if (carried != null) {
+               PandoricalApi.screens().open(player,
+                  DialogueScreens.buildScreen(villager.getUUID(), tName, profN,
+                     dialogueQuest.getDeliveryPrompt(), "delivery_offer", repBand,
+                     List.of(cancelText), null,
+                     DialogueScreens.TurnIn.of(carried, 1, dialogueQuest.getDeliveryLabel()))
+               );
+            } else {
+               // No item to draw, which only happens to a quest that started before
+               // messages were things you hold. Still a button: the point is that
+               // handing it over is a decision, not proximity.
+               PandoricalApi.screens().open(player,
+                  DialogueScreens.buildScreen(villager.getUUID(), tName, profN,
+                     dialogueQuest.getDeliveryPrompt(), "delivery_offer", repBand,
+                     List.of(dialogueQuest.getDeliveryLabel(), cancelText))
+               );
+            }
+            return true;
          }
       }
 
@@ -1956,6 +1964,38 @@ public class DialogueManager {
             this.handleWorkInquiryResponse(player, villager, world, village);
             this.customDialogueOptions.remove(player.getUUID());
             this.responseIndexMappings.remove(player.getUUID());
+            return;
+         }
+
+         if (DELIVER_DIALOGUE_ITEM.equals(actionId)) {
+            VillagerQuest active = ActiveQuestManager.getActiveQuest(player);
+            if (active instanceof DialogueQuest dq
+               && dq.getTargetVillagerUuid() != null
+               && dq.getTargetVillagerUuid().equals(villager.getUUID())
+               && dq.hasDeliveryItem(player)) {
+
+               dq.consumeDeliveryItem(player);
+               dq.deliverMessage();
+               // The reply is a thing, so the walk back is carrying something too
+               // and the quest ends with a second handover rather than a proximity
+               // check nobody sees.
+               player.getInventory().add(dq.replyToken());
+
+               String targetName = VillageQuests.getNameManager().getName(villager);
+               String profN = villager.isBaby()
+                  ? "child"
+                  : professionName((VillagerProfession)villager.getVillagerData().profession().value());
+               int rep = VillageQuests.getReputationManager()
+                  .getReputation(player, VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition()));
+               String repBand = VillageQuests.getReputationManager().getReputationLevel(rep);
+               String cancelText = this.getCancelText(world, villager, rep);
+               this.responseActionIds.put(player.getUUID(), new ArrayList<>(List.of("cancel")));
+               this.responseIndexMappings.put(player.getUUID(), List.of(-1));
+               PandoricalApi.screens().open(player,
+                  DialogueScreens.buildScreen(villager.getUUID(), targetName, profN,
+                     dq.getDeliveryReaction(), "delivery_reaction", repBand, List.of(cancelText))
+               );
+            }
             return;
          }
 
@@ -3784,7 +3824,8 @@ public class DialogueManager {
          if (actionId == null) return 50;
          return switch (actionId) {
             // Finishing something you already committed to outranks starting anything
-            case "submit_quest_items", "deliver_misnomer_item", "teach_safely", "dialogue_response_quest" -> 0;
+            case "submit_quest_items", "deliver_dialogue_item", "deliver_misnomer_item",
+                 "teach_safely", "dialogue_response_quest" -> 0;
             case "open_trade" -> 10;
             case "work_inquiry" -> 20;
             case "mystery_inquiry", "mystery_accuse", "mystery_protect_secret",

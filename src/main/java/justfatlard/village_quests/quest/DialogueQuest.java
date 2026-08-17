@@ -25,11 +25,11 @@ public class DialogueQuest extends VillagerQuest {
    private final String message;
    private final String reason;
    private boolean messageDelivered = false;
-   private boolean returnedToGiver = false;
    private String deliveryReaction = null;
    private ItemStack deliveryItem = null;
    private String deliveryItemName = null;
    private boolean itemGiven = false;
+   private String replyItemName = null;
    private static final String[][] MESSAGE_VARIANTS = new String[][]{
       {"the wheat shipment will be late", "I'm too busy with the harvest."},
       {"I won't be able to help with the roof after all", "Something came up. They deserve to hear it from me, but..."},
@@ -143,12 +143,76 @@ public class DialogueQuest extends VillagerQuest {
       return this;
    }
 
+   /**
+    * The thing you carry there. Item deliveries already had one; a message is now
+    * one too, because "go tell them" with nothing in your hands is a quest you can
+    * forget you are on, and handing it over is the moment the quest is about.
+    */
    @Override
    public void onAccept(ServerPlayer player) {
-      if (this.deliveryItem != null && !this.itemGiven) {
+      ensureDeliveryItem();
+
+      if (!this.itemGiven) {
          player.getInventory().add(this.deliveryItem.copy());
          this.itemGiven = true;
       }
+   }
+
+   /**
+    * Built on first ask rather than on accept, so the offer screen can show what
+    * you are about to be handed. Being told "they will give you a Message for
+    * Rowena" is most of the explanation of what the quest is.
+    */
+   private void ensureDeliveryItem() {
+      if (this.deliveryItem == null) {
+         this.withDeliveryItem(new ItemStack(Items.PAPER), outboundName());
+      }
+   }
+
+   private String outboundName() {
+      return switch (this.dialogueType) {
+         case DELIVER_APOLOGY -> "Apology for " + this.targetVillagerName;
+         case DELIVER_NEWS -> "News for " + this.targetVillagerName;
+         case VILLAGE_TO_VILLAGE -> "Dispatch for " + this.targetVillagerName;
+         case MEDIATE_DISPUTE -> "Peace offer for " + this.targetVillagerName;
+         case GATHER_GOSSIP -> "Question for " + this.targetVillagerName;
+         default -> "Message for " + this.targetVillagerName;
+      };
+   }
+
+   /** What the target says as you arrive, before you decide to hand it over. */
+   public String getDeliveryPrompt() {
+      return switch (this.dialogueType) {
+         case DELIVER_ITEM -> "Something for me? From " + this.requesterName + "?";
+         case DELIVER_APOLOGY -> this.requesterName + " sent you? ...Go on then.";
+         case GATHER_GOSSIP -> "You've got a question written down? That's very formal of you.";
+         default -> "You've come from " + this.requesterName + ", haven't you.";
+      };
+   }
+
+   /** The words on the button that hands it over. */
+   public String getDeliveryLabel() {
+      return switch (this.dialogueType) {
+         case DELIVER_ITEM -> "Hand over the " + this.deliveryItemName + ".";
+         case DELIVER_APOLOGY -> "Pass on the apology.";
+         case GATHER_GOSSIP -> "Ask them.";
+         default -> "Give them the message.";
+      };
+   }
+
+   /** What you carry back, handed over when the message lands. */
+   public ItemStack replyToken() {
+      ItemStack reply = new ItemStack(Items.PAPER);
+      this.replyItemName = this.targetVillagerName + "'s reply";
+      reply.set(DataComponents.CUSTOM_NAME, Component.literal(this.replyItemName));
+      return reply;
+   }
+
+   public boolean hasReply(ServerPlayer player) {
+      return this.replyItemName != null
+         && InventoryHelper.hasMatch(player.getInventory(),
+            stack -> stack.has(DataComponents.CUSTOM_NAME)
+               && stack.getHoverName().getString().equals(this.replyItemName));
    }
 
    @Override
@@ -205,11 +269,19 @@ public class DialogueQuest extends VillagerQuest {
 
    @Override
    public boolean checkCompletion(ServerPlayer player) {
-      return this.messageDelivered && this.returnedToGiver;
+      // A quest that predates reply tokens has no reply to carry, and refusing to
+      // let it finish would strand whoever is holding it.
+      return this.messageDelivered && (this.replyItemName == null || hasReply(player));
    }
 
    @Override
    public void onComplete(ServerPlayer player) {
+      if (this.replyItemName != null) {
+         InventoryHelper.removeFirst(player.getInventory(),
+            stack -> stack.has(DataComponents.CUSTOM_NAME)
+               && stack.getHoverName().getString().equals(this.replyItemName));
+      }
+
       String completionMessage;
       if (this.deliveryReaction != null) {
          ThreadLocalRandom rng = ThreadLocalRandom.current();
@@ -308,8 +380,14 @@ public class DialogueQuest extends VillagerQuest {
    }
 
    @Override
+   public Item getSubmissionItem() {
+      return this.messageDelivered ? Items.PAPER : null;
+   }
+
+   @Override
    public Item getGiveItem() {
-      return this.deliveryItem != null ? this.deliveryItem.getItem() : null;
+      ensureDeliveryItem();
+      return this.deliveryItem.getItem();
    }
 
    private String pickDeliveryReaction() {
@@ -379,10 +457,6 @@ public class DialogueQuest extends VillagerQuest {
             yield reactions[rng.nextInt(reactions.length)];
          }
       };
-   }
-
-   public void returnToGiver() {
-      this.returnedToGiver = true;
    }
 
    public boolean isMessageDelivered() {
