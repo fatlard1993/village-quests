@@ -321,18 +321,67 @@ public class ActiveQuestManager {
          .append(Component.literal(objective).withStyle(ChatFormatting.YELLOW));
    }
 
+   /**
+    * How long a player has to be gone before a quest counts as walked away from.
+    * A relaunch takes seconds; this is meant to catch someone who left, not
+    * someone who restarted their game.
+    */
+   private static final long ABSENCE_LAPSE_MS = 30L * 60L * 1000L;
+
+   /** When each absent player logged out, for quests that are waiting on them. */
+   private static final Map<UUID, Long> leftAt = new ConcurrentHashMap<>();
+
+   /**
+    * Logging out no longer throws the quest away.
+    *
+    * <p>It used to: the quest was dropped on any disconnect and the villager
+    * mailed you that it had lapsed. The intent is sound — walk away and the
+    * village moves on — but the granularity was wrong, because a thirty-second
+    * relaunch is not walking away. Anyone reloading their client to pick up a
+    * mod update lost whatever they had committed to.
+    *
+    * <p>So the quest is kept and the departure time noted; {@link #onPlayerJoin}
+    * decides on return whether it was long enough to count. Mob events are the
+    * exception and still end here: their mobs are cleaned up so they cannot be
+    * left roaming, and a quest whose mobs are gone cannot be finished anyway.
+    */
    public static void onPlayerDisconnect(UUID playerId, MinecraftServer server) {
+      VillagerQuest quest = activeQuests.get(playerId);
+      if (quest == null || quest.isCompleted()) {
+         activeQuests.remove(playerId);
+         return;
+      }
+
+      if (quest instanceof MobEventQuest mobQuest) {
+         activeQuests.remove(playerId);
+         mobQuest.cleanupMobs(server.overworld());
+         recordLapsed(server, playerId, quest);
+         return;
+      }
+
+      leftAt.put(playerId, System.currentTimeMillis());
+   }
+
+   /** Lapse a kept quest only if the player was actually gone a while. */
+   public static void onPlayerJoin(UUID playerId, MinecraftServer server) {
+      Long left = leftAt.remove(playerId);
+      if (left == null) return;
+
+      if (System.currentTimeMillis() - left < ABSENCE_LAPSE_MS) {
+         return;
+      }
+
       VillagerQuest quest = activeQuests.remove(playerId);
       if (quest != null && !quest.isCompleted()) {
-         if (quest instanceof MobEventQuest mobQuest) {
-            mobQuest.cleanupMobs(server.overworld());
-         }
-
-         ServerLevel world = server.overworld();
-         ActiveQuestManager.InterruptedQuestState state = (ActiveQuestManager.InterruptedQuestState)world.getDataStorage().computeIfAbsent(INTERRUPTED_STATE_TYPE);
-         state.interrupted.put(playerId, new ActiveQuestManager.InterruptedQuestInfo(quest.getRequesterName(), quest.getType().getDisplayName()));
-         state.setDirty();
+         recordLapsed(server, playerId, quest);
       }
+   }
+
+   private static void recordLapsed(MinecraftServer server, UUID playerId, VillagerQuest quest) {
+      ServerLevel world = server.overworld();
+      ActiveQuestManager.InterruptedQuestState state = (ActiveQuestManager.InterruptedQuestState)world.getDataStorage().computeIfAbsent(INTERRUPTED_STATE_TYPE);
+      state.interrupted.put(playerId, new ActiveQuestManager.InterruptedQuestInfo(quest.getRequesterName(), quest.getType().getDisplayName()));
+      state.setDirty();
    }
 
    private static void recordQuestMemory(VillagerQuest quest) {

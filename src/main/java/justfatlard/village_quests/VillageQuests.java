@@ -738,6 +738,10 @@ public class VillageQuests implements ModInitializer {
    }
 
    private void registerPlayerEvents() {
+      // Coming back decides whether the quest you left behind is still yours.
+      ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
+         ActiveQuestManager.onPlayerJoin(handler.getPlayer().getUUID(), server));
+
       ServerPlayConnectionEvents.DISCONNECT.register((Disconnect)(handler, server) -> {
          ServerPlayer player = handler.getPlayer();
          UUID playerId = player.getUUID();
