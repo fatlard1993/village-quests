@@ -40,22 +40,29 @@ public final class VillageContainers {
 	public static boolean isVillageProperty(ServerLevel world, ServerPlayer player, BlockPos pos) {
 		if (!VillageLootChests.isVillageLoot(world, pos)) return false;
 
-		// A chest can leave without anyone breaking it by hand: creepers, fire, a
-		// world edit. A position remembered with nothing in it would eventually
-		// brand whatever gets built there, so reading it is also when it is checked.
-		// Only where the chunk is already loaded, though: loading one to answer a
-		// question about a chest nobody is near would be a strange way to spend a
-		// tick.
-		if (world.isLoaded(pos)) {
-			Block block = world.getBlockState(pos).getBlock();
-			if (!(block instanceof ChestBlock) && !(block instanceof BarrelBlock)) {
-				VillageLootChests.forget(world, pos);
-				return false;
-			}
-		}
-
 		PlotManager plots = VillageQuests.getPlotManager();
 		PlotManager.Plot plot = plots != null ? plots.getPlotAt(world, pos) : null;
 		return plot == null || !plot.isOwnedBy(player.getUUID());
 	}
-}
+
+	/**
+	 * Drop a remembered chest that is no longer there, so its position cannot
+	 * brand whatever gets built on it.
+	 *
+	 * <p>Deliberately not folded into {@link #isVillageProperty}. It was, and that
+	 * put a block read inside a question that gets asked from a chunk load
+	 * callback, where reading a block waits for a chunk on the thread that loads
+	 * chunks. The server hung for sixty seconds and the watchdog killed it. A
+	 * query that quietly touches the world is a query that can only be called from
+	 * places nobody has enumerated.
+	 *
+	 * <p>Call only from an ordinary tick, and only for a loaded position.
+	 */
+	public static void healIfGone(ServerLevel world, BlockPos pos) {
+		if (!world.isLoaded(pos)) return;
+
+		Block block = world.getBlockState(pos).getBlock();
+		if (!(block instanceof ChestBlock) && !(block instanceof BarrelBlock)) {
+			VillageLootChests.forget(world, pos);
+		}
+	}}

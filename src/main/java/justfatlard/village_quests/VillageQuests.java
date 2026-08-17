@@ -469,6 +469,14 @@ public class VillageQuests implements ModInitializer {
          safeTick(() -> VillageChestSkins.onDiscovered(world, VillageLootChests.scanChunk(world, chunk)),
             "loot-chest-scan"));
 
+      // Everything the scan turned up is sent from here, not from the callback.
+      // Touching the world while chunks are loading waits on the thread doing the
+      // loading, which is a deadlock wearing a sixty second timer.
+      ServerTickEvents.END_SERVER_TICK.register(server ->
+         safeTick(() -> {
+            for (ServerLevel level : server.getAllLevels()) VillageChestSkins.flush(level);
+         }, "chest-skins-flush"));
+
       PlayerBlockBreakEvents.AFTER.register((After)(world, player, pos, state, blockEntity) -> {
          if (!world.isClientSide() && player instanceof ServerPlayer serverPlayer) {
             VillageLootChests.forget((ServerLevel)world, pos);
