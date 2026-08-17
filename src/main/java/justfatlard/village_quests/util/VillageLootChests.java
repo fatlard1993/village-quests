@@ -3,6 +3,7 @@ package justfatlard.village_quests.util;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -78,6 +79,23 @@ public final class VillageLootChests {
 		if (data != null && data.consumeAdded()) data.setDirty();
 	}
 
+	/**
+	 * Visit every remembered chest within {@code radius} of a point.
+	 *
+	 * <p>Asking the memory what is nearby, rather than asking the world what is
+	 * nearby and then consulting the memory, is both cheaper and the only version
+	 * that can notice a remembered chest has gone.
+	 */
+	public static void forEachNear(ServerLevel world, BlockPos origin, int radius, Consumer<BlockPos> action) {
+		VillageLootChests.Data data = data(world);
+		if (data.isEmpty()) return;
+
+		for (long packed : data.snapshot()) {
+			BlockPos pos = BlockPos.of(packed);
+			if (pos.closerThan(origin, radius)) action.accept(pos);
+		}
+	}
+
 	/** Forget a chest that no longer exists, so its position cannot brand a later one. */
 	public static void forget(ServerLevel world, BlockPos pos) {
 		VillageLootChests.Data data = data(world);
@@ -101,6 +119,18 @@ public final class VillageLootChests {
 
 		public boolean remove(BlockPos pos) {
 			return this.positions.remove(pos.asLong());
+		}
+
+		public boolean isEmpty() {
+			return this.positions.isEmpty();
+		}
+
+		/** A copy, so a heal can forget things while the caller is still walking the list. */
+		public long[] snapshot() {
+			long[] raw = new long[this.positions.size()];
+			int i = 0;
+			for (Long value : this.positions) raw[i++] = value;
+			return raw;
 		}
 
 		public boolean contains(BlockPos pos) {

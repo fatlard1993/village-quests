@@ -3,12 +3,12 @@ package justfatlard.village_quests.util;
 import justfatlard.village_quests.Village;
 import justfatlard.village_quests.VillageQuests;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.SectionPos;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.block.BarrelBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.ChestBlock;
 
 /**
  * A red mote over storage that belongs to the village.
@@ -19,12 +19,8 @@ import net.minecraft.world.level.chunk.LevelChunk;
  * capricious. The mote is the announcement, in the one place it is useful,
  * before the lid is open.
  *
- * <p>It is drawn per player, because the rule is per player. A plot you own is
- * yours and shows nothing; the same chest shows a warning to a guest.
- *
- * <p>Sent from a chunk's own block entity list rather than a block scan, and
- * only within a few blocks of the player, so a village full of chests costs a
- * handful of map lookups a second.
+ * <p>Drawn per player, because the rule is per player. A plot you own is yours
+ * and shows nothing; the same chest warns a guest.
  */
 public final class VillageChestMarker {
 	private VillageChestMarker() {}
@@ -45,33 +41,25 @@ public final class VillageChestMarker {
 			Village village = VillageQuests.getCachedVillage(player);
 			if (village == null) continue;
 
-			markNearby(world, player, village);
+			BlockPos origin = player.blockPosition();
+			VillageLootChests.forEachNear(world, origin, RADIUS, pos -> mark(world, player, village, pos));
 		}
 	}
 
-	private static void markNearby(ServerLevel world, ServerPlayer player, Village village) {
-		BlockPos origin = player.blockPosition();
-		int minChunkX = SectionPos.blockToSectionCoord(origin.getX() - RADIUS);
-		int maxChunkX = SectionPos.blockToSectionCoord(origin.getX() + RADIUS);
-		int minChunkZ = SectionPos.blockToSectionCoord(origin.getZ() - RADIUS);
-		int maxChunkZ = SectionPos.blockToSectionCoord(origin.getZ() + RADIUS);
-
-		for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
-			for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
-				LevelChunk chunk = world.getChunkSource().getChunkNow(chunkX, chunkZ);
-				if (chunk == null) continue;
-
-				for (BlockEntity blockEntity : chunk.getBlockEntities().values()) {
-					BlockPos pos = blockEntity.getBlockPos();
-					if (!pos.closerThan(origin, RADIUS)) continue;
-
-					if (VillageContainers.isVillageOwned(world, player, village, pos)) {
-						world.sendParticles(player, MARK, false, true,
-							pos.getX() + 0.5, pos.getY() + 1.05, pos.getZ() + 0.5,
-							1, 0.0, 0.0, 0.0, 0.0);
-					}
-				}
-			}
+	private static void mark(ServerLevel world, ServerPlayer player, Village village, BlockPos pos) {
+		// A chest can leave without anyone breaking it by hand: creepers, fire, a
+		// world edit. A position remembered with nothing in it would eventually
+		// brand whatever gets built there, so reading it is also when it is checked.
+		Block block = world.getBlockState(pos).getBlock();
+		if (!(block instanceof ChestBlock) && !(block instanceof BarrelBlock)) {
+			VillageLootChests.forget(world, pos);
+			return;
 		}
+
+		if (!VillageContainers.isVillageOwned(world, player, village, pos)) return;
+
+		world.sendParticles(player, MARK, false, true,
+			pos.getX() + 0.5, pos.getY() + 1.05, pos.getZ() + 0.5,
+			1, 0.0, 0.0, 0.0, 0.0);
 	}
 }
