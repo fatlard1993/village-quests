@@ -175,6 +175,7 @@ public class VillageQuests implements ModInitializer {
       VillageQuestsNetworking.registerServerPackets();
       VillageQuestsCommands.register();
       registerQuestStatusKeybind();
+      justfatlard.village_quests.shop.BrewingKitDialogue.register();
       this.registerEntityEvents();
       this.registerBlockEvents();
       this.registerTickEvents();
