@@ -24,7 +24,7 @@ public final class ChestTips {
 			if (VillageQuests.getVillageManager() == null) return null;
 
 			return VillageContainers.isVillageProperty(serverLevel, player, pos)
-				? "The village's - taking from it is noticed"
+				? "The village's"
 				: null;
 		});
 	}
