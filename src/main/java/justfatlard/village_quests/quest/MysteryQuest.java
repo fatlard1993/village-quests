@@ -614,17 +614,41 @@ public class MysteryQuest extends VillagerQuest {
       return quest;
    }
 
+   /** Nobody in particular, phrased so the clue lines still read as sentences. */
+   private static final String SOMEBODY = "someone in the village";
+
+   /** Rings to try, in blocks. A village that fills the first one never needs the second. */
+   private static final double[] CULPRIT_SEARCH = {48.0, 96.0};
+
+   /**
+    * Somebody who is actually there to be suspected.
+    *
+    * <p>The clue lines send the player to this person by name - "check with Viola, that's all I'll
+    * say" - so the name has to belong to a villager who exists and who can be picked out of a
+    * crowd. It used to fall back to a name drawn from the pool when the search came up empty,
+    * which sent people looking for somebody who had never been born.
+    *
+    * <p>Two things are guaranteed here. The villager is real, found by widening the search rather
+    * than by inventing. And they are named, which is what puts the nameplate over their head:
+    * without that step even a real culprit is one of twenty identical figures. Where there is
+    * genuinely nobody else, the mystery keeps its shape by naming nobody.
+    */
    private static String findNearbyCulpritName(ServerLevel world, BlockPos villageCenter, UUID questGiverUuid, Random random) {
-      if (world != null) {
-         AABB searchBox = new AABB(villageCenter).inflate(48.0);
-         List<Villager> candidates = world.getEntities(EntityTypeTest.forClass(Villager.class), searchBox, v -> !v.getUUID().equals(questGiverUuid) && !v.isBaby());
-         if (!candidates.isEmpty()) {
-            Villager picked = candidates.get(random.nextInt(candidates.size()));
-            return VillageQuests.getNameManager().getName(picked);
-         }
+      if (world == null) return SOMEBODY;
+
+      for (double radius : CULPRIT_SEARCH) {
+         AABB searchBox = new AABB(villageCenter).inflate(radius);
+         List<Villager> candidates = world.getEntities(EntityTypeTest.forClass(Villager.class), searchBox,
+            v -> !v.getUUID().equals(questGiverUuid) && !v.isBaby());
+         if (candidates.isEmpty()) continue;
+
+         Villager picked = candidates.get(random.nextInt(candidates.size()));
+         // Naming them is the half that makes them findable: it hangs the nameplate.
+         VillageQuests.getNameManager().assignNameIfNeeded(picked);
+         return VillageQuests.getNameManager().getName(picked);
       }
 
-      return VillageQuests.getNameManager().getRandomName(random);
+      return SOMEBODY;
    }
 
    public MysteryQuest.MysteryType getMysteryType() {

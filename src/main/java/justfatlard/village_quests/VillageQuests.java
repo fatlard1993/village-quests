@@ -158,7 +158,19 @@ public class VillageQuests implements ModInitializer {
          justfatlard.village_quests.util.QuestBook::open);
    }
 
+   /** Fired when a quest is finished; see {@link QuestCompleteCriterion}. */
+   public static final QuestCompleteCriterion QUEST_COMPLETE = net.minecraft.core.Registry.register(
+      net.minecraft.core.registries.BuiltInRegistries.TRIGGER_TYPES,
+      net.minecraft.resources.Identifier.fromNamespaceAndPath(MOD_ID, "quest_complete"),
+      new QuestCompleteCriterion()
+   );
+
    public void onInitialize() {
+      // The village chest's clasp ships here and is drawn on the client, which does not have
+      // this mod: Pandorical syncs the texture across and reloads resources so the chest atlas
+      // picks it up.
+      justfatlard.pandorical.api.PandoricalApi.content().registerModAssets(MOD_ID);
+
       // Guarded class load: the tip registration names block-tip types.
       if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("block-tip")) {
          justfatlard.village_quests.util.ChestTips.register();
@@ -176,6 +188,7 @@ public class VillageQuests implements ModInitializer {
       VillageQuestsCommands.register();
       registerQuestStatusKeybind();
       justfatlard.village_quests.shop.BrewingKitDialogue.register();
+      justfatlard.village_quests.quest.BrewingLessons.register();
       this.registerEntityEvents();
       this.registerBlockEvents();
       this.registerTickEvents();
@@ -330,6 +343,7 @@ public class VillageQuests implements ModInitializer {
                   ActiveQuestManager.onVillagerDeath(deadVillager.getUUID(), nameManager.getName(deadVillager), sw.getServer());
                   WitnessedDeathTracker.onVillagerDeath(deadVillager, sw);
                   QuestChainSeeds.onVillagerDeath(deadVillager.getUUID(), nameManager.getName(deadVillager));
+                  justfatlard.village_quests.quest.LessonProgress.onMentorDeath(sw, deadVillager.getUUID());
                } else if (entity instanceof IronGolem golem && source.getEntity() instanceof ServerPlayer playerx) {
                   Village village = getCachedVillage(playerx);
                   if (village != null && golem.blockPosition().closerThan(village.getCenter(), 128.0)) {

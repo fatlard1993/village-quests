@@ -88,10 +88,10 @@ public final class DialogueScreens {
         if (actionId.startsWith("custom:")) return ACCENT_SPECIAL;
 
         return switch (actionId) {
-            case "submit_quest_items", "deliver_misnomer_item", "teach_safely",
-                 "dialogue_response_quest" -> ACCENT_FINISH;
-            case "open_trade" -> ACCENT_TRADE;
-            case "work_inquiry" -> ACCENT_WORK;
+            case "submit_quest_items", "deliver_misnomer_item", "deliver_dialogue_item",
+                 "teach_safely", "dialogue_response_quest" -> ACCENT_FINISH;
+            case "open_trade", "dialogue_response_trade" -> ACCENT_TRADE;
+            case "work_inquiry", "dialogue_response_work" -> ACCENT_WORK;
             case "mystery_inquiry", "mystery_accuse", "mystery_protect_secret",
                  "secret_reveal", "secret_silence", "gift_item", "caretaking_gift" -> ACCENT_SPECIAL;
             case "cancel" -> ACCENT_LEAVE;
@@ -102,8 +102,8 @@ public final class DialogueScreens {
     private static String iconFor(String actionId) {
         if (actionId == null) return null;
         return switch (actionId) {
-            case "open_trade" -> ICON_TRADE;
-            case "work_inquiry" -> ICON_WORK;
+            case "open_trade", "dialogue_response_trade" -> ICON_TRADE;
+            case "work_inquiry", "dialogue_response_work" -> ICON_WORK;
             default -> null;
         };
     }
@@ -130,8 +130,10 @@ public final class DialogueScreens {
             String dialogueText,
             String dialogueId,
             String reputationBand,
-            List<String> responses) {
-        return buildScreen(villagerUUID, villagerName, profName, dialogueText, dialogueId, reputationBand, responses, null);
+            List<String> responses,
+            List<String> actionIds) {
+        return buildScreen(villagerUUID, villagerName, profName, dialogueText, dialogueId, reputationBand,
+                responses, actionIds, null);
     }
 
     /**
@@ -155,10 +157,19 @@ public final class DialogueScreens {
             String dialogueId,
             String reputationBand,
             List<String> responses,
+            List<String> actionIds,
             ItemHint itemHint) {
-        return buildScreen(villagerUUID, villagerName, profName, dialogueText, dialogueId, reputationBand, responses, itemHint, null);
+        return buildScreen(villagerUUID, villagerName, profName, dialogueText, dialogueId, reputationBand,
+                responses, actionIds, itemHint, null);
     }
 
+    /**
+     * {@code actionIds} is what colours and marks each button. It runs parallel to the
+     * button indices the click handler dispatches on, not to {@code responses}: a pinned
+     * {@code turnIn} occupies index 0 and shifts every response down by one, exactly as
+     * it does in the manager's stored mapping. Required, because a screen that forgets
+     * it renders every option as uncoloured small talk.
+     */
     public static OpenScreenS2C buildScreen(
             UUID villagerUUID,
             String villagerName,
@@ -167,24 +178,9 @@ public final class DialogueScreens {
             String dialogueId,
             String reputationBand,
             List<String> responses,
+            List<String> actionIds,
             ItemHint itemHint,
             TurnIn turnIn) {
-        return buildScreen(villagerUUID, villagerName, profName, dialogueText, dialogueId, reputationBand,
-                responses, itemHint, turnIn, null);
-    }
-
-    /** {@code actionIds} runs parallel to {@code responses}; it is what colours and marks each button. */
-    public static OpenScreenS2C buildScreen(
-            UUID villagerUUID,
-            String villagerName,
-            String profName,
-            String dialogueText,
-            String dialogueId,
-            String reputationBand,
-            List<String> responses,
-            ItemHint itemHint,
-            TurnIn turnIn,
-            List<String> actionIds) {
 
         String screenId = "vq_dialogue:" + villagerUUID + ":" + dialogueId;
         String titleText = villagerName + " (" + profName + ")";
@@ -249,7 +245,8 @@ public final class DialogueScreens {
         for (int i = 0; i < responses.size(); i++) {
             // Encode index + villager UUID + dialogueId into the component ID.
             String btnId = "response_" + (i + firstResponseIndex) + ":" + villagerUUID + ":" + dialogueId;
-            String actionId = actionIds != null && i < actionIds.size() ? actionIds.get(i) : null;
+            int actionIndex = i + firstResponseIndex;
+            String actionId = actionIds != null && actionIndex < actionIds.size() ? actionIds.get(actionIndex) : null;
             String accent = accentFor(actionId);
             String icon = iconFor(actionId);
 

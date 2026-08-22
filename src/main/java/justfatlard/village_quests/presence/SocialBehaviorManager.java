@@ -5,6 +5,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import justfatlard.village_quests.Village;
 import justfatlard.village_quests.VillageQuests;
+import justfatlard.village_quests.quest.DeepQuestDialogues;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -22,8 +23,11 @@ import net.minecraft.world.phys.Vec3;
 public class SocialBehaviorManager {
    private static final Map<UUID, Long> LAST_GREETING = new ConcurrentHashMap<>();
    private static final Map<UUID, Long> LAST_CHILD_WAVE = new ConcurrentHashMap<>();
+   private static final Map<UUID, Long> LAST_OVERHEARD = new ConcurrentHashMap<>();
    private static final long GREETING_COOLDOWN = 24000L;
    private static final long CHILD_WAVE_COOLDOWN = 12000L;
+   private static final long OVERHEARD_COOLDOWN = 12000L;
+   private static final float OVERHEARD_CHANCE = 0.15F;
    private static final double GREETING_DISTANCE = 8.0;
    private static final double WAVE_DISTANCE = 16.0;
    private static final double FLEE_DISTANCE = 10.0;
@@ -59,6 +63,27 @@ public class SocialBehaviorManager {
          if (reputation < -30) {
             processGolemHostility(player, world, playerPos);
          }
+
+         tryOverheardFragment(player, world);
+      }
+   }
+
+   private static void tryOverheardFragment(ServerPlayer player, ServerLevel world) {
+      UUID playerId = player.getUUID();
+      long now = world.getGameTime();
+      Long last = LAST_OVERHEARD.get(playerId);
+      if (last != null && now - last < OVERHEARD_COOLDOWN) {
+         return;
+      }
+
+      if (player.getRandom().nextFloat() >= OVERHEARD_CHANCE) {
+         return;
+      }
+
+      Component fragment = DeepQuestDialogues.getOverheardMemoryFragment(player, world);
+      if (fragment != null) {
+         LAST_OVERHEARD.put(playerId, now);
+         player.sendSystemMessage(fragment, false);
       }
    }
 
@@ -157,11 +182,13 @@ public class SocialBehaviorManager {
    public static void cleanup(long currentWorldTime) {
       LAST_GREETING.entrySet().removeIf(entry -> currentWorldTime - entry.getValue() > 48000L);
       LAST_CHILD_WAVE.entrySet().removeIf(entry -> currentWorldTime - entry.getValue() > 24000L);
+      LAST_OVERHEARD.entrySet().removeIf(entry -> currentWorldTime - entry.getValue() > 24000L);
    }
 
    public static void onServerStopping() {
       LAST_GREETING.clear();
       LAST_CHILD_WAVE.clear();
+      LAST_OVERHEARD.clear();
    }
 
 

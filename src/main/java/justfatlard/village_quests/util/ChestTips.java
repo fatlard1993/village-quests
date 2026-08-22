@@ -19,6 +19,12 @@ public final class ChestTips {
 	private ChestTips() {}
 
 	public static void register() {
+		// The village bar sits where block-tip's card sits. Nothing central lists boss bars, so the
+		// mod that put one there is the only thing that can say it is there, and a card that never
+		// asked landed on top of the bar for everybody standing in a village.
+		BlockTipApi.bossBarCheck(player ->
+			VillageQuests.getBossBarManager() != null && VillageQuests.getBossBarManager().isShowing(player));
+
 		BlockTipApi.describe((level, pos, state, player) -> {
 			if (!(level instanceof ServerLevel serverLevel)) return null;
 			if (VillageQuests.getVillageManager() == null) return null;

@@ -71,6 +71,7 @@ public class VillagerMemory {
          case APPRENTICE_STARTED:
          case APPRENTICE_PRACTICING:
          case APPRENTICE_GRADUATED:
+         case TAUGHT_THEIR_CRAFT:
          case SECRET_KEPT:
          case SECRET_REVEALED:
          default:
@@ -309,6 +310,11 @@ public class VillagerMemory {
                   result = isFadingMemory(villagerUuid, VillagerMemory.MemoryType.TAUGHT_SAFELY)
                      ? "You showed my kid the safe way. I still think about that."
                      : "My kid talks about you. About the campfire. About doing it the right way.";
+               } else if (memories.contains(VillagerMemory.MemoryType.TAUGHT_THEIR_CRAFT)) {
+                  referencedMemory = VillagerMemory.MemoryType.TAUGHT_THEIR_CRAFT;
+                  result = isFadingMemory(villagerUuid, VillagerMemory.MemoryType.TAUGHT_THEIR_CRAFT)
+                     ? "I taught you this once. I've lost track of when."
+                     : "*glances at the stand* Force of habit. I still look to see what you're brewing.";
                } else if (memories.contains(VillagerMemory.MemoryType.FED_THE_HUNGRY)) {
                   referencedMemory = VillagerMemory.MemoryType.FED_THE_HUNGRY;
                   result = isFadingMemory(villagerUuid, VillagerMemory.MemoryType.FED_THE_HUNGRY)
@@ -795,6 +801,7 @@ public class VillagerMemory {
       APPRENTICE_STARTED("apprentice_started"),
       APPRENTICE_PRACTICING("apprentice_practicing"),
       APPRENTICE_GRADUATED("apprentice_graduated"),
+      TAUGHT_THEIR_CRAFT("taught_their_craft"),
       CARETAKING_RECEIVED("caretaking_received"),
       GIFT_RECEIVED("gift_received"),
       SECRET_KEPT("secret_kept"),

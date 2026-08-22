@@ -40,6 +40,17 @@ public class VillageBossBarManager {
       }
    }
 
+   /**
+    * Whether this player has the village bar on screen right now.
+    *
+    * <p>Asked by block-tip, which draws its card in the same strip of screen the bar occupies and
+    * has no other way to find out: a boss bar is a field inside whatever owns it, and this one is
+    * ours. Cheap on purpose - it is asked on a look tick.
+    */
+   public boolean isShowing(ServerPlayer player) {
+      return this.playerBossBars.containsKey(player.getUUID());
+   }
+
    public void markPlayerLeftVillage(ServerPlayer player, long currentTick) {
       UUID playerUuid = player.getUUID();
       // Single get avoids TOCTOU between containsKey and putIfAbsent on separate maps.

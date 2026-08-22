@@ -9,6 +9,8 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.Filterable;
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+import net.minecraft.network.protocol.game.ClientboundOpenBookPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -49,10 +51,37 @@ public final class QuestBook {
 		book.set(DataComponents.WRITTEN_BOOK_CONTENT, new WrittenBookContent(
 			Filterable.passThrough("Your Word"), player.getName().getString(), 0, pages, true));
 
-		// The book is handed straight to the reader and never to the inventory, so
-		// there is nothing to drop, lose, or accidentally put in a chest.
-		player.openItemGui(book, InteractionHand.MAIN_HAND);
+		show(player, book);
 	}
+
+	/**
+	 * Put the book in front of the reader without it ever being theirs.
+	 *
+	 * <p>{@code openItemGui} looks like it takes the book to open, and does not: the packet it sends
+	 * carries the hand and nothing else, so the client opens whatever it believes is held. Handing
+	 * it a book that lives nowhere meant the client looked at a pickaxe and did nothing at all,
+	 * which is why the command and the key both appeared dead.
+	 *
+	 * <p>So the client is told, for one instant, that the held slot contains this book. The open
+	 * lands while it believes that, and the real item is put straight back. Every one of these is a
+	 * packet to one player: the server's own inventory is never touched, so there is nothing here
+	 * that can be dropped, stored, or lost if the connection dies mid-sequence.
+	 */
+	private static void show(ServerPlayer player, ItemStack book) {
+		int hotbar = player.getInventory().getSelectedSlot();
+		// The player inventory menu numbers the hotbar from 36.
+		int slot = HOTBAR_SLOT_ZERO + hotbar;
+		ItemStack held = player.getInventory().getItem(hotbar);
+
+		player.connection.send(new ClientboundContainerSetSlotPacket(
+			player.inventoryMenu.containerId, player.inventoryMenu.incrementStateId(), slot, book));
+		player.connection.send(new ClientboundOpenBookPacket(InteractionHand.MAIN_HAND));
+		player.connection.send(new ClientboundContainerSetSlotPacket(
+			player.inventoryMenu.containerId, player.inventoryMenu.incrementStateId(), slot, held));
+	}
+
+	/** Where the hotbar starts in the player inventory menu's slot numbering. */
+	private static final int HOTBAR_SLOT_ZERO = 36;
 
 	private static Component page(VillagerQuest quest) {
 		Component who = Component.literal(quest.getRequesterName())

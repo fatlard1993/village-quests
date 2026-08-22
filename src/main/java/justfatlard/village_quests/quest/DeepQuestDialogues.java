@@ -439,122 +439,68 @@ public class DeepQuestDialogues {
       }
    }
 
-   public static Component getOverheardDialogue(ServerPlayer player, Village village, ServerLevel world) {
-      if (player != null && world != null) {
-         ThreadLocalRandom rng = ThreadLocalRandom.current();
-         if (rng.nextDouble() >= 0.03) {
-            return null;
-         } else {
-            List<Villager> nearbyVillagers = world.getEntities(EntityTypeTest.forClass(Villager.class), new AABB(player.blockPosition()).inflate(16.0), v -> !v.isBaby());
-            if (nearbyVillagers.size() < 2) {
-               return null;
-            } else {
-               String name1 = null;
-               String name2 = null;
-
-               for (int i = 0; i < nearbyVillagers.size() - 1; i++) {
-                  for (int j = i + 1; j < nearbyVillagers.size(); j++) {
-                     Villager v1 = nearbyVillagers.get(i);
-                     Villager v2 = nearbyVillagers.get(j);
-                     if (v1.distanceToSqr(v2) <= 64.0) {
-                        name1 = VillageQuests.getNameManager().getName(v1);
-                        name2 = VillageQuests.getNameManager().getName(v2);
-                        break;
-                     }
-                  }
-
-                  if (name1 != null) {
-                     break;
-                  }
-               }
-
-               if (name1 == null) {
-                  return null;
-               } else {
-                  int reputation = 0;
-                  if (village != null) {
-                     reputation = VillageQuests.getReputationManager().getReputation(player, village);
-                  }
-
-                  String fragment = null;
-                  Set<VillagerMemory.MemoryType> playerMemories = collectNearbyMemories(nearbyVillagers);
-                  if ((playerMemories.contains(VillagerMemory.MemoryType.GOLEM_LOST) || playerMemories.contains(VillagerMemory.MemoryType.LIFE_SAVED))
-                     && rng.nextDouble() < 0.3) {
-                     String[] memorialFragments = new String[]{
-                        name1 + ": '...saw them at the marker this morning.' " + name2 + ": '...*quiet*'",
-                        name1 + ": '...someone left flowers again.' " + name2 + ": 'I know. I saw.'",
-                        name1 + ": '...the spot looks different now.' " + name2 + ": 'Better. It looks better.'"
-                     };
-                     fragment = memorialFragments[rng.nextInt(memorialFragments.length)];
-                  }
-
-                  if (fragment == null
-                     && (
-                        playerMemories.contains(VillagerMemory.MemoryType.VIOLENCE_REFUSED)
-                           || playerMemories.contains(VillagerMemory.MemoryType.SABOTAGE_REFUSED)
-                           || playerMemories.contains(VillagerMemory.MemoryType.THEFT_REFUSED)
-                     )
-                     && rng.nextDouble() < 0.25) {
-                     String[] refusalFragments = new String[]{
-                        name1 + ": '...said no. Just like that.' " + name2 + ": 'Good.'",
-                        name1 + ": '...wouldn't do it.' " + name2 + ": 'I heard. Takes spine.'",
-                        name1 + ": '...someone actually said no to that.' " + name2 + ": 'About time.'"
-                     };
-                     fragment = refusalFragments[rng.nextInt(refusalFragments.length)];
-                  }
-
-                  if (fragment == null && playerMemories.contains(VillagerMemory.MemoryType.VULNERABILITY_HANGOVER) && rng.nextDouble() < 0.25) {
-                     String[] deepFragments = new String[]{
-                        name1 + ": '...seems different lately.' " + name2 + ": 'I heard someone talked to them. Really talked.'",
-                        name1 + ": '...quieter than usual.' " + name2 + ": 'Something happened. I don't ask.'",
-                        name1 + ": '...won't look anyone in the eye.' " + name2 + ": 'Give it a few days.'"
-                     };
-                     fragment = deepFragments[rng.nextInt(deepFragments.length)];
-                  }
-
-                  if (fragment == null) {
-                     if (reputation < 10) {
-                        String[] negativeFragments = new String[]{
-                           name1 + ": '...I don't like it.' " + name2 + ": 'Give it time.' " + name1 + ": 'I've given enough time.'",
-                           name1 + ": '...broke a promise.' " + name2 + ": 'I heard.'",
-                           name1 + ": '...I keep my distance.' " + name2 + ": 'Smart.'"
-                        };
-                        fragment = negativeFragments[rng.nextInt(negativeFragments.length)];
-                     } else if (reputation < 25) {
-                        String[] lowFragments = new String[]{
-                           name1 + ": '...the new one? I don't know yet.' " + name2 + ": 'Give them time.'",
-                           name1 + ": '...keeps showing up.' " + name2 + ": 'That's more than most do.'",
-                           name1 + ": '...still here.' " + name2 + ": 'Huh. Didn't expect that.'",
-                           name1 + ": '...asked me something today.' " + name2 + ": 'What'd you say?' " + name1 + ": 'I said fine.'"
-                        };
-                        fragment = lowFragments[rng.nextInt(lowFragments.length)];
-                     } else if (reputation < 75) {
-                        String[] mediumFragments = new String[]{
-                           name1 + ": '...been helping with the fields.' " + name2 + ": 'I noticed.'",
-                           name1 + ": '...reliable, at least.' " + name2 + ": '*nods* At least.'",
-                           name1 + ": '...asked about the fence. Nobody asks about the fence.'"
-                        };
-                        fragment = mediumFragments[rng.nextInt(mediumFragments.length)];
-                     } else {
-                        String[] highFragments = new String[]{
-                           name1 + ": '...I trust them.' " + name2 + ": '...I know you do.'",
-                           name1 + ": '...been in a better mood since they started helping.' " + name2 + ": 'Yeah, well. Good.'",
-                           name1 + ": '...my kid won't stop talking about them.' " + name2 + ": '*laughs quietly*'"
-                        };
-                        fragment = highFragments[rng.nextInt(highFragments.length)];
-                     }
-                  }
-
-                  return fragment == null
-                     ? null
-                     : Component.literal("You overhear: " + fragment)
-                        .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC});
-               }
-            }
-         }
-      } else {
+   public static Component getOverheardMemoryFragment(ServerPlayer player, ServerLevel world) {
+      if (player == null || world == null) {
          return null;
       }
+
+      List<Villager> nearby = world.getEntities(
+         EntityTypeTest.forClass(Villager.class), new AABB(player.blockPosition()).inflate(16.0), v -> !v.isBaby()
+      );
+      if (nearby.size() < 2) {
+         return null;
+      }
+
+      Villager speaker = null;
+      Villager listener = null;
+
+      outer:
+      for (int i = 0; i < nearby.size() - 1; i++) {
+         for (int j = i + 1; j < nearby.size(); j++) {
+            if (nearby.get(i).distanceToSqr(nearby.get(j)) <= 64.0) {
+               speaker = nearby.get(i);
+               listener = nearby.get(j);
+               break outer;
+            }
+         }
+      }
+
+      if (speaker == null) {
+         return null;
+      }
+
+      Set<VillagerMemory.MemoryType> memories = collectNearbyMemories(nearby);
+      String name1 = VillageQuests.getNameManager().getName(speaker);
+      String name2 = VillageQuests.getNameManager().getName(listener);
+      List<String> pool = new ArrayList<>();
+
+      if (memories.contains(VillagerMemory.MemoryType.GOLEM_LOST) || memories.contains(VillagerMemory.MemoryType.LIFE_SAVED)) {
+         pool.add(name1 + ": '...saw them at the marker this morning.' " + name2 + ": '...*quiet*'");
+         pool.add(name1 + ": '...someone left flowers again.' " + name2 + ": 'I know. I saw.'");
+         pool.add(name1 + ": '...the spot looks different now.' " + name2 + ": 'Better. It looks better.'");
+      }
+
+      if (memories.contains(VillagerMemory.MemoryType.VIOLENCE_REFUSED)
+         || memories.contains(VillagerMemory.MemoryType.SABOTAGE_REFUSED)
+         || memories.contains(VillagerMemory.MemoryType.THEFT_REFUSED)) {
+         pool.add(name1 + ": '...said no. Just like that.' " + name2 + ": 'Good.'");
+         pool.add(name1 + ": '...wouldn't do it.' " + name2 + ": 'I heard. Takes spine.'");
+         pool.add(name1 + ": '...someone actually said no to that.' " + name2 + ": 'About time.'");
+      }
+
+      if (memories.contains(VillagerMemory.MemoryType.VULNERABILITY_HANGOVER)) {
+         pool.add(name1 + ": '...seems different lately.' " + name2 + ": 'I heard someone talked to them. Really talked.'");
+         pool.add(name1 + ": '...quieter than usual.' " + name2 + ": 'Something happened. I don't ask.'");
+         pool.add(name1 + ": '...won't look anyone in the eye.' " + name2 + ": 'Give it a few days.'");
+      }
+
+      if (pool.isEmpty()) {
+         return null;
+      }
+
+      String fragment = pool.get(ThreadLocalRandom.current().nextInt(pool.size()));
+      return Component.literal("You overhear: " + fragment)
+         .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC});
    }
 
    private static Set<VillagerMemory.MemoryType> collectNearbyMemories(List<Villager> villagers) {

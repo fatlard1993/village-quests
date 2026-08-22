@@ -229,6 +229,20 @@ public abstract class VillagerQuest {
          }
       }
 
+      // A lesson already begun outranks the rolls below it. The mentor is
+      // expecting the player back, and a half-taught craft that only advances
+      // when a probability lands reads as the teacher losing interest.
+      if (playerId != null && villager.level() instanceof ServerLevel lessonWorld) {
+         Identifier lessonProfId = BuiltInRegistries.VILLAGER_PROFESSION
+            .getKey((VillagerProfession)villager.getVillagerData().profession().value());
+         VillagerQuest lesson = LessonQuest.tryCreate(
+            villager, villagerName, lessonProfId != null ? lessonProfId.getPath() : "none",
+            lessonWorld, playerId, reputation, random);
+         if (lesson != null) {
+            return lesson;
+         }
+      }
+
       Village uniquenessVillage = null;
       if (villager.level() instanceof ServerLevel sw) {
          uniquenessVillage = VillageQuests.getVillageManager().findNearestVillage(sw, villager.blockPosition());
@@ -848,7 +862,14 @@ public abstract class VillagerQuest {
          Villager redirectTarget = findNearbyVillagerTarget(redirectWorld, villager);
          if (redirectTarget != null) {
             String targetName = VillageQuests.getNameManager().getName(redirectTarget);
-            return new RedirectQuest(villagerName, villager.getUUID(), targetName, redirectTarget.getUUID());
+            // Their trade travels with the name, because that is what the player has to look for:
+            // "around somewhere" is not somewhere, and a name is not a face.
+            Identifier targetProfId = BuiltInRegistries.VILLAGER_PROFESSION.getKey(
+               redirectTarget.getVillagerData().profession().value());
+            String targetTrade = targetProfId == null || "none".equals(targetProfId.getPath())
+               ? null : targetProfId.getPath().replace('_', ' ');
+            return new RedirectQuest(villagerName, villager.getUUID(), targetName,
+               redirectTarget.getUUID(), targetTrade);
          }
       }
 
