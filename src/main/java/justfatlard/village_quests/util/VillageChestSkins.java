@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import justfatlard.pandorical.api.PandoricalApi;
+import justfatlard.village_quests.VillageQuests;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -40,7 +41,7 @@ public final class VillageChestSkins {
 	 * they need no registration.
 	 */
 	private static final Identifier TEXTURE =
-		Identifier.fromNamespaceAndPath("pandorical", "entity/chest/village");
+		Identifier.fromNamespaceAndPath(VillageQuests.MOD_ID, "entity/chest/village");
 
 	/** Chests found during chunk loading, waiting for a tick that can safely act. */
 	private static final Map<ResourceKey<Level>, Set<BlockPos>> pending = new HashMap<>();
