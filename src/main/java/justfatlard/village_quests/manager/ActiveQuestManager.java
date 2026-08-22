@@ -228,6 +228,9 @@ public class ActiveQuestManager {
          }
 
          PresenceTracker.recordQuestInteraction(player, villageCenter);
+         // Every kind of quest reaches completion through here, so this is the one place the
+         // advancement has to be told about.
+         VillageQuests.QUEST_COMPLETE.trigger(player);
          quest.onComplete(player);
          if (quest.isGracefulFailure()) {
             String aftermathText = quest.getFailureAftermathText();

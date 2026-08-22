@@ -1,0 +1,17 @@
+{
+  "display": {
+    "icon": {
+      "id": "minecraft:written_book"
+    },
+    "title": "Somebody's Errand",
+    "description": "Do what a villager actually asked of you",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "finished_one": {
+      "trigger": "village-quests-justfatlard:quest_complete"
+    }
+  },
+  "parent": "justfatlard:village/root"
+}
