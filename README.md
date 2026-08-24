@@ -42,7 +42,7 @@ External mods extend Village Quests through two registries in `justfatlard.villa
 
 ### Optional: `village-mail` Companion Mod
 
-Village Quests integrates with the separate [village-mail](https://github.com/justfatlard/village-mail) mod for delivering letters. When installed, players receive:
+Village Quests integrates with the separate [village-mail](https://github.com/fatlard1993/village-mail) mod for delivering letters. When installed, players receive:
 - Thank-you letters after misnomer quest refusals (delayed 1-3 days)
 - Quest completion aftermath letters
 - Gathering invitations
