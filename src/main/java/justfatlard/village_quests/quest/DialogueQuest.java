@@ -315,7 +315,7 @@ public class DialogueQuest extends VillagerQuest {
                String[] closings = new String[]{
                   "*sits with it* They said they'd talk. That's more than I hoped for.",
                   "Willing but not yet. ...I can work with that.",
-                  "You heard both sides. You tell me — is there a way through this?",
+                  "You heard both sides. *quiet* Maybe there is a way through this after all.",
                   "Fair enough."
                };
                yield this.requesterName + ": What did they say?... \"" + this.deliveryReaction + "\" " + closings[rng.nextInt(closings.length)];
@@ -409,7 +409,7 @@ public class DialogueQuest extends VillagerQuest {
                "*long pause* ...Tell them I heard them.",
                "It's not enough. But it's a start.",
                "*nods slowly* I needed to hear that. Even secondhand.",
-               "*looks away* ...It took them this long?",
+               "*looks away* ...It took them long enough. But it came.",
                "I know it wasn't easy to say. Tell them I know that."
             };
             yield reactions[rng.nextInt(reactions.length)];
@@ -432,7 +432,7 @@ public class DialogueQuest extends VillagerQuest {
          }
          case GATHER_GOSSIP -> {
             String[] reactions = new String[]{
-               "*leans in* Really? Tell me everything.",
+               "*leans in* Really? *sits back* Well. That explains a few things.",
                "I knew it. I just knew it.",
                "*looks around first* That's more than I expected. Keep this between us."
             };
@@ -449,7 +449,7 @@ public class DialogueQuest extends VillagerQuest {
          case DELIVER_ITEM -> {
             String[] reactions = new String[]{
                "*takes it carefully* Oh. This is... tell them thank you.",
-               "*turns it over in their hands* They made this? For me?",
+               "*turns it over in their hands* They made this. For me.",
                "*holds it for a moment* ...I didn't expect this today.",
                "*quiet* It's still warm.",
                "I was wondering when this would arrive. *almost smiles*"

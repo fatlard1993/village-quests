@@ -8,13 +8,25 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import justfatlard.village_quests.util.VillagerVoice;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
 
 class LightTownQuest extends CreationQuest {
+   /** How many new lights the village is asking for. Countable, and few enough to carry. */
+   private static final int TORCHES_WANTED = 12;
+
+   /** Handed over on accept, with spares: a task nobody can start is not a task. */
+   private static final int TORCHES_GIVEN = 16;
+
    private final BlockPos villageCenter;
    private final int villageRadius = 48;
-   private final int minLightLevel = 8;
    private final String biome;
+
+   /** Lights already standing when the job was offered, so only new ones count. */
+   private int lightsAtOffer = -1;
 
    public LightTownQuest(String requesterName, UUID villagerUuid, BlockPos villageCenter, String biome) {
       super(CreationQuest.CreationType.LIGHT_TOWN, requesterName, villagerUuid, 10);
@@ -75,38 +87,79 @@ class LightTownQuest extends CreationQuest {
 
    @Override
    public String getObjective() {
-      return "people are afraid to walk at night — the village needs light";
+      return "Put up " + TORCHES_WANTED + " torches around the village";
+   }
+
+   /**
+    * Torches in hand and a number to reach.
+    *
+    * <p>This used to say "the village needs light" and mean it literally: a quarter of a
+    * ninety-six block square had to read light level eight, measured only after dark. A player
+    * who did not own torches could not start, a player who did had no idea how many, and a
+    * player who finished had to still be standing there at midnight to be told. Handing over the
+    * torches and counting them is the same job with all three of those removed.
+    */
+   @Override
+   public void onAccept(ServerPlayer player) {
+      this.lightsAtOffer = countLights(player);
+      if (!player.getInventory().add(new ItemStack(Items.TORCH, TORCHES_GIVEN))) {
+         player.drop(new ItemStack(Items.TORCH, TORCHES_GIVEN), false,
+            net.minecraft.util.Prediction.SERVER_ONLY);
+      }
    }
 
    @Override
-   public boolean checkCompletion(ServerPlayer player) {
-      ServerLevel timeOfDay = player.level();
-      if (!(timeOfDay instanceof ServerLevel)) {
-         return false;
-      } else {
-         ServerLevel world = timeOfDay;
-         long timeOfDayx = timeOfDay.getOverworldClockTime() % 24000L;
-         if (timeOfDayx >= 12000L && timeOfDayx <= 23000L) {
-            int darkSpots = 0;
-            int samples = 0;
+   public String getProgressHint(ServerPlayer player) {
+      int placed = placedSoFar(player);
+      if (placed >= TORCHES_WANTED) return "That should be enough. Go and tell them.";
+      return placed + " of " + TORCHES_WANTED + " up so far.";
+   }
 
-            for (int x = -48; x <= 48; x += 4) {
-               for (int z = -48; z <= 48; z += 4) {
-                  BlockPos groundPos = world.getHeightmapPos(Types.MOTION_BLOCKING, this.villageCenter.offset(x, 0, z));
-                  int lightLevel = world.getMaxLocalRawBrightness(groundPos);
-                  if (lightLevel < 8) {
-                     darkSpots++;
-                  }
+   private int placedSoFar(ServerPlayer player) {
+      if (this.lightsAtOffer < 0) return 0;
+      return Math.max(0, countLights(player) - this.lightsAtOffer);
+   }
 
-                  samples++;
+   /**
+    * Every torch standing in the village, counted directly.
+    *
+    * <p>The block, not the light level. A light-level sample says whether somewhere is bright,
+    * which is a fine thing to want and a miserable thing to be graded on: it changes with the
+    * sun, with a passing cloud of leaves, with a door left open. A torch is either up or it is
+    * not, and the player put it there.
+    */
+   private int countLights(ServerPlayer player) {
+      if (!(player.level() instanceof ServerLevel world)) return 0;
+
+      int found = 0;
+      BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+      for (int x = -villageRadius; x <= villageRadius; x++) {
+         for (int z = -villageRadius; z <= villageRadius; z++) {
+            BlockPos ground = world.getHeightmapPos(Types.MOTION_BLOCKING,
+               this.villageCenter.offset(x, 0, z));
+            // The heightmap lands on the torch itself where one is standing, and just above the
+            // ground where none is, so a single look up and down catches both.
+            for (int dy = -1; dy <= 1; dy++) {
+               BlockState state = world.getBlockState(cursor.setWithOffset(ground, 0, dy, 0));
+               if (state.is(Blocks.TORCH) || state.is(Blocks.WALL_TORCH)
+                  || state.is(Blocks.LANTERN) || state.is(Blocks.SOUL_TORCH)
+                  || state.is(Blocks.SOUL_WALL_TORCH) || state.is(Blocks.SOUL_LANTERN)) {
+                  found++;
+                  break;
                }
             }
-
-            return darkSpots < samples / 4;
-         } else {
-            return false;
          }
       }
+      return found;
+   }
+
+   /**
+    * Countable, and at any hour. The old check only answered between dusk and dawn, so a player
+    * who finished the work in the morning was told nothing and had to come back at night.
+    */
+   @Override
+   public boolean checkCompletion(ServerPlayer player) {
+      return placedSoFar(player) >= TORCHES_WANTED;
    }
 
    @Override

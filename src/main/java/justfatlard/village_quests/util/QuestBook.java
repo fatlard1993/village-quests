@@ -34,6 +34,9 @@ public final class QuestBook {
 	/** Roughly a page of the vanilla book at default width before it starts scrolling. */
 	private static final int PAGE_LINE_BUDGET = 14;
 
+	/** Characters that fit on one, at about nineteen to a line. */
+	private static final int PAGE_BUDGET = PAGE_LINE_BUDGET * 19;
+
 	public static void open(ServerPlayer player) {
 		List<VillagerQuest> carrying = ActiveQuestManager.getActiveQuests(player);
 
@@ -43,7 +46,9 @@ public final class QuestBook {
 				.withStyle(ChatFormatting.DARK_GRAY)));
 		} else {
 			for (VillagerQuest quest : carrying) {
-				pages.add(Filterable.passThrough(page(quest)));
+				for (Component leaf : pagesFor(quest)) {
+					pages.add(Filterable.passThrough(leaf));
+				}
 			}
 		}
 
@@ -83,26 +88,51 @@ public final class QuestBook {
 	/** Where the hotbar starts in the player inventory menu's slot numbering. */
 	private static final int HOTBAR_SLOT_ZERO = 36;
 
-	private static Component page(VillagerQuest quest) {
-		Component who = Component.literal(quest.getRequesterName())
-			.withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.BOLD);
-
-		net.minecraft.network.chat.MutableComponent out = Component.empty()
-			.append(who)
-			.append(Component.literal("\n\n"));
-
-		// What they said, then what you are meant to do about it. The second half is
-		// the one that changes as you make progress, so it is the half worth ink.
-		out.append(Component.literal(trim(stripSpeaker(quest.getDescription(), quest.getRequesterName())))
-			.withStyle(ChatFormatting.DARK_GRAY));
+	/**
+	 * One quest, across as many leaves as it takes.
+	 *
+	 * <p>It used to be one quest, one page, and anything longer was cut at two hundred and
+	 * sixty-six characters with an ellipsis - which for a talkative villager meant the objective
+	 * fell off the end entirely, and the one line that says what to do was the line you never
+	 * got to read. A book has pages; it may as well use them.
+	 *
+	 * <p>The heading goes on the first leaf only. A name repeated at the top of every page of the
+	 * same letter reads like three letters from the same person.
+	 */
+	private static List<Component> pagesFor(VillagerQuest quest) {
+		String body = stripSpeaker(quest.getDescription(), quest.getRequesterName());
 
 		String objective = quest.getObjective();
-		if (objective != null && !objective.isBlank()) {
-			out.append(Component.literal("\n\n"))
-				.append(Component.literal(objective).withStyle(ChatFormatting.BLACK));
-		}
+		boolean hasObjective = objective != null && !objective.isBlank();
 
-		return out;
+		List<Component> leaves = new ArrayList<>();
+		List<String> chunks = split(body, PAGE_BUDGET - headingCost(quest));
+
+		for (int i = 0; i < chunks.size(); i++) {
+			net.minecraft.network.chat.MutableComponent out = Component.empty();
+			if (i == 0) {
+				out.append(Component.literal(quest.getRequesterName())
+						.withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.BOLD))
+					.append(Component.literal("\n\n"));
+			}
+			out.append(Component.literal(chunks.get(i)).withStyle(ChatFormatting.DARK_GRAY));
+
+			// The objective rides the last leaf, where the reader ends up: it is the half that
+			// changes as you make progress, and the half worth the ink.
+			if (hasObjective && i == chunks.size() - 1) {
+				out.append(Component.literal("\n\n"))
+					.append(Component.literal(objective).withStyle(ChatFormatting.BLACK));
+			}
+			leaves.add(out);
+		}
+		return leaves;
+	}
+
+	/** Room the heading and the objective take out of the first and last leaves. */
+	private static int headingCost(VillagerQuest quest) {
+		String objective = quest.getObjective();
+		return quest.getRequesterName().length() + 2
+			+ (objective == null ? 0 : objective.length() + 2);
 	}
 
 	/**
@@ -119,9 +149,30 @@ public final class QuestBook {
 		return text;
 	}
 
-	/** A page that overflows is a page nobody can read the end of. */
-	private static String trim(String text) {
-		int budget = PAGE_LINE_BUDGET * 19;
-		return text.length() <= budget ? text : text.substring(0, budget - 1) + "…";
+	/**
+	 * Break text into page-sized pieces without cutting a word in half.
+	 *
+	 * <p>Breaks at a blank line where there is one within reach, because a paragraph is where a
+	 * reader expects a page to end; failing that at a space; and only failing both does it cut,
+	 * which takes a word longer than a whole page to provoke.
+	 */
+	private static List<String> split(String text, int budget) {
+		List<String> chunks = new ArrayList<>();
+		String rest = text.trim();
+		int room = Math.max(64, budget);
+
+		while (rest.length() > room) {
+			int cut = rest.lastIndexOf("\n\n", room);
+			if (cut < room / 2) cut = rest.lastIndexOf(' ', room);
+			if (cut < room / 2) cut = room;
+
+			chunks.add(rest.substring(0, cut).trim());
+			rest = rest.substring(cut).trim();
+
+			// Only the first leaf pays for the heading; the rest get the whole page.
+			room = Math.max(64, PAGE_BUDGET);
+		}
+		chunks.add(rest);
+		return chunks;
 	}
 }
