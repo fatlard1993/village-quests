@@ -136,7 +136,7 @@ public class MissingTraderCampQuest extends VillagerQuest {
         campPos = new BlockPos(targetX, surfaceY, targetZ);
 
         // Try to place structure template
-        StructureTemplateManager templateManager = world.getStructureManager();
+        StructureTemplateManager templateManager = world.getStructureTemplateManager();
         Identifier templateId = Identifier.fromNamespaceAndPath("minecraft", "abandoned_camp/camp/forest/campsite_forest_1");
         Optional<StructureTemplate> templateOpt = templateManager.get(templateId);
         if (templateOpt.isPresent()) {
