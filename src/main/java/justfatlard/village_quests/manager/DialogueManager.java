@@ -2251,12 +2251,28 @@ public class DialogueManager {
             if (customIndex >= 0 && customIndex < customIds.size()) {
                String optionId = customIds.get(customIndex);
                Component response = DialogueRegistry.handleDialogueOption(villager, player, optionId);
-               if (response != null) {
-                  player.sendSystemMessage(response, false);
-               }
-
                this.customDialogueOptions.remove(player.getUUID());
-               DialogueStateManager.endDialogue(villager.getUUID());
+
+               // Answered in the conversation, not shouted into chat behind it.
+               //
+               // Every option a mod registers came through here - "Any mail for me?", the
+               // batbox, the garden - and every one of them printed its reply to chat and hung
+               // up. You asked a villager a question, the screen vanished, and the answer
+               // turned up in the corner as though somebody else had said it. Mod options are
+               // the same kind of thing as the built-in ones and now end the same way: the
+               // reply on the villager's own screen, with a way to close it.
+               //
+               // The reply is not a registered dialogue, which is deliberate and safe: the
+               // response handler treats an unknown id as "nothing more here" and closes
+               // cleanly, which is exactly what its one button should do.
+               if (response != null) {
+                  this.sendDialogue(player, villager,
+                     new Dialogue("custom_option_reply", response.getString(), -999, 999,
+                        Dialogue.DialogueType.IDLE_CHAT)
+                        .addResponse(new Dialogue.DialogueResponse("I see.", 0)));
+               } else {
+                  DialogueStateManager.endDialogue(villager.getUUID());
+               }
             }
          } else {
             List<Dialogue.DialogueResponse> responses = dialogue.getResponses();
