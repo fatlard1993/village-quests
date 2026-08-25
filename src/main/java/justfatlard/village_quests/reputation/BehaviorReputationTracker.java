@@ -64,16 +64,10 @@ public class BehaviorReputationTracker {
                   int bonus = Math.min(3, recentNights);
                   VillageQuests.getReputationManager().modifyReputation(player, village, bonus);
                   RecentActionsMemory.recordAction(player, RecentActionsMemory.ActionType.SURVIVED_NIGHT, villageCenter, null);
-                  String[] overnightMessages = new String[]{
-                     "Morning light through the window. You slept here.",
-                     "The village wakes around you.",
-                     "Another night. The bed wasn't yours, but it held.",
-                     "You're still here. That's something.",
-                     "Dawn."
-                  };
-                  Component message = Component.literal(overnightMessages[ThreadLocalRandom.current().nextInt(overnightMessages.length)])
-                     .withStyle(ChatFormatting.GRAY);
-                  player.sendSystemMessage(message, true);
+                  // Said nothing, every morning. The standing still goes up and the village
+                  // still remembers you stayed; what went is a line of scenery that fired on a
+                  // timer, told the player neither of those things, and was the only thing in
+                  // this file that spoke without having something to report.
                }
             }
          }
