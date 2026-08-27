@@ -26,6 +26,9 @@
 		"pandorical": "*"
 	},
 	"suggests": {
-		"block-tip": "*"
+		"block-tip": "*",
+		"herobrine": "*",
+		"village-builder": "*",
+		"village-mail": "*"
 	}
 }
