@@ -18,7 +18,12 @@ public class JobBlockHelper {
       Blocks.STONECUTTER,
       Blocks.LOOM,
       Blocks.SMITHING_TABLE,
-      Blocks.GRINDSTONE
+      Blocks.GRINDSTONE,
+      // A filled cauldron is a different block; the leatherworker's job site
+      // stays theirs whether it holds water, lava, or powder snow.
+      Blocks.WATER_CAULDRON,
+      Blocks.LAVA_CAULDRON,
+      Blocks.POWDER_SNOW_CAULDRON
    );
 
    public static boolean isJobBlock(Block block) {

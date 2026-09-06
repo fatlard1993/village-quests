@@ -46,6 +46,7 @@ import justfatlard.village_quests.util.JobBlockHelper;
 import justfatlard.village_quests.util.MessagePacer;
 import justfatlard.village_quests.util.VillageChestSkins;
 import justfatlard.village_quests.util.VillageContainers;
+import justfatlard.village_quests.util.ChestTheftWatch;
 import justfatlard.village_quests.util.VillageLootChests;
 import justfatlard.village_quests.util.ReputationHelper;
 import justfatlard.village_quests.util.ScheduledMessages;
@@ -110,10 +111,18 @@ public class VillageQuests implements ModInitializer {
    private static WorkRequestManager workRequestManager;
    private static final Map<String, Long> interactionCooldowns = new ConcurrentHashMap<>();
    private static final Map<UUID, Long> playerInteractionCooldowns = new ConcurrentHashMap<>();
-   private static final Map<String, Long> chestOpenCooldowns = new ConcurrentHashMap<>();
    private static final Map<String, Long> blockPlacementCooldowns = new ConcurrentHashMap<>();
    private static final Map<UUID, VillageQuests.CachedVillage> villageCenterCache = new ConcurrentHashMap<>();
    private static final Map<String, Long> survivedNightCooldowns = new ConcurrentHashMap<>();
+   // player:village -> last MC day VILLAGE_DEFENSE was credited (see AFTER_DEATH)
+   private static final Map<String, Long> villageDefenseCredits = new ConcurrentHashMap<>();
+   // The one village boundary. The boss bar showing the village's name and
+   // every consequence check (property damage, defense credit, golem kills,
+   // overnight stays) read this same number, so what the bar teaches - "you
+   // are in the village" - is exactly where actions count. It was 64 for the
+   // bar and 128 for consequences, which left a ring where the village
+   // watched without saying so.
+   public static final double VILLAGE_BOUNDS_RADIUS = 128.0;
    private static final long SURVIVED_NIGHT_COOLDOWN_TICKS = 72000L;
    private static final long VILLAGE_CENTER_CACHE_TTL_TICKS = 100L;
    private static final long PLAYER_DEDUP_COOLDOWN_MS = 500L;
@@ -177,6 +186,8 @@ public class VillageQuests implements ModInitializer {
       }
 
       VillageQuestsConfig.load();
+
+      if (justfatlard.pandorical.api.PandoricalApi.isAvailable()) VillageQuestsConfig.menu();
       nameManager = new VillagerNameManager();
       reputationManager = new ReputationManager();
       dialogueManager = new DialogueManager();
@@ -329,7 +340,14 @@ public class VillageQuests implements ModInitializer {
             (AfterDeath)(entity, source) -> {
                if (entity instanceof Villager villager && source.getEntity() instanceof ServerPlayer player) {
                   Village village = getCachedVillage(player);
-                  if (village != null) {
+                  // Bounds-gated like everything else now; this branch used to
+                  // charge at any distance to the nearest village.
+                  if (village != null && villager.blockPosition().closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
+                     // The one and only murder charge. The damage mixin used to
+                     // predict the kill from pre-mitigation damage and add a
+                     // second -25% on top of this one; death is the signal that
+                     // cannot lie, and this path carries the -30 floor that
+                     // keeps murder grave even for a stranger with no standing.
                      int currentRep = reputationManager.getReputation(player, village);
                      int penalty = ReputationHelper.calculatePercentagePenalty(
                         ReputationHelper.getPercentagePenalty("villager_kill"), currentRep, ReputationHelper.getMinimumPenalty("villager_kill")
@@ -346,7 +364,7 @@ public class VillageQuests implements ModInitializer {
                   justfatlard.village_quests.quest.LessonProgress.onMentorDeath(sw, deadVillager.getUUID());
                } else if (entity instanceof IronGolem golem && source.getEntity() instanceof ServerPlayer playerx) {
                   Village village = getCachedVillage(playerx);
-                  if (village != null && golem.blockPosition().closerThan(village.getCenter(), 128.0)) {
+                  if (village != null && golem.blockPosition().closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
                      int currentRep = reputationManager.getReputation(playerx, village);
                      int penalty = ReputationHelper.calculatePercentagePenalty(
                         ReputationHelper.getPercentagePenalty("iron_golem_kill"), currentRep, ReputationHelper.getMinimumPenalty("iron_golem_kill")
@@ -362,7 +380,7 @@ public class VillageQuests implements ModInitializer {
                   }
                } else if (entity instanceof Zombie zombie && source.getEntity() instanceof ServerPlayer playerxx) {
                   Village village = getCachedVillage(playerxx);
-                  if (village != null && zombie.blockPosition().closerThan(village.getCenter(), 128.0)) {
+                  if (village != null && zombie.blockPosition().closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
                      RecentActionsMemory.recordAction(playerxx, RecentActionsMemory.ActionType.KILLED_ZOMBIE, zombie.blockPosition(), null);
                      ServerLevel zombieWorld = (ServerLevel)zombie.level();
                      if (zombieWorld.getOverworldClockTime() % 24000L >= 13000L) {
@@ -395,6 +413,25 @@ public class VillageQuests implements ModInitializer {
                      playerxxx, RecentActionsMemory.ActionType.VILLAGER_SAVED, targetVillager.blockPosition(), nameManager.getName(targetVillager)
                   );
                }
+
+               // Village defense: a monster put down inside village bounds.
+               // Credited once per player per village per Minecraft day, so a
+               // mob grinder in the square is a lighting problem, not a
+               // reputation farm. One monster is enough: the deed the village
+               // remembers is "they fought for us", not the body count.
+               if (entity instanceof Monster slain && source.getEntity() instanceof ServerPlayer defender && entity.level() instanceof ServerLevel defenseWorld) {
+                  Village village = getCachedVillage(defender);
+                  if (village != null && slain.blockPosition().closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
+                     long day = defenseWorld.getOverworldClockTime() / 24000L;
+                     String creditKey = defender.getUUID() + ":" + village.getId();
+                     Long lastCreditedDay = villageDefenseCredits.get(creditKey);
+                     if (lastCreditedDay == null || lastCreditedDay != day) {
+                        villageDefenseCredits.put(creditKey, day);
+                        villageDefenseCredits.entrySet().removeIf(entry -> entry.getValue() < day - 1L);
+                        reputationManager.applyReputationEvent(defender, village, ReputationEvent.VILLAGE_DEFENSE);
+                     }
+                  }
+               }
             }
          );
       ServerEntityEvents.ENTITY_LOAD.register((Load)(entity, world) -> {
@@ -416,7 +453,7 @@ public class VillageQuests implements ModInitializer {
 
             if (nearestPlayer != null) {
                Village village = villageManager.findNearestVillage(world, golem.blockPosition());
-               if (village != null && golem.blockPosition().closerThan(village.getCenter(), 128.0)) {
+               if (village != null && golem.blockPosition().closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
                   reputationManager.applyReputationEvent(nearestPlayer, village, ReputationEvent.GOLEM_BUILT);
                   int newReputation = reputationManager.getReputation(nearestPlayer, village);
                   checkAndGeneratePlots(world, village.getCenter(), newReputation);
@@ -436,45 +473,46 @@ public class VillageQuests implements ModInitializer {
                   Village village = getCachedVillage(serverPlayer);
                   if (stack.is(ItemTags.BEDS)) {
                      BlockPos pos = hitResult.getBlockPos().relative(hitResult.getDirection());
-                     if (village != null && pos.closerThan(village.getCenter(), 64.0)) {
+                     if (village != null && pos.closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
                         applyBlockPlacementEvent(serverPlayer, village, ReputationEvent.BED_PLACED);
                      }
                   } else if (item instanceof BlockItem blockItem) {
                      Block block = blockItem.getBlock();
                      if (JobBlockHelper.isJobBlock(block)) {
                         BlockPos pos = hitResult.getBlockPos().relative(hitResult.getDirection());
-                        if (village != null && pos.closerThan(village.getCenter(), 64.0)) {
+                        if (village != null && pos.closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
                            applyBlockPlacementEvent(serverPlayer, village, ReputationEvent.JOB_BLOCK_PLACED);
                         }
                      } else if (block == Blocks.EMERALD_BLOCK) {
                         BlockPos pos = hitResult.getBlockPos().relative(hitResult.getDirection());
-                        if (village != null && pos.closerThan(village.getCenter(), 64.0)) {
+                        if (village != null && pos.closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
                            applyBlockPlacementEvent(serverPlayer, village, ReputationEvent.WEALTH_DISPLAYED);
+                        }
+                     } else if (block.defaultBlockState().getLightEmission() >= 8) {
+                        // Light where there was none: hostile spawns need block
+                        // light zero, so a real lamp on a genuinely dark spot
+                        // removes spawnable ground. Read BEFORE placement (this
+                        // callback fires first), so the check sees the darkness
+                        // the lamp is about to fix. Emission >= 8 keeps token
+                        // candles from counting; the shared placement cooldown
+                        // keeps a pocketful of torches from being a rep farm.
+                        BlockPos pos = hitResult.getBlockPos().relative(hitResult.getDirection());
+                        if (village != null
+                           && pos.closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)
+                           && world.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, pos) == 0) {
+                           applyBlockPlacementEvent(serverPlayer, village, ReputationEvent.LIGHT_TENDED);
                         }
                      }
                   }
 
+                  // Theft is charged when something LEAVES the chest, not here.
+                  // This only arms the watch; ChestTheftWatch compares the
+                  // contents between menu open and close and charges on the
+                  // difference. No sneak guard: arming is free, and a sneak-
+                  // placed block never opens a menu, so the arm just goes stale.
                   BlockPos chestPos = hitResult.getBlockPos();
-                  if (!player.isShiftKeyDown()
-                     && VillageContainers.isVillageOwned((ServerLevel)world, serverPlayer, village, chestPos)) {
-                     String cooldownKey = serverPlayer.getUUID()
-                        + ":"
-                        + chestPos.getX()
-                        + ":"
-                        + chestPos.getY()
-                        + ":"
-                        + chestPos.getZ();
-                     long currentTime = System.currentTimeMillis();
-                     Long lastOpen = chestOpenCooldowns.get(cooldownKey);
-                     if (lastOpen == null || currentTime - lastOpen >= VillageQuestsConfig.getChestPenaltyCooldownMs()) {
-                        chestOpenCooldowns.put(cooldownKey, currentTime);
-                        reputationManager.applyReputationEvent(serverPlayer, village, ReputationEvent.THEFT);
-                        RecentActionsMemory.recordAction(
-                           serverPlayer, RecentActionsMemory.ActionType.THEFT, chestPos, village.getName() != null ? village.getName() : "the village"
-                        );
-                        chestOpenCooldowns.entrySet()
-                           .removeIf(entry -> currentTime - entry.getValue() > VillageQuestsConfig.getChestPenaltyCooldownMs() * 10L);
-                     }
+                  if (VillageContainers.isVillageOwned((ServerLevel)world, serverPlayer, village, chestPos)) {
+                     ChestTheftWatch.arm(serverPlayer, chestPos);
                   }
 
                   return InteractionResult.PASS;
@@ -505,7 +543,17 @@ public class VillageQuests implements ModInitializer {
             VillageChestSkins.onForgotten((ServerLevel)world, pos);
             Block block = state.getBlock();
             Village village = getCachedVillage(serverPlayer);
-            if (village != null && pos.closerThan(village.getCenter(), 64.0)) {
+            // 128 to match every other village-bounds check (murder, golem,
+            // defense); property damage was the one radius that disagreed.
+            // A bed is the village's unless it stands on a plot this player
+            // was granted - placing one anywhere else was a gift (BED_PLACED
+            // paid for it), and taking a gift back is taking. Workstations
+            // and displayed wealth follow the same rule: your plot is yours,
+            // everything else contributed belongs to the village.
+            PlotManager damagePlots = getPlotManager();
+            PlotManager.Plot damagePlot = damagePlots != null ? damagePlots.getPlotAt((ServerLevel)world, pos) : null;
+            boolean onOwnPlot = damagePlot != null && damagePlot.isOwnedBy(serverPlayer.getUUID());
+            if (village != null && !onOwnPlot && pos.closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
                boolean isPropertyDamage = false;
                String blockName = null;
                if (block instanceof BedBlock) {
@@ -517,6 +565,17 @@ public class VillageQuests implements ModInitializer {
                } else if (block == Blocks.EMERALD_BLOCK) {
                   isPropertyDamage = true;
                   blockName = "an emerald block";
+               }
+
+               // The inverse of LIGHT_TENDED: a real lamp torn out, and the
+               // spot it kept safe is dark again. Read AFTER the break, so a
+               // second lantern still covering the ground means no charge -
+               // the village minds lost safety, not lost fixtures. The light
+               // engine can lag a tick behind the break; a stale bright read
+               // misses a charge, which errs on the forgiving side.
+               if (state.getLightEmission() >= 8
+                  && ((ServerLevel)world).getBrightness(net.minecraft.world.level.LightLayer.BLOCK, pos) < 8) {
+                  reputationManager.applyReputationEvent(serverPlayer, village, ReputationEvent.DARKNESS_MADE);
                }
 
                if (isPropertyDamage) {
@@ -746,7 +805,7 @@ public class VillageQuests implements ModInitializer {
       for (ServerPlayer player : server.getPlayerList().getPlayers()) {
          if (!player.isSpectator() && player.isAlive()) {
             Village village = getCachedVillage(player);
-            if (village != null && player.blockPosition().closerThan(village.getCenter(), 128.0)) {
+            if (village != null && player.blockPosition().closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
                String cooldownKey = player.getUUID() + ":" + village.getId();
                Long lastRecorded = survivedNightCooldowns.get(cooldownKey);
                if (lastRecorded == null || currentTick - lastRecorded >= 72000L) {
@@ -769,7 +828,7 @@ public class VillageQuests implements ModInitializer {
       for (ServerPlayer player : server.getPlayerList().getPlayers()) {
          BlockPos playerPos = player.blockPosition();
          Village village = getCachedVillage(player);
-         if (village != null && playerPos.closerThan(village.getCenter(), 64.0)) {
+         if (village != null && playerPos.closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
             int reputation = reputationManager.getReputation(player, village);
             String villageName = village.getName() != null ? village.getName() : "Unknown Village";
             FirstEncounterTracker.tryShowVillageDiscovery(player, villageName);
@@ -786,10 +845,13 @@ public class VillageQuests implements ModInitializer {
       // Coming back decides whether the quest you left behind is still yours.
       ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
          ActiveQuestManager.onPlayerJoin(handler.getPlayer().getUUID(), server);
-         // The client keeps no chest marks across a reconnect, so say the whole
-         // set rather than guess what it still has.
-         safeTick(() -> VillageChestSkins.onJoin(handler.getPlayer()), "chest-skins-join");
       });
+
+      // The client keeps no chest marks across a reconnect, so say the whole set - on
+      // Pandorical's ready moment, not JOIN, which fires before the capability handshake
+      // and had every one of these silently dropped.
+      justfatlard.pandorical.api.PandoricalApi.onPlayerReady(
+         player -> safeTick(() -> VillageChestSkins.onJoin(player), "chest-skins-join"));
 
       ServerPlayConnectionEvents.DISCONNECT.register((Disconnect)(handler, server) -> {
          ServerPlayer player = handler.getPlayer();
@@ -806,6 +868,7 @@ public class VillageQuests implements ModInitializer {
          BehaviorReputationTracker.onPlayerDisconnect(playerId);
          InteractionLimiter.onPlayerDisconnect(playerId);
          DarkActionTracker.onPlayerDisconnect(playerId);
+         ChestTheftWatch.onPlayerDisconnect(playerId);
          ActiveQuestManager.onPlayerDisconnect(playerId, server);
          RecentActionsMemory.onPlayerDisconnect(playerId);
          FirstEncounterTracker.onPlayerDisconnect(playerId);
@@ -838,6 +901,7 @@ public class VillageQuests implements ModInitializer {
          villageCenterCache.clear();
          survivedNightCooldowns.clear();
          MisnomerQuest.onServerStopping(server);
+         ChestTheftWatch.onServerStopping();
          QuestRarityManager.onServerStopping();
          ContextualLoreManager.onServerStopping();
          PresenceTracker.onServerStopping(server.overworld());

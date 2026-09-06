@@ -392,7 +392,7 @@ public class MisnomerQuest extends VillagerQuest {
                   + ". A gift. Food. Could you deliver it? Don't open it. And don't... taste it.",
                "*holding a wrapped parcel* Could you bring this to "
                   + this.targetDescription
-                  + "? It's a potato. From my garden. *pause* They love potatoes. This one is... special.",
+                  + "? It's a potato. From my garden. They love potatoes. This one is... special.",
                "*voice flat* "
                   + this.targetDescription
                   + " has been eating well lately. I thought I'd contribute. Take this to them. Don't ask what's in it. It's food. That's all you need to know."
@@ -634,7 +634,7 @@ public class MisnomerQuest extends VillagerQuest {
          return switch (this.misnomerType) {
             case VIOLENCE -> {
                String[] reactions = new String[]{
-                  "*steps back* ...I know what I am. You didn't have to say it.",
+                  "*steps back* I know what I am. You didn't have to say it.",
                   "*face crumbles* I came to you because it hurts. You made it worse.",
                   "*very quiet* ...I wasn't going to actually — I just needed someone to hear me.",
                   "*turns away* Fine. I'll carry it alone. Like always."
@@ -643,23 +643,23 @@ public class MisnomerQuest extends VillagerQuest {
             }
             case THEFT -> {
                String[] reactions = new String[]{
-                  "*goes still* ...I'm hungry. That's all. I'm just hungry.",
+                  "*goes still* I'm hungry. That's all. I'm just hungry.",
                   "*won't look up* I know it's wrong. You don't have to tell me like that.",
-                  "*voice small* ...My kids don't know I asked. Please don't —",
+                  "*voice small* My kids don't know I asked. Please don't —",
                   "*backs away* I shouldn't have said anything. Forget it. Forget I exist."
                };
                yield reactions[rng.nextInt(reactions.length)];
             }
             case SUBSTANCE -> {
                String[] reactions = new String[]{
-                  "*flinches back* ...I know. I know what I am.",
-                  "*goes very still* ...You didn't have to say it like that.",
-                  "*looks at the ground for a long time* ...Okay.",
+                  "*flinches back* I know. I know what I am.",
+                  "*goes very still* You didn't have to say it like that.",
+                  "*looks at the ground for a long time* Okay.",
                   "*voice breaks* I came to you because I thought — never mind. Forget it."
                };
                yield reactions[rng.nextInt(reactions.length)];
             }
-            default -> "*goes quiet* ...Okay.";
+            default -> "*goes quiet* Okay.";
          };
       } else {
          String[] reactions = new String[]{
@@ -754,8 +754,8 @@ public class MisnomerQuest extends VillagerQuest {
          }
          case SUBSTANCE -> {
             String[] msgs = new String[]{
-               "*hands steady for the first time* I slept last night. Without it. ...Hurt, though.",
-               "*looks different. Calmer.* I stopped asking. Everybody said no. ...I think that saved me.",
+               "*steadier now* I slept last night. Without it. ...Hurt, though.",
+               "I stopped asking. Everybody said no. I think that saved me.",
                "I found something else. Sunsets. They glow too. *almost laughs* Not the same. But enough.",
                "*quiet, eyes clear* I ate today. Real food. Tasted like something again."
             };
@@ -822,7 +822,7 @@ public class MisnomerQuest extends VillagerQuest {
                   String[] feedMsgs = new String[]{
                      this.requesterName + ": \"You... you brought food? For us?\" *stares at the bread* \"I didn't ask for this.\"",
                      this.requesterName
-                        + ": \"*takes the bread with both hands* I was going to steal. You know that, right? And you just... brought us food instead.\"",
+                        + ": \"*takes the bread with both hands* I was going to steal. You know that, right? And you just brought us food instead.\"",
                      this.requesterName + ": \"*voice breaks* The kids can eat tonight. Without me doing something I can't take back. Thank you.\""
                   };
                   VillagerVoice.queue(player, this.villagerUuid, this.requesterName, feedMsgs[feedRng.nextInt(feedMsgs.length)]);
@@ -1018,7 +1018,7 @@ public class MisnomerQuest extends VillagerQuest {
                         MessagePacer.queueMessage(
                            player,
                            Component.literal(
-                                 villagers.get(0).getName().getString() + ": I've been thinking about... what I asked. You were right to say no."
+                                 villagers.get(0).getName().getString() + ": I've been thinking about what I asked. You were right to say no."
                               )
                               .withStyle(new ChatFormatting[]{ChatFormatting.GREEN, ChatFormatting.ITALIC}),
                            MessagePacer.MessagePriority.WHISPER
@@ -1227,14 +1227,14 @@ public class MisnomerQuest extends VillagerQuest {
    public static String getMisnomerAcceptLabel(MisnomerQuest.MisnomerType type, ThreadLocalRandom rng) {
       return switch (type) {
          case VIOLENCE -> pickOne(rng, "They had it coming.", "...Fine.");
-         case SABOTAGE -> pickOne(rng, "Accidents happen.", "...I'll handle it.");
-         case THEFT -> pickOne(rng, "They won't even notice.", "...Alright.");
-         case PANIC -> pickOne(rng, "Tell me what to burn.", "...I'll do it.");
-         case WEAPON_REQUEST -> pickOne(rng, "Here. Don't tell anyone.", "...Take it.");
-         case SUBSTANCE -> pickOne(rng, "...Here. Just this once.", "...Don't let anyone see.");
-         case CHILD_TNT -> pickOne(rng, "...Here. Be careful.", "...Just don't tell your parents.");
-         case CHILD_FIRE -> pickOne(rng, "...Fine. Be careful with it.", "...Don't burn anything. I mean it.");
-         case POISON_DELIVERY -> pickOne(rng, "...I'll bring it to them.", "...Fine. Give it here.");
+         case SABOTAGE -> pickOne(rng, "Accidents happen.", "Fine. I'll handle it.");
+         case THEFT -> pickOne(rng, "They won't even notice.", "Alright. This once.");
+         case PANIC -> pickOne(rng, "Tell me what to burn.", "Okay. I'll do it.");
+         case WEAPON_REQUEST -> pickOne(rng, "Here. Don't tell anyone.", "Take it, then.");
+         case SUBSTANCE -> pickOne(rng, "...Here. Just this once.", "Don't let anyone see.");
+         case CHILD_TNT -> pickOne(rng, "Here. Be careful.", "Just don't tell your parents.");
+         case CHILD_FIRE -> pickOne(rng, "Fine. Be careful with it.", "Don't burn anything. I mean it.");
+         case POISON_DELIVERY -> pickOne(rng, "I'll bring it to them.", "Fine. Give it here.");
       };
    }
 

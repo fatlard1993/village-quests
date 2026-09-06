@@ -91,6 +91,10 @@ public class DialogueManager {
    private static final Logger LOGGER = LoggerFactory.getLogger("VillageQuests");
    private final Map<String, Dialogue> dialogueRegistry = new HashMap<>();
    private final Map<UUID, List<String>> customDialogueOptions = new ConcurrentHashMap<>();
+   // Options of the rich reply currently on screen, indexed by the "rich:{i}"
+   // action ids of its buttons. Overwritten by every rich reply; consulted only
+   // while one is showing.
+   private final Map<UUID, List<DialogueRegistry.ReplyOption>> pendingRichReplies = new ConcurrentHashMap<>();
    private final Map<UUID, List<Integer>> responseIndexMappings = new ConcurrentHashMap<>();
    private final Map<UUID, List<String>> responseActionIds = new ConcurrentHashMap<>();
    private final Map<UUID, VillagerQuest> pendingWorkQuests = new ConcurrentHashMap<>();
@@ -283,16 +287,20 @@ public class DialogueManager {
       }
    }
 
-   public Dialogue getNightSpecialDialogue(int reputation, boolean childOnly) {
+   public Dialogue getNightSpecialDialogue(int reputation, boolean childOnly, UUID playerUuid, UUID villagerUuid) {
       List<Dialogue> matchingDialogues = new ArrayList<>();
 
       for (Dialogue dialogue : this.dialogueRegistry.values()) {
          if (dialogue.getType() == Dialogue.DialogueType.NIGHT_SPECIAL
+            && !dialogue.getId().endsWith("_echo")
             && reputation >= dialogue.getMinReputation()
             && reputation <= dialogue.getMaxReputation()) {
             boolean isChildDialogue = dialogue.getId().startsWith("child_");
             if (childOnly == isChildDialogue) {
-               matchingDialogues.add(dialogue);
+               Dialogue candidate = this.rememberedOrEcho(dialogue, playerUuid, villagerUuid);
+               if (candidate != null) {
+                  matchingDialogues.add(candidate);
+               }
             }
          }
       }
@@ -303,6 +311,23 @@ public class DialogueManager {
       } else {
          return null;
       }
+   }
+
+   /**
+    * A significant node is told once per player-villager pair. Afterwards its
+    * "<id>_echo" node speaks in its place, or the node simply stops coming up
+    * when no echo is registered. Everything unflagged passes through.
+    */
+   private Dialogue rememberedOrEcho(Dialogue dialogue, UUID playerUuid, UUID villagerUuid) {
+      if (dialogue.getMemoryTopic() == null || playerUuid == null || villagerUuid == null) {
+         return dialogue;
+      }
+
+      if (!ConversationMemory.hasHeardConfession(playerUuid, villagerUuid, dialogue.getId())) {
+         return dialogue;
+      }
+
+      return this.getDialogue(dialogue.getId() + "_echo");
    }
 
    public Dialogue getWeatherDialogue(ServerLevel world, BlockPos pos, boolean childOnly, int reputation) {
@@ -390,11 +415,12 @@ public class DialogueManager {
     * weather, work-flow ids, emotional aftermath) are excluded here: each has
     * its own gate, and firing them as random chatter contradicts world state.
     */
-   private Dialogue getIdleChatDialogue(int reputation, boolean isChild, String professionId) {
+   private Dialogue getIdleChatDialogue(int reputation, boolean isChild, String professionId, UUID playerUuid, UUID villagerUuid) {
       List<Dialogue> matching = new ArrayList<>();
 
       for (Dialogue dialogue : this.dialogueRegistry.values()) {
          if (dialogue.getType() == Dialogue.DialogueType.IDLE_CHAT
+            && !dialogue.getId().endsWith("_echo")
             && reputation >= dialogue.getMinReputation()
             && reputation <= dialogue.getMaxReputation()
             && isFreeStandingIdleChat(dialogue.getId())) {
@@ -409,7 +435,10 @@ public class DialogueManager {
                }
 
                if (prof == null || "any".equals(prof) || "child".equals(prof) || prof.equals(professionId)) {
-                  matching.add(dialogue);
+                  Dialogue candidate = this.rememberedOrEcho(dialogue, playerUuid, villagerUuid);
+                  if (candidate != null) {
+                     matching.add(candidate);
+                  }
                }
             }
          }
@@ -682,14 +711,14 @@ public class DialogueManager {
                               "I can't... I can hear you but I can't see you. Where are you?",
                               "Either I'm losing my mind or you're not entirely here right now.",
                               "*talking to empty air* I know you're there. I can hear you breathing.",
-                              "Hello? I heard footsteps but there's nobody... oh. Oh, that's unsettling.",
+                              "Hello? I heard footsteps but there's nobody. Oh. Oh, that's unsettling.",
                               "Something just brushed past me. If that's you, say something. Please.",
                               "The door opened on its own. I'm going to assume that was you and not panic."
                            };
                            potionLine = lines[rng.nextInt(lines.length)];
                         } else if (player.hasEffect(MobEffects.GLOWING)) {
                            String[] lines = new String[]{
-                              "You're, uh... you're glowing. You know that, right?",
+                              "You're glowing. You DO know that, right?",
                               "Is that normal? The glowing? Because it's not normal here.",
                               "*squinting* Creepers, you're bright. What did you eat?",
                               "I could see you coming from three houses away. You're lit up like a torch.",
@@ -710,7 +739,7 @@ public class DialogueManager {
                         } else if (player.hasEffect(MobEffects.STRENGTH)) {
                            String[] lines = new String[]{
                               "*glances at your arms* You been lifting? Something's different.",
-                              "You look... bigger today. Don't take that the wrong way.",
+                              "You look bigger today. Don't take that the wrong way.",
                               "You're standing different. Like you could punch through a wall. Please don't.",
                               "I saw you break that log with your bare hands. We need to talk about that.",
                               "Whatever you're eating, the blacksmith wants some.",
@@ -723,13 +752,13 @@ public class DialogueManager {
                               "You keep looking at things in the dark. What can you see that I can't?",
                               "Something's off about your eyes. They're catching light wrong.",
                               "Stop staring into dark corners. You're making me nervous.",
-                              "Your pupils are... that's not a normal size. What's going on with you?",
+                              "Your pupils. That's not a normal size. What's going on with you?",
                               "You looked right at me through the wall just now. Don't think I didn't notice."
                            };
                            potionLine = lines[rng.nextInt(lines.length)];
                         } else if (player.hasEffect(MobEffects.FIRE_RESISTANCE)) {
                            String[] lines = new String[]{
-                              "You smell like... smoke? But you're not burned. How?",
+                              "You smell like smoke? But you're not burned. How?",
                               "I saw you walk past the furnace like it was nothing. That's not normal.",
                               "You leaned on the campfire just now. LEANED on it. Your sleeve didn't even singe.",
                               "The blacksmith says you picked up a hot ingot. With your hands. He's still talking about it."
@@ -747,7 +776,7 @@ public class DialogueManager {
                            potionLine = lines[rng.nextInt(lines.length)];
                         } else if (player.hasEffect(MobEffects.SLOW_FALLING)) {
                            String[] lines = new String[]{
-                              "You fell off the church roof and just... floated down. I saw it. Nobody believes me.",
+                              "You fell off the church roof and just floated down. I saw it. Nobody believes me.",
                               "The way you landed just now. That wasn't falling. That was... drifting.",
                               "You stepped off a ledge and sank like a feather. I'm going to think about that all night.",
                               "The children are jumping off things trying to float like you. Please stop."
@@ -758,7 +787,7 @@ public class DialogueManager {
                               "You don't look good. Like, really don't look good. Are you okay?",
                               "Your skin's the wrong color. Sit down. Sit down right now.",
                               "Blaze rot, you look terrible. What happened to you?",
-                              "You're... green. Greener than usual. Have you eaten today?",
+                              "You're green. Greener than usual. Have you eaten today?",
                               "I'm not a doctor but something is very wrong with your face right now.",
                               "The children are scared of you. Honestly? Me too. Go see the cleric."
                            };
@@ -929,18 +958,18 @@ public class DialogueManager {
                               "Heeey. Hey. Have you ever really looked at a pig? Like really looked?",
                               "*giggling at nothing* ...Oh. Hi. Sorry. What were we talking about?",
                               "I just had the best idea. I forgot it. But it was so good.",
-                              "*staring at the clouds* That one looks like a creeper. ...They all look like creepers.",
+                              "*staring at the clouds* That one looks like a creeper. They all look like creepers.",
                               "You ever think about how we're all just... here? Just standing around? Wild.",
                               "I'm so hungry. Is anyone else hungry? I could eat a whole cake. Two cakes.",
-                              "*squinting* Your face is really... face-shaped. You know?",
+                              "*squinting* Your face is really face-shaped. You know?",
                               "Shhhh. Listen. ...You hear that? Me neither. Isn't that nice?",
-                              "If a tree falls and nobody's in chunk range... does it still make a sound?",
+                              "If a tree falls and nobody's in chunk range, does it still make a sound?",
                               "We eat bread. Bread comes from wheat. Wheat comes from the ground. We're basically eating dirt. Fancy dirt.",
                               "What if the iron golem is the only one of us who's actually awake?",
-                              "Do you think fish know they're wet? Like... is that a thing they think about?",
+                              "Do you think fish know they're wet? Like, is that a thing they think about?",
                               "I tried to count all the blocks today. I got to twelve and then I forgot what counting was.",
                               "What if we're all just someone's really long dream? And when they wake up, poof.",
-                              "You know what's weird? Doors. We just... walk through walls. Through special wall holes. That's doors."
+                              "You know what's weird? Doors. We just walk through walls. Through special wall holes. That's doors."
                            };
                            greetingText = highLines[rng.nextInt(highLines.length)];
                         }
@@ -952,7 +981,7 @@ public class DialogueManager {
                      if (now.getHour() == 11 && now.getMinute() == 11) {
                         greetingText = "I don't know why, but today feels lucky. Don't ask me to explain it.";
                      } else if (now.getHour() == 23 && now.getMinute() == 11) {
-                        greetingText = "Something about right now feels... good? I don't know. Forget I said anything.";
+                        greetingText = "Something about right now feels good? I don't know. Forget I said anything.";
                      }
                   }
 
@@ -1007,6 +1036,22 @@ public class DialogueManager {
    private void recordConversationTopic(
       UUID playerUuid, UUID villagerUuid, boolean firstMeeting, boolean hadWeather, boolean isNight, String greetingId, boolean hasQuests
    ) {
+      // A significant node outranks everything else that happened this talk:
+      // hearing the confession IS the conversation, and marking it heard is
+      // what lets the echo speak next time.
+      Dialogue greetingNode = greetingId != null ? this.getDialogue(greetingId) : null;
+      if (greetingNode != null && greetingNode.getMemoryTopic() != null) {
+         ConversationMemory.recordConfession(playerUuid, villagerUuid, greetingId);
+         ConversationMemory.recordTopic(
+            playerUuid,
+            villagerUuid,
+            "lore".equals(greetingNode.getMemoryTopic())
+               ? ConversationMemory.ConversationTopic.LORE_SHARED
+               : ConversationMemory.ConversationTopic.DEEP_MOMENT
+         );
+         return;
+      }
+
       ConversationMemory.ConversationTopic topic;
       if (firstMeeting) {
          topic = ConversationMemory.ConversationTopic.FIRST_MEETING;
@@ -1251,7 +1296,7 @@ public class DialogueManager {
                   "It's still out there? Be careful.",
                   "Not handled yet? I can still hear it.",
                   "You're back but I can tell it's not done. Go.",
-                  "Still? *peers past you nervously* Just... be careful."
+                  "Still? *peers past you nervously* Just be careful."
                };
                waitingText = mobWaitLines[rng.nextInt(mobWaitLines.length)];
             } else if (activeQuest instanceof DialogueQuest) {
@@ -1264,11 +1309,11 @@ public class DialogueManager {
                waitingText = dialogueWaitLines[rng.nextInt(dialogueWaitLines.length)];
             } else {
                String[] waitingLines = new String[]{
-                  "Got the stuff?... No? Alright. I'll be here.",
+                  "Got the stuff? No? Alright. I'll be here.",
                   "Still working on it? No rush. Well, some rush.",
                   "*looks at your hands* Not yet, huh? I'll wait.",
                   "Any luck? *reads your face* ...I'll take that as a no.",
-                  "Hey. You got it?... No? Okay. Don't forget about me."
+                  "Hey. You got it? No? Okay. Don't forget about me."
                };
                waitingText = waitingLines[rng.nextInt(waitingLines.length)];
             }
@@ -1332,21 +1377,21 @@ public class DialogueManager {
                absenceText = opener + event;
             }
 
-            String[][] absenceResponses = new String[][]{
-               {"I see.", "What else happened?", "I should have been here."},
-               {"Hm.", "Go on.", "*listens*"},
-               {"Things change.", "And?", "That so?"},
-               {"That's... a lot.", "Tell me more.", "I'm sorry I missed that."},
-               {"Is everyone alright?", "What else happened?", "I didn't know."},
-               {"*quiet nod*", "How are you holding up?", "I'm here now."},
-               {"I wish I'd been here.", "Go on.", "I'm sorry to hear that."},
-               {"...", "What else?", "I'll stay a while this time."}
+            // One exit, not a menu. The old options graded the player's sympathy
+            // (+0/+1/+2) and offered "Go on." with nothing behind it - clicking
+            // any of them closed the screen silently. Any further events arrive
+            // on the next greeting as "Oh, also --", which was always the real
+            // continuation mechanism.
+            String[] absenceExits = new String[]{
+               "I should have been here.",
+               "I'm here now.",
+               "I'm sorry I missed that.",
+               "I'll stay a while this time.",
+               "Thanks for telling me.",
+               "*quiet nod*"
             };
-            String[] selectedSet = absenceResponses[rng.nextInt(absenceResponses.length)];
             Dialogue absenceDialogue = new Dialogue("absence_event", absenceText, -999, 999, Dialogue.DialogueType.GREETING)
-               .addResponse(new Dialogue.DialogueResponse(selectedSet[0], 0))
-               .addResponse(new Dialogue.DialogueResponse(selectedSet[1], 1))
-               .addResponse(new Dialogue.DialogueResponse(selectedSet[2], 2));
+               .walkAway(absenceExits[rng.nextInt(absenceExits.length)]);
             this.sendDialogue(player, villager, absenceDialogue);
             return true;
          }
@@ -1387,10 +1432,10 @@ public class DialogueManager {
          }
 
          if (isNight && rng.nextDouble() < 0.3) {
-            Dialogue nightDialogue = this.getNightSpecialDialogue(reputation, true);
+            Dialogue nightDialogue = this.getNightSpecialDialogue(reputation, true, player.getUUID(), villager.getUUID());
             greeting = nightDialogue != null ? nightDialogue : this.getChildGreetingDialogue(reputation);
          } else if (rng.nextDouble() < 0.3) {
-            Dialogue childIdle = this.getIdleChatDialogue(reputation, true, "child");
+            Dialogue childIdle = this.getIdleChatDialogue(reputation, true, "child", player.getUUID(), villager.getUUID());
             greeting = childIdle != null ? childIdle : this.getChildGreetingDialogue(reputation);
          } else {
             greeting = this.getChildGreetingDialogue(reputation);
@@ -1435,7 +1480,7 @@ public class DialogueManager {
             Dialogue weatherDialogue = this.getWeatherDialogue(world, villager.blockPosition(), false, reputation);
             greeting = weatherDialogue != null ? weatherDialogue : this.getGreetingDialogue(reputation);
          } else if (isNight && rng.nextDouble() < 0.25) {
-            Dialogue nightDialogue = this.getNightSpecialDialogue(reputation, false);
+            Dialogue nightDialogue = this.getNightSpecialDialogue(reputation, false, player.getUUID(), villager.getUUID());
             greeting = nightDialogue != null ? nightDialogue : this.getGreetingDialogue(reputation);
          } else {
             String impactId = village != null ? QuestImpactTracker.getEligibleImpactDialogue(village.getId()) : null;
@@ -1451,7 +1496,7 @@ public class DialogueManager {
                   Dialogue tradeOffer = this.getTradeOfferDialogue(greetProfId, reputation);
                   greeting = tradeOffer != null ? tradeOffer : this.getGreetingDialogue(reputation);
                } else if (greetRoll < 0.38) {
-                  Dialogue idleChat = this.getIdleChatDialogue(reputation, false, greetProfId);
+                  Dialogue idleChat = this.getIdleChatDialogue(reputation, false, greetProfId, player.getUUID(), villager.getUUID());
                   greeting = idleChat != null ? idleChat : this.getGreetingDialogue(reputation);
                } else {
                   greeting = this.getGreetingDialogue(reputation);
@@ -1569,7 +1614,7 @@ public class DialogueManager {
       if (secretConfided != null && secretConfided) {
          ThreadLocalRandom confRng = ThreadLocalRandom.current();
          String[] ackLabels = new String[]{
-            "*nod quietly* Your secret's safe.", "I won't say anything.", "*quiet nod* ...Understood.", "I didn't hear a thing."
+            "*nod quietly* Your secret's safe.", "I won't say anything.", "*quiet nod* Understood.", "I didn't hear a thing."
          };
          responseTexts.add(ackLabels[confRng.nextInt(ackLabels.length)]);
          originalIndices.add(-1);
@@ -1628,10 +1673,12 @@ public class DialogueManager {
             // "I'll make time." — and offering the whole scale at once let a
             // stranger be as warm as an old friend just by clicking the warm one.
             // Reputation is supposed to be the relationship; you do not choose your
-            // rapport, you have already earned it. So the scale is sorted by the
-            // reputation each line carries and indexed by the band you are in:
-            // shunned gets the transactional line, an elder friend gets the eager
-            // one, and everyone in between lands somewhere sensible.
+            // rapport, you have already earned it. The accept variants are AUTHORED
+            // transactional-first (the ordering contract for multi-accept nodes),
+            // indexed by the band you are in: shunned gets the transactional line,
+            // an elder friend gets the eager one. This used to sort by each
+            // option's reputation value; authored order replaced that so the rep
+            // numbers stop doing secret double duty.
             int questAcceptPick = -1;
             List<Integer> acceptIndices = new java.util.ArrayList<>();
             for (int i = 0; i < ownResponses.size(); i++) {
@@ -1640,8 +1687,6 @@ public class DialogueManager {
                }
             }
             if (acceptIndices.size() > 1) {
-               acceptIndices.sort(java.util.Comparator.comparingInt(
-                  i -> ownResponses.get(i).getReputationChange()));
                int bands = justfatlard.village_quests.reputation.ReputationBand.values().length - 1;
                int position = Math.round(
                   (float) band.ordinal() / bands * (acceptIndices.size() - 1));
@@ -1856,7 +1901,7 @@ public class DialogueManager {
             originalIndices.add(-1);
             actionIds.add("secret_silence");
             String[] revealLabels = new String[]{
-               "Actually, I heard something...", "Well... there is one thing.", "Promise you won't say I told you?", "Look, I shouldn't say this, but..."
+               "Actually, I heard something...", "Well. There is one thing.", "Promise you won't say I told you?", "Look, I shouldn't say this, but..."
             };
             responseTexts.add(revealLabels[secRng.nextInt(revealLabels.length)]);
             originalIndices.add(-1);
@@ -1885,7 +1930,11 @@ public class DialogueManager {
          // Always present, and deliberately the only one. This is the option wired
          // to endDialogue; an authored dead-end reply just sits there, so the exit
          // has to be this one rather than a line that happens to read like goodbye.
-         responseTexts.add(this.getCancelText(world, villager, reputation, emotionalContext));
+         // An authored walk-away on the greeting outranks the generated goodbye:
+         // same wiring, but the label was written for this scene.
+         responseTexts.add(greeting.getWalkAwayLabel() != null
+            ? greeting.getWalkAwayLabel()
+            : this.getCancelText(world, villager, reputation, emotionalContext));
          originalIndices.add(-1);
          actionIds.add("cancel");
          // Recorded only when small talk was actually offered, so a villager with
@@ -1903,10 +1952,13 @@ public class DialogueManager {
       if (actionIds != null && responseIndex >= 0 && responseIndex < actionIds.size()) {
          String actionId = actionIds.get(responseIndex);
          ServerLevel world = player.level();
-         if ("cancel".equals(actionId)) {
+         // "walk_away" is the authored terminal button; "cancel" the generated
+         // one. Same exit, different provenance.
+         if ("cancel".equals(actionId) || "walk_away".equals(actionId)) {
             DialogueStateManager.endDialogue(villager.getUUID());
             this.customDialogueOptions.remove(player.getUUID());
             this.responseIndexMappings.remove(player.getUUID());
+            this.pendingRichReplies.remove(player.getUUID());
             return;
          }
 
@@ -2198,8 +2250,46 @@ public class DialogueManager {
             return;
          }
 
+         if (actionId.startsWith("rich:")) {
+            List<DialogueRegistry.ReplyOption> pending = this.pendingRichReplies.remove(player.getUUID());
+            int richIndex;
+            try {
+               richIndex = Integer.parseInt(actionId.substring(5));
+            } catch (NumberFormatException e) {
+               richIndex = -1;
+            }
+
+            if (pending != null && richIndex >= 0 && richIndex < pending.size()) {
+               DialogueRegistry.ReplyOption picked = pending.get(richIndex);
+               DialogueRegistry.Reply next;
+               try {
+                  next = picked.handler.handle(villager, player, actionId);
+               } catch (Exception | LinkageError e) {
+                  next = null;
+               }
+
+               if (next != null) {
+                  this.sendRichReply(player, villager, next);
+                  return;
+               }
+            }
+
+            DialogueStateManager.endDialogue(villager.getUUID());
+            this.customDialogueOptions.remove(player.getUUID());
+            this.responseIndexMappings.remove(player.getUUID());
+            return;
+         }
+
          if (actionId.startsWith("custom:")) {
             String optionId = actionId.substring(7);
+            DialogueRegistry.Reply richReply = DialogueRegistry.handleRichDialogueOption(villager, player, optionId);
+            if (richReply != null) {
+               this.customDialogueOptions.remove(player.getUUID());
+               this.responseIndexMappings.remove(player.getUUID());
+               this.sendRichReply(player, villager, richReply);
+               return;
+            }
+
             Component result = DialogueRegistry.handleDialogueOption(villager, player, optionId);
             if (result != null) {
                // Said in the conversation you are already in. This used to print to
@@ -2209,10 +2299,12 @@ public class DialogueManager {
                String prof = villager.isBaby() ? "child" : professionName(villager.getVillagerData().profession().value());
                Village cVillage = VillageQuests.getVillageManager().findNearestVillage(player.level(), villager.blockPosition());
                int cRep = cVillage != null ? VillageQuests.getReputationManager().getReputation(player, cVillage) : 0;
+               String[] customCloseExits = new String[]{"I see.", "Good to know.", "Huh.", "*nod*"};
                PandoricalApi.screens().open(player, DialogueScreens.buildScreen(
                   villager.getUUID(), vName, prof, result.getString(),
                   "custom_reply", VillageQuests.getReputationManager().getReputationLevel(cRep),
-                  java.util.List.of("*leave*"), java.util.List.of("cancel")));
+                  java.util.List.of(customCloseExits[ThreadLocalRandom.current().nextInt(customCloseExits.length)]),
+                  java.util.List.of("cancel")));
                this.responseActionIds.put(player.getUUID(), java.util.List.of("cancel"));
                this.customDialogueOptions.remove(player.getUUID());
                this.responseIndexMappings.remove(player.getUUID());
@@ -2266,10 +2358,11 @@ public class DialogueManager {
                // response handler treats an unknown id as "nothing more here" and closes
                // cleanly, which is exactly what its one button should do.
                if (response != null) {
+                  String[] customExits = new String[]{"I see.", "Good to know.", "Huh.", "*nod*"};
                   this.sendDialogue(player, villager,
                      new Dialogue("custom_option_reply", response.getString(), -999, 999,
                         Dialogue.DialogueType.IDLE_CHAT)
-                        .addResponse(new Dialogue.DialogueResponse("I see.", 0)));
+                        .walkAway(customExits[ThreadLocalRandom.current().nextInt(customExits.length)]));
                } else {
                   DialogueStateManager.endDialogue(villager.getUUID());
                }
@@ -2331,6 +2424,10 @@ public class DialogueManager {
 
                      Dialogue nextDialogue = this.getDialogue(response.getNextDialogueId());
                      if (nextDialogue != null) {
+                        if (nextDialogue.getArrivalReputation() != 0 && village != null) {
+                           VillageQuests.getReputationManager().modifyReputation(player, village, nextDialogue.getArrivalReputation());
+                        }
+
                         this.sendDialogue(player, villager, nextDialogue);
                      }
                   }
@@ -2787,6 +2884,39 @@ public class DialogueManager {
       }
    }
 
+   /**
+    * Shows a rich reply from the registry: the villager's line, the reply's own
+    * options as "rich:{i}" buttons, and its walk-away as the exit. Each rich
+    * screen replaces the previous one's pending options, so a chain is as deep
+    * as its handlers keep returning replies.
+    */
+   private void sendRichReply(ServerPlayer player, Villager villager, DialogueRegistry.Reply reply) {
+      String vName = VillageQuests.getNameManager().getName(villager);
+      String prof = villager.isBaby() ? "child" : professionName(villager.getVillagerData().profession().value());
+      Village village = VillageQuests.getVillageManager().findNearestVillage(player.level(), villager.blockPosition());
+      int rep = village != null ? VillageQuests.getReputationManager().getReputation(player, village) : 0;
+      List<String> texts = new ArrayList<>();
+      List<String> actions = new ArrayList<>();
+
+      for (int i = 0; i < reply.options.size(); i++) {
+         texts.add(reply.options.get(i).label);
+         actions.add("rich:" + i);
+      }
+
+      texts.add(reply.walkAwayLabel != null ? reply.walkAwayLabel : "*leave*");
+      actions.add("walk_away");
+      this.pendingRichReplies.put(player.getUUID(), new ArrayList<>(reply.options));
+      this.responseActionIds.put(player.getUUID(), actions);
+      this.responseIndexMappings.remove(player.getUUID());
+      this.customDialogueOptions.remove(player.getUUID());
+      PandoricalApi.screens().open(player,
+         DialogueScreens.buildScreen(
+            villager.getUUID(), vName, prof, reply.text.getString(), "custom_reply",
+            VillageQuests.getReputationManager().getReputationLevel(rep), texts, actions
+         )
+      );
+   }
+
    private void sendDialogue(ServerPlayer player, Villager villager, Dialogue dialogue) {
       ServerLevel world = player.level();
       Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
@@ -2809,6 +2939,13 @@ public class DialogueManager {
       for (int i = 0; i < responseTexts.size(); i++) {
          ownActionIds.add("dialogue_response");
          ownIndices.add(i);
+      }
+
+      if (dialogue.getWalkAwayLabel() != null) {
+         responseTexts = new ArrayList<>(responseTexts);
+         responseTexts.add(dialogue.getWalkAwayLabel());
+         ownActionIds.add("walk_away");
+         ownIndices.add(-1);
       }
 
       this.responseActionIds.put(player.getUUID(), ownActionIds);
@@ -3164,7 +3301,7 @@ public class DialogueManager {
             response = reactions[rng.nextInt(reactions.length)];
          } else {
             String[] reactions = new String[]{
-               "*takes it* ...Oh. Thank you. I wasn't expecting that.",
+               "*takes it* Oh. Thank you. I wasn't expecting that.",
                "*looks at it, then at you* For me? *quiet* Thank you.",
                "*surprised* I... yeah. Thanks. That's nice of you.",
                "You didn't have to do that. *holds it carefully*"
@@ -3657,7 +3794,7 @@ public class DialogueManager {
          String villagerName = VillageQuests.getNameManager().getName(villager);
          String subjectName = secret.subjectName();
          player.sendSystemMessage(
-            Component.literal(villagerName + ": \"" + subjectName + "? Really? ...I'll keep that in mind.\"").withStyle(ChatFormatting.YELLOW),
+            Component.literal(villagerName + ": \"" + subjectName + "? Really? I'll keep that in mind.\"").withStyle(ChatFormatting.YELLOW),
             true
          );
          VillagerMemory.recordMemory(secret.subjectUuid(), VillagerMemory.MemoryType.TRUST_BETRAYED);

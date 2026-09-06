@@ -90,6 +90,11 @@ Letters, dialogue, and memories often express doubt.
 
 The system should never explain the world fully.
 
+**But ambiguity lives in what villagers say, never in whether they respond.**
+Restraint governs frequency and explanation, not turn completion: rare
+conversations, complete conversations. An exchange that stops unanswered
+reads as broken software, not mystery.
+
 ### 3.3 Memory Is Contextual, Not Absolute
 
 Villagers have limited, probabilistic memory.

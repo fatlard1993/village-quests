@@ -6,7 +6,7 @@
 
 All dialogue is currently **hardcoded in Java** inside `DialogueContent.java` (and individual quest classes like `MisnomerQuest.java`, `DeepQuestDialogues.java`, etc.). There is no external data file system. To add or modify dialogue, you must edit Java source and recompile the mod.
 
-Dialogue entries are registered in `DialogueContent.registerAll()` as `Dialogue` objects with reputation range thresholds and response options.
+Dialogue entries are registered in `DialogueContent.registerAll()` as `Dialogue` objects with reputation range thresholds and response options. A node also carries `.arrival(n)` (reputation applied when the conversation *reaches* it - options themselves carry 0) and `.walkAway("...")` (the single closing button on a terminal beat). Sibling mods chain exchanges through `DialogueRegistry.DialogueBuilder.addExchange(...)`, whose handlers return a `Reply` that can carry options of its own.
 
 ## Core Principle: Villagers Are People, Not Content Dispensers
 
@@ -272,6 +272,94 @@ Every string lands on exactly one surface, and each surface has a voice:
 - **The buttons**: the PLAYER's voice, always. A button is a sentence the player chooses to say. A villager line on a button ("Give it time.") reads as the player talking to themselves.
 - **Buttons also carry intent.** Clicking one *does something*, and the label has to own that. "While we're both stuck here." is a fine fragment of a trade offer — but as a label it never says *trade*, so the click feels like a lottery. If the button opens the trade screen, the words must be a way of asking to trade. If it hands an item over, the words hand it over. Write the label, then ask: "if I clicked this, is what happens next what I just said?"
 - **Context additions inherit the surface.** A rain-flavored variant of a trade button is still a trade button; the rain flavor rides along, it doesn't replace the ask.
+
+## The Exchange (CRITICAL)
+
+Everything above governs the *line*. This section governs the *conversation*,
+and for a long time the corpus was excellent lines assembled into broken
+conversations: villager speaks, player picks a reply, screen closes. The
+player's line was always the last line, hanging unanswered. A dialogue that
+stops mid-exchange doesn't read as restraint; it reads as a bug, and the
+player blames the software, not the character.
+
+Worked examples for everything below: [design/EXCHANGE_EXEMPLARS.md](design/EXCHANGE_EXEMPLARS.md).
+
+### The third turn
+
+The villager closes the conversation, not the screen. Every option lands on a
+node, even if that node is one line. The minimum shape of any dialogue is:
+villager opens, player moves, villager closes.
+
+### Options are moves, not verdicts
+
+An option is something the player says *to get something*: ask, offer, press,
+stay, leave. The test for every option: **what does the villager say back?**
+If that question has no answer, you wrote a rating, not a line. The old
+corpus was full of ratings ("That must be difficult", "Respect for the
+sacrifice") because reputation deltas on options quietly turned triplets into
+empathy rubrics. Rep now lands on nodes (`.arrival(n)`), where the *outcome*
+earns or costs; options carry 0.
+
+And arrival rep is for **trust events only**: a secret entrusted or kept, a
+boundary respected, accountability owned in the hostile bands, presence held
+through grief. Curiosity, warmth, and good conversation pay nothing - the good
+answer is the reward (Principle 1), and a corpus that pays the question button
+fails the Optimization Test one level deeper. Negative arrivals (the costs for
+shutting someone down) always stay. A startup validator warns when an option
+carries rep it shouldn't.
+
+### Significant moments are told once
+
+A confession is not a jukebox track. Nodes listed in `DEEP_MOMENTS` /
+`LORE_MOMENTS` (in `DialogueContent`) are recorded in `ConversationMemory` per
+player-villager pair when heard; afterwards the node registered as
+`"<id>_echo"` speaks in its place - shorter, settled, the relationship changed
+by the telling ("Named the new calf this morning. Told you I would.
+...Marigold."). When you write a new heavy confession: add it to the list,
+write its echo, and let the validator confirm the pair.
+
+### A question on a button has a node behind it
+
+Never reward "tell me more" with a hang-up. If the villager won't answer, the
+refusal is played on screen ("No. That one stays mine.") - withholding is
+something the villager *does*, not the absence of a node. Mystery lives in
+what they say, never in whether they respond.
+
+### The walk-away button
+
+Every terminal node offers exactly one button (`.walkAway("...")`). It closes
+the screen and triggers nothing: the villager speaks last, the player leaves
+last. The label reads as closure, and closure is usually insinuated, the way
+real leave-taking is: "Goodnight.", "Anyway.", "It's late." Sometimes it's
+pulled from the scene ("Leave it buried."); an explicit departure ("Leave.")
+is one shape among several, saved for when the scene earns its bluntness.
+What the label never does is invite a response. The pool rule applies to
+walk-away labels like every other pool.
+
+### Vary the option axes
+
+If the three options are the same sentence at three temperatures
+(warm/neutral/cold), rewrite along different axes: ask about the thing / ask
+about the person / stay silent / leave. Silence and presence are first-class
+moves and can have their own closes.
+
+### The floor is a turn, not a scene
+
+Small talk gets small closes: one line and a walk-away, sometimes shared
+between options, is a complete exchange. Don't gold-plate 400 pieces of small
+talk with bespoke depth. Depth is for confessions and hooks; the floor is for
+everything else - and the floor is still a complete conversation.
+
+### Stage directions are bounded by the model
+
+A villager on screen can shake its head, nod, turn away, walk off, work its
+station. It cannot wipe a block, thread an awl, lean in, or half-smile. If the
+model can't perform it, the direction is narration pretending to be a scene:
+cut it and let the words carry the beat. Most lines get no direction at all.
+
+The ellipsis inherits the same budget: it does the work cut stage directions
+used to fake, so it is spent, not sprinkled. At most one on any path a player
+hears in a single conversation; most lines none.
 
 ## Dialogue Don'ts
 

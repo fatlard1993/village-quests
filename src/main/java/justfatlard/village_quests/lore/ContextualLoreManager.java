@@ -151,7 +151,7 @@ public class ContextualLoreManager {
          return midRepTaboo[ThreadLocalRandom.current().nextInt(midRepTaboo.length)];
       } else {
          return switch (topic) {
-            case END_CITIES -> "The End is... best left alone.";
+            case END_CITIES -> "The End is best left alone.";
             case SCULK -> "*whispers* That darkness spreads. Don't bring it here.";
             case WITHER -> "*backs away* How do you even know about...? No. No.";
             default -> "Some things shouldn't be discussed.";
@@ -230,14 +230,14 @@ public class ContextualLoreManager {
                   return "You smell of smoke and sulfur.";
                } else {
                   if (reputation < 50) {
-                     return "The burning place... you went there? Why?";
+                     return "The burning place. You went there? Why?";
                   }
 
                   return "You smell of the burning place. Did you see... them?";
                }
             case RETURNED_FROM_END:
                if (!isFading) {
-                  return "Something's... off about you.";
+                  return "Something's off about you.";
                } else if (!isRecent) {
                   return "The void clings to you.";
                } else {
@@ -251,7 +251,7 @@ public class ContextualLoreManager {
                if (!isRecent) {
                   return "There's blood on you.";
                } else if (villager.isBaby()) {
-                  return "Did it have a name? Sometimes they have names...";
+                  return "Did it have a name? Sometimes they have names.";
                } else {
                   if ("cleric".equals(profession)) {
                      return "Another soul lost. Was it someone we knew?";
@@ -273,7 +273,7 @@ public class ContextualLoreManager {
                return "*horrified silence*";
             case DIED_AND_RETURNED:
                if (!isFading) {
-                  return "You look... familiar?";
+                  return "You look familiar?";
                } else if (!isRecent) {
                   return "Weren't you... never mind.";
                } else if (villager.isBaby()) {
@@ -282,7 +282,7 @@ public class ContextualLoreManager {
                   return "You died. We saw. Yet here you are.";
                } else {
                   if ("cleric".equals(profession)) {
-                     return "Death released you. That's... not normal.";
+                     return "Death released you. That's not normal.";
                   }
 
                   return "Every time you return, are you the same person?";
@@ -299,15 +299,15 @@ public class ContextualLoreManager {
                }
             case USED_REDSTONE:
                if (!isRecent) {
-                  return "That smell... like copper and lightning.";
+                  return "That smell. Like copper and lightning.";
                } else if ("mason".equals(profession)) {
-                  return "That dust... keep it away from the village stones.";
+                  return "That dust. Keep it away from the village stones.";
                } else {
                   if ("librarian".equals(profession)) {
                      return "That redstone — I read something about it once, or maybe it was about lightning, but the point was — actually, just be careful.";
                   }
 
-                  return "That red dust on your hands... it never really washes off.";
+                  return "That red dust on your hands never really washes off.";
                }
             default:
                return null;
@@ -563,7 +563,7 @@ public class ContextualLoreManager {
          String[] adultReferences = new String[]{
             "Don't listen to them.",
             "They've said that for years.",
-            "Some of us have... different views.",
+            "Some of us have different views.",
             "*sighs* Not everyone agrees.",
             "We all have our theories.",
             "Don't mind them. They talk like the sky is listening.",
@@ -633,7 +633,7 @@ public class ContextualLoreManager {
          } else if (isContrarianVillager(villager, villageCenter)) {
             String[] contrarianOntological = new String[]{
                "Nothing happens unless someone's watching.",
-               "Sometimes I feel like I'm... waiting. For what, I don't know.",
+               "Sometimes I feel like I'm waiting. For what, I don't know.",
                "The world exists because you expect it to.",
                "Looking at something changes it. Always.",
                "I think about things more when someone's watching. Is that normal?",
@@ -833,7 +833,7 @@ public class ContextualLoreManager {
                "We've done this before, haven't we?",
                "Some things don't change.",
                "The emeralds all look the same.",
-               "Trade is... predictable.",
+               "Trade is predictable.",
                "My hands know this motion.",
                "The weight of emeralds becomes routine."
             };
@@ -858,7 +858,7 @@ public class ContextualLoreManager {
             "Violence has a rhythm.",
             "The pattern of conflict.",
             "Blood becomes routine.",
-            "Combat feels... practiced.",
+            "Combat feels practiced.",
             "Your movements are becoming predictable."
          };
          return combatPattern[villager.level().getRandom().nextInt(combatPattern.length)];

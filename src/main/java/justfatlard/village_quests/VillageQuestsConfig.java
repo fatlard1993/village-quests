@@ -194,4 +194,66 @@ public class VillageQuestsConfig {
          LOGGER.error("[{}] Failed to create default config: {}", "village-quests-justfatlard", var2.getMessage());
       }
    }
+
+	/**
+	 * Write one value back into the config file, keeping the file's comments and order: the
+	 * line for the key is replaced where it stands, or added at the end when it is missing.
+	 */
+	private static void store(String key, String value) {
+		try {
+			java.nio.file.Path path = CONFIG_PATH;
+			java.util.List<String> lines = java.nio.file.Files.exists(path)
+				? new java.util.ArrayList<>(java.nio.file.Files.readAllLines(path))
+				: new java.util.ArrayList<>();
+			boolean found = false;
+			for (int i = 0; i < lines.size(); i++) {
+				if (lines.get(i).trim().startsWith(key + "=") || lines.get(i).trim().startsWith(key + " =")) {
+					lines.set(i, key + "=" + value);
+					found = true;
+				}
+			}
+			if (!found) lines.add(key + "=" + value);
+			java.nio.file.Files.createDirectories(path.getParent());
+			java.nio.file.Files.write(path, lines);
+		} catch (java.io.IOException e) {
+			LOGGER.warn("Could not write village-quests config", e);
+		}
+	}
+
+	public static void setMisnomerChance(float v) { misnomerChance = v; store("misnomer_chance", String.valueOf(v)); }
+	public static void setDeepQuestChance(float v) { deepQuestChance = v; store("deep_quest_chance", String.valueOf(v)); }
+	public static void setDeepQuestCooldownDays(int v) { deepQuestCooldownDays = v; store("deep_quest_cooldown_days", String.valueOf(v)); }
+	public static void setGatheringChance(float v) { gatheringChance = v; store("gathering_chance", String.valueOf(v)); }
+	public static void setGatheringMinDays(int v) { gatheringMinDays = v; store("gathering_min_days", String.valueOf(v)); }
+	public static void setGatheringMaxDays(int v) { gatheringMaxDays = v; store("gathering_max_days", String.valueOf(v)); }
+	public static void setReputationDecayThreshold(int v) { reputationDecayThreshold = v; store("reputation_decay_threshold", String.valueOf(v)); }
+	public static void setMailPerPlayerPerDay(int v) { mailPerPlayerPerDay = v; store("mail_per_player_per_day", String.valueOf(v)); }
+	public static void setMailBasePerVillage(int v) { mailBasePerVillage = v; store("mail_base_per_village", String.valueOf(v)); }
+
+	/** The file's knobs that shape play, in the mod menu for ops. The tick intervals stay in the file. */
+	public static void menu() {
+		var group = justfatlard.pandorical.api.PandoricalApi.settings().serverGroup(VillageQuests.MOD_ID, "Village Quests");
+		group.number("misnomerChance", "Misnamed quests, percent", 0, 50, 1, 3)
+			.backedBy(player -> Math.round(getMisnomerChance() * 100), (player, v) -> setMisnomerChance(v / 100F));
+		group.number("deepQuestChance", "Deep quests, percent", 0, 100, 1, 5)
+			.backedBy(player -> Math.round(getDeepQuestChance() * 100), (player, v) -> setDeepQuestChance(v / 100F));
+		group.number("deepQuestCooldownDays", "Deep quest cooldown, days", 0, 30, 1, 3)
+			.backedBy(player -> getDeepQuestCooldownDays(), (player, v) -> setDeepQuestCooldownDays(v));
+		group.number("gatheringChance", "Gathering quests, percent", 0, 100, 5, 15)
+			.backedBy(player -> Math.round(getGatheringChance() * 100), (player, v) -> setGatheringChance(v / 100F));
+		group.number("gatheringMinDays", "Gathering, fewest days", 1, 30, 1, 3)
+			.backedBy(player -> getGatheringMinDays(), (player, v) -> setGatheringMinDays(v));
+		group.number("gatheringMaxDays", "Gathering, most days", 1, 60, 1, 7)
+			.backedBy(player -> getGatheringMaxDays(), (player, v) -> setGatheringMaxDays(v));
+		group.number("reputationDecayThreshold", "Reputation decays above", 0, 1000, 25, 100)
+			.backedBy(player -> getReputationDecayThreshold(), (player, v) -> setReputationDecayThreshold(v));
+		// Mail is Village Mail's to deliver; without it these would be knobs on nothing.
+		group.number("mailPerPlayerPerDay", "Mail per player a day", 0, 20, 1, 2)
+			.shownWith("village-mail")
+			.backedBy(player -> getMailPerPlayerPerDay(), (player, v) -> setMailPerPlayerPerDay(v));
+		group.number("mailBasePerVillage", "Mail per village a day", 0, 50, 1, 5)
+			.shownWith("village-mail")
+			.backedBy(player -> getMailBasePerVillage(), (player, v) -> setMailBasePerVillage(v));
+	}
+
 }

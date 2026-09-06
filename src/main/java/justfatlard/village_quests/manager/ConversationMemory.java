@@ -27,6 +27,10 @@ public class ConversationMemory {
    private static final Logger LOGGER = LoggerFactory.getLogger("VillageQuests");
    private static final int MAX_TOPICS_PER_PAIR = 5;
    private static final Map<UUID, Map<UUID, Deque<ConversationMemory.ConversationTopic>>> topicHistory = new ConcurrentHashMap<>();
+   // Which significant confessions each villager has already shared with each
+   // player, by dialogue node id. Unlike topics this never rolls off: a
+   // confession told once is told; afterwards the node's echo speaks instead.
+   private static final Map<UUID, Map<UUID, java.util.Set<String>>> heardConfessions = new ConcurrentHashMap<>();
    private static final String STORAGE_KEY = "village_quests_conversations";
    private static final SavedDataType<ConversationMemory.ConversationMemoryState> STATE_TYPE = new SavedDataType<>(
       Identifier.parse(STORAGE_KEY),
@@ -48,6 +52,23 @@ public class ConversationMemory {
       }
 
       markDirty();
+   }
+
+   public static void recordConfession(UUID playerUuid, UUID villagerUuid, String nodeId) {
+      heardConfessions.computeIfAbsent(playerUuid, k -> new ConcurrentHashMap<>())
+         .computeIfAbsent(villagerUuid, k -> ConcurrentHashMap.newKeySet())
+         .add(nodeId);
+      markDirty();
+   }
+
+   public static boolean hasHeardConfession(UUID playerUuid, UUID villagerUuid, String nodeId) {
+      Map<UUID, java.util.Set<String>> villagerMap = heardConfessions.get(playerUuid);
+      if (villagerMap == null) {
+         return false;
+      }
+
+      java.util.Set<String> confessions = villagerMap.get(villagerUuid);
+      return confessions != null && confessions.contains(nodeId);
    }
 
    public static Deque<ConversationMemory.ConversationTopic> getTopics(UUID playerUuid, UUID villagerUuid) {
@@ -118,6 +139,13 @@ public class ConversationMemory {
          }
       }
 
+      for (Map<UUID, java.util.Set<String>> villagerMap : heardConfessions.values()) {
+         java.util.Set<String> confessions = villagerMap.remove(oldUuid);
+         if (confessions != null) {
+            villagerMap.put(newUuid, confessions);
+         }
+      }
+
       markDirty();
    }
 
@@ -129,6 +157,7 @@ public class ConversationMemory {
       markDirty();
       trackedWorld = null;
       topicHistory.clear();
+      heardConfessions.clear();
    }
 
    public static void initFromWorld(ServerLevel world) {
@@ -182,10 +211,80 @@ public class ConversationMemory {
       }
 
       nbt.put("Players", playersList);
+      ListTag confessionPlayers = new ListTag();
+
+      for (Entry<UUID, Map<UUID, java.util.Set<String>>> playerEntry : heardConfessions.entrySet()) {
+         Map<UUID, java.util.Set<String>> villagerMap = playerEntry.getValue();
+         if (!villagerMap.isEmpty()) {
+            CompoundTag playerNbt = new CompoundTag();
+            playerNbt.putLong("PlayerMost", playerEntry.getKey().getMostSignificantBits());
+            playerNbt.putLong("PlayerLeast", playerEntry.getKey().getLeastSignificantBits());
+            ListTag villagersNbt = new ListTag();
+
+            for (Entry<UUID, java.util.Set<String>> villagerEntry : villagerMap.entrySet()) {
+               java.util.Set<String> confessions = villagerEntry.getValue();
+               if (confessions != null && !confessions.isEmpty()) {
+                  CompoundTag villagerNbt = new CompoundTag();
+                  villagerNbt.putLong("VillagerMost", villagerEntry.getKey().getMostSignificantBits());
+                  villagerNbt.putLong("VillagerLeast", villagerEntry.getKey().getLeastSignificantBits());
+                  ListTag confessionsNbt = new ListTag();
+
+                  for (String nodeId : confessions) {
+                     confessionsNbt.add(StringTag.valueOf(nodeId));
+                  }
+
+                  villagerNbt.put("Confessions", confessionsNbt);
+                  villagersNbt.add(villagerNbt);
+               }
+            }
+
+            playerNbt.put("Villagers", villagersNbt);
+            confessionPlayers.add(playerNbt);
+         }
+      }
+
+      nbt.put("ConfessionPlayers", confessionPlayers);
    }
 
    public static void loadFromNbt(CompoundTag nbt) {
       topicHistory.clear();
+      heardConfessions.clear();
+      if (nbt.contains("ConfessionPlayers")) {
+         ListTag confessionPlayers = nbt.getList("ConfessionPlayers").orElse(new ListTag());
+
+         for (int i = 0; i < confessionPlayers.size(); i++) {
+            CompoundTag playerNbt = confessionPlayers.getCompound(i).orElse(new CompoundTag());
+            if (playerNbt.contains("PlayerMost") && playerNbt.contains("PlayerLeast")) {
+               UUID playerUuid = new UUID(playerNbt.getLong("PlayerMost").orElse(0L), playerNbt.getLong("PlayerLeast").orElse(0L));
+               ListTag villagersNbt = playerNbt.getList("Villagers").orElse(new ListTag());
+               Map<UUID, java.util.Set<String>> villagerMap = new ConcurrentHashMap<>();
+
+               for (int j = 0; j < villagersNbt.size(); j++) {
+                  CompoundTag villagerNbt = villagersNbt.getCompound(j).orElse(new CompoundTag());
+                  if (villagerNbt.contains("VillagerMost") && villagerNbt.contains("VillagerLeast")) {
+                     UUID villagerUuid = new UUID(villagerNbt.getLong("VillagerMost").orElse(0L), villagerNbt.getLong("VillagerLeast").orElse(0L));
+                     ListTag confessionsNbt = villagerNbt.getList("Confessions").orElse(new ListTag());
+                     java.util.Set<String> confessions = ConcurrentHashMap.newKeySet();
+
+                     for (int k = 0; k < confessionsNbt.size(); k++) {
+                        String nodeId = confessionsNbt.getString(k).orElse("");
+                        if (!nodeId.isEmpty()) {
+                           confessions.add(nodeId);
+                        }
+                     }
+
+                     if (!confessions.isEmpty()) {
+                        villagerMap.put(villagerUuid, confessions);
+                     }
+                  }
+               }
+
+               if (!villagerMap.isEmpty()) {
+                  heardConfessions.put(playerUuid, villagerMap);
+               }
+            }
+         }
+      }
       if (nbt.contains("Players")) {
          ListTag playersList = nbt.getList("Players").orElse(new ListTag());
 

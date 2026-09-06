@@ -11,6 +11,9 @@ public class Dialogue {
    private final List<Dialogue.DialogueResponse> responses;
    private final Dialogue.DialogueType type;
    private String profession = null;
+   private int arrivalReputation = 0;
+   private String walkAwayLabel = null;
+   private String memoryTopic = null;
 
    public Dialogue(String id, String text, int minReputation, int maxReputation, Dialogue.DialogueType type) {
       this.id = id;
@@ -33,6 +36,42 @@ public class Dialogue {
    public Dialogue addResponse(Dialogue.DialogueResponse response) {
       this.responses.add(response);
       return this;
+   }
+
+   // Reputation lands where the scene lands: the exchange earns or costs by the
+   // node it reaches, not the sentence the player picked. Only applies when this
+   // node is entered from another node, never when it opens a conversation.
+   public Dialogue arrival(int reputation) {
+      this.arrivalReputation = reputation;
+      return this;
+   }
+
+   public int getArrivalReputation() {
+      return this.arrivalReputation;
+   }
+
+   // The one button on a terminal beat. Closes the screen, triggers nothing.
+   // The villager speaks last; the player leaves last.
+   public Dialogue walkAway(String label) {
+      this.walkAwayLabel = label;
+      return this;
+   }
+
+   public String getWalkAwayLabel() {
+      return this.walkAwayLabel;
+   }
+
+   // Marks this node as a significant moment: hearing it is recorded in
+   // ConversationMemory per player-villager pair, it fires once per pair, and
+   // afterwards the node registered as "<id>_echo" speaks in its place.
+   // Topics: "deep" (confessions) or "lore" (ontological reveals).
+   public Dialogue remember(String topic) {
+      this.memoryTopic = topic;
+      return this;
+   }
+
+   public String getMemoryTopic() {
+      return this.memoryTopic;
    }
 
    public String getId() {

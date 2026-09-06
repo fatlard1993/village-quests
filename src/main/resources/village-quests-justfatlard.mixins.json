@@ -8,6 +8,7 @@
     "VillagerDamageMixin",
     "BlockBreakMixin",
     "ContainerAccessMixin",
+    "SlotTakeMixin",
     "FireUseMixin",
     "ZombieDoorBreakMixin",
     "ZombieVillagerCureMixin"

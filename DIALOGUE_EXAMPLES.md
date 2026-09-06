@@ -160,6 +160,9 @@ The difference: moonfaced prose strips specificity until only atmosphere remains
 6. **The Pool Test**: Look at the whole variant pool you're adding to. If more than a quarter of it shares one shape (trail-offs, bare emotes, aphorism closers), the pool is a formula — vary the pool, not just the line.
 7. **The Button Test** (player-voice options only): buttons are the PLAYER speaking, and clicking does something. Does the label say what happens next? A trade button must ask to trade.
 8. **The Scene Test**: before cutting a line for matching the banned lists, read the two lines before it. Earned payoffs stay; lines carrying profundity alone go.
+9. **The Third Turn Test**: does the villager respond to what the player chose to say? Every option lands on a node; the villager closes the conversation, then the walk-away button closes the screen. An option with no answer behind it is a rating, not a line.
+10. **The Move Test**: for every option ask "what does the villager say back?" If unanswerable, rewrite the option as a move (ask/press/stay/leave), not a verdict.
+11. **The Model Test** (stage directions): can the villager model actually perform it on screen? Head shake, nod, turn away, work the station: yes. Wipe hands, lean in, half-smile: no - cut it, let the words carry it. Ellipses share this budget: at most one per conversation path.
 
 ## Formatting Patterns
 

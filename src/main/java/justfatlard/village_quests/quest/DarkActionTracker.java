@@ -75,24 +75,11 @@ public class DarkActionTracker {
    }
 
    private static boolean isWorkstationBlock(Block block) {
-      return block == Blocks.CRAFTING_TABLE
-         || block == Blocks.FURNACE
-         || block == Blocks.BLAST_FURNACE
-         || block == Blocks.SMOKER
-         || block == Blocks.SMITHING_TABLE
-         || block == Blocks.FLETCHING_TABLE
-         || block == Blocks.CARTOGRAPHY_TABLE
-         || block == Blocks.BREWING_STAND
-         || block == Blocks.COMPOSTER
-         || block == Blocks.BARREL
-         || block == Blocks.LOOM
-         || block == Blocks.STONECUTTER
-         || block == Blocks.GRINDSTONE
-         || block == Blocks.LECTERN
-         || block == Blocks.CAULDRON
-         || block == Blocks.WATER_CAULDRON
-         || block == Blocks.LAVA_CAULDRON
-         || block == Blocks.POWDER_SNOW_CAULDRON;
+      // One opinion of what a workstation is, shared with the property-damage
+      // charge. This list used to also count crafting tables and furnaces,
+      // which no villager works at, so breaking a furnace read as sabotage
+      // while never reading as property damage.
+      return justfatlard.village_quests.util.JobBlockHelper.isJobBlock(block);
    }
 
    private static boolean isNearVillage(ServerLevel world, BlockPos pos) {

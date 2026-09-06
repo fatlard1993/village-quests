@@ -113,6 +113,26 @@ public final class VillageLootChests {
 		}
 	}
 
+	/**
+	 * Claim one chest outright, for a village chest that no chunk load will ever announce.
+	 *
+	 * <p>The chunk scan rests on an assumption that is true of worldgen and false of building:
+	 * that a village chest is always in a chunk that has yet to load. A chest raised by a builder
+	 * goes into a chunk that loaded long ago and will not load again while anyone is standing near
+	 * it, so it was never scanned, never remembered, and never the village's - free loot inside
+	 * somebody's town, and inconsistently so, because unloading the area and coming back did claim
+	 * it. Whoever puts such a chest down says so here instead.
+	 *
+	 * @return true when this chest was not already known
+	 */
+	public static boolean remember(ServerLevel world, BlockPos pos) {
+		VillageLootChests.Data data = data(world);
+		if (!data.add(pos)) return false;
+		data.consumeAdded();
+		data.setDirty();
+		return true;
+	}
+
 	/** Forget a chest that no longer exists, so its position cannot brand a later one. */
 	public static void forget(ServerLevel world, BlockPos pos) {
 		VillageLootChests.Data data = data(world);

@@ -1,10 +1,8 @@
 package justfatlard.village_quests.mixin;
 
-import justfatlard.village_quests.Village;
 import justfatlard.village_quests.VillageQuests;
 import justfatlard.village_quests.manager.RecentActionsMemory;
 import justfatlard.village_quests.quest.DarkActionTracker;
-import justfatlard.village_quests.reputation.ReputationEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -22,16 +20,15 @@ public class VillagerDamageMixin {
       at = {@At("HEAD")}
    )
    public void onDamage(ServerLevel world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+      // Only the attack is recorded here. The MURDER charge lives in the
+      // AFTER_DEATH handler, which is the truthful signal: this hook fires
+      // before armor and shields apply, so predicting lethality from raw
+      // damage charged -25% for hits that never killed - and the death
+      // handler charged its own penalty on top, taxing one deed twice.
       if ((Object)this instanceof Villager villager && source.getEntity() instanceof ServerPlayer player) {
          DarkActionTracker.recordVillagerAttack(player, villager);
          String villagerName = VillageQuests.getNameManager().getName(villager);
          RecentActionsMemory.recordAction(player, RecentActionsMemory.ActionType.VILLAGER_HARMED, villager.blockPosition(), villagerName);
-         if (villager.getHealth() - amount <= 0.0F) {
-            Village village = VillageQuests.getVillageManager().findNearestVillage(world, villager.blockPosition());
-            if (village != null) {
-               VillageQuests.getReputationManager().applyReputationEvent(player, village, ReputationEvent.MURDER);
-            }
-         }
       }
    }
 }

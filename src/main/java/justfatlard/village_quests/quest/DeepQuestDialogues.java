@@ -58,12 +58,16 @@ public class DeepQuestDialogues {
    }
 
    private static String getAcknowledgmentBeat() {
+      // Three shapes on purpose: villager action, world detail, player action.
+      // The old pool was five ways of captioning the silence ("*You stand there
+      // until it stops feeling awkward.*") - narrated feeling, one shape, and
+      // the guide's own listed trap. A beat shows something happening instead.
       String[] beats = new String[]{
-         "*You stay a moment longer.*",
-         "*Neither of you says anything for a while.*",
+         "*They go back to their work.*",
+         "*They nod once.*",
+         "*Somewhere across the square, a door closes.*",
          "*You nod.*",
-         "*You don't leave right away.*",
-         "*You stand there until it stops feeling awkward.*"
+         "*A rooster starts up somewhere, oblivious.*"
       };
       return beats[ThreadLocalRandom.current().nextInt(beats.length)];
    }
@@ -252,7 +256,7 @@ public class DeepQuestDialogues {
       String[] hints = new String[]{
          "I saw " + subjectName + " by the storehouse last night. Probably nothing.",
          subjectName + "'s been acting funny. Going out late. I don't ask questions though.",
-         "Nobody notices me. That means I notice everything. " + subjectName + "'s been... *trails off*",
+         "Nobody notices me. That means I notice everything. " + subjectName + "'s been...",
          "I don't sleep well. That's how I know " + subjectName + " doesn't either.",
          subjectName + " keeps looking over their shoulder. I've seen it three times now."
       };
@@ -310,7 +314,7 @@ public class DeepQuestDialogues {
                   "I counted the dark patches on the path last night. Seven. That's too many."
                );
                case DialogueManager.OBS_BROKEN_FENCES -> pickVariant(
-                  "The fence is broken. I'd fix it myself but... *looks at hands* ...these don't do what I want them to.",
+                  "The fence is broken. I'd fix it myself but these hands don't do what I want them to anymore.",
                   "Something got through the fence gap again last night. I heard it. Didn't see what it was.",
                   "The animals keep getting out. Through the gap. I tried to stand in it. Didn't work."
                );
@@ -378,7 +382,7 @@ public class DeepQuestDialogues {
                return hasQuestCompletion
                   ? pickVariant(
                      "You've helped before and it mattered. I hate to ask again, but ",
-                     "After what you did last time... I thought you might be willing. ",
+                     "After what you did last time, I thought you might be willing. ",
                      "Word is you're someone who follows through. So -- ",
                      "Things have been better since you helped last time. But ",
                      "You've helped me before. I hate to ask again, but "
@@ -558,7 +562,7 @@ public class DeepQuestDialogues {
       public String getDescription() {
          String[] descriptions = new String[]{
             this.requesterName
-               + ": \"Someone claimed my bed. I came home and they were in it. I stood there for an hour. Couldn't say anything. Can you just... make me a new one? Somewhere?\"",
+               + ": \"Someone claimed my bed. I came home and they were in it. I stood there for an hour. Couldn't say anything. Can you just make me a new one? Somewhere?\"",
             this.requesterName + ": \"I've been sleeping on the floor. Three nights. My bed got taken. It's not worth the argument. I just need another one.\"",
             this.requesterName
                + ": \"The new arrival took my bed. I know they need one too. I know. But my back is killing me and I can't bring myself to say it.\""
@@ -638,7 +642,7 @@ public class DeepQuestDialogues {
          DeepQuestDialogues.sendSequencedDialogue(
             player,
             new Component[]{
-               Component.literal(this.requesterName + ": \"*marks the egg carefully* There. Now if I put it under this one and see who sits on it...\"")
+               Component.literal(this.requesterName + ": \"*marks the egg carefully* There. Now if I put it under this one and see who sits on it.\"")
                   .withStyle(ChatFormatting.YELLOW),
                Component.literal(this.requesterName + ": \"It's been three days. I've drawn maps. The maps don't help. They move.\"")
                   .withStyle(ChatFormatting.GRAY),
@@ -742,7 +746,7 @@ public class DeepQuestDialogues {
                         + ". They said 'who cares.' Who CARES? I've been thinking about this for three weeks.\""
                   )
                   .withStyle(ChatFormatting.GRAY),
-               Component.literal(this.requesterName + ": \"*sets the pumpkin down* ...You know what? They're right. It doesn't matter.\"")
+               Component.literal(this.requesterName + ": \"*sets the pumpkin down* You know what? They're right. It doesn't matter.\"")
                   .withStyle(ChatFormatting.GRAY),
                Component.literal(
                      this.requesterName
@@ -780,7 +784,7 @@ public class DeepQuestDialogues {
          String[] openers = new String[]{
             this.requesterName + ": \"Everyone says I'm wrong. About everything. Bring me a spyglass. I want to see what they see.\"",
             this.requesterName + ": \"Do you think they're right about me? Bring me a spyglass. Maybe I'm looking at it wrong.\"",
-            this.requesterName + ": \"I said something today and everyone just... looked at each other. Bring me a spyglass. I need to check something.\""
+            this.requesterName + ": \"I said something today and everyone just looked at each other. Bring me a spyglass. I need to check something.\""
          };
          return openers[ThreadLocalRandom.current().nextInt(openers.length)];
       }
@@ -1219,7 +1223,7 @@ public class DeepQuestDialogues {
       public String getDescription() {
          return switch (this.stage) {
             case 1 -> this.requesterName
-               + ": \"I know it's just a flower. But have you looked at one? Really looked? The red is so... *trails off* Could you bring me a poppy? A fresh one.\"";
+               + ": \"I know it's just a flower. But have you looked at one? Really looked? The red is so... Could you bring me a poppy? A fresh one.\"";
             case 2 -> this.requesterName
                + ": \"There's a flower I've only heard about. Blue. Grows in wet places, swamps maybe. A blue orchid. I've never seen one. Could you find me one?\"";
             case 3 -> this.requesterName
@@ -1644,7 +1648,7 @@ public class DeepQuestDialogues {
       @Override
       public String getDescription() {
          return this.requesterName
-            + ": \"My daughter used to hum. All day. She stopped after the last raid. I heard there are discs with music. And a box that plays them. Could you... set one up? Near the house? So she might hear it.\"";
+            + ": \"My daughter used to hum. All day. She stopped after the last raid. I heard there are discs with music. And a box that plays them. Could you set one up? Near the house? So she might hear it.\"";
       }
 
       @Override
@@ -1793,7 +1797,7 @@ public class DeepQuestDialogues {
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.GRAY),
                Component.literal(this.requesterName + ": \"Stood at the composter for an hour once. Pretending. Nobody corrected me. That was worse.\"")
                   .withStyle(ChatFormatting.GRAY),
-               Component.literal(this.requesterName + ": \"I'm not angry. I'm not. I just wish someone would say it to my face instead of... *quiet*\"")
+               Component.literal(this.requesterName + ": \"I'm not angry. I'm not. I just wish someone would say it to my face. *quiet*\"")
                   .withStyle(ChatFormatting.GRAY),
                Component.literal(
                      this.requesterName + ": \"I watch the sunset every day. Nobody else does. They're all too busy. I don't know why I'm telling you this.\""
@@ -2294,7 +2298,7 @@ public class DeepQuestDialogues {
          return this.requesterName
             + ": \"There's a spot on the hill. "
             + this.lostPerson
-            + " used to go there in the evenings. I can't go alone. Would you just... come with me?\"";
+            + " used to go there in the evenings. I can't go alone. Would you just come with me?\"";
       }
 
       @Override
@@ -2432,7 +2436,7 @@ public class DeepQuestDialogues {
                Component.literal(this.requesterName + ": \"Yeah. I was angry. Said something terrible.\"").withStyle(ChatFormatting.GRAY),
                Component.literal(this.requesterName + ": \"But I came to you because I was hurting. And you treated me like I was the monster.\"")
                   .withStyle(ChatFormatting.GRAY),
-               Component.literal(this.requesterName + ": \"I'm not. I was just... in pain. That's all it was.\"").withStyle(ChatFormatting.RED),
+               Component.literal(this.requesterName + ": \"I'm not. I was just in pain. That's all it was.\"").withStyle(ChatFormatting.RED),
                Component.literal(this.requesterName + ": \"I'm glad you said no. I just wish you'd said it different.\"")
                   .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC})
             },
@@ -2639,7 +2643,7 @@ public class DeepQuestDialogues {
          String opener = DeepQuestDialogues.pickVariant(
             "I was aware. The whole time. I could see my hands but they weren't — they were wrong.",
             "The hunger. Not for food. For... I don't want to say it.",
-            "I heard them talking about me. While I was... changed. They said my name like a prayer."
+            "I heard them talking about me. While I was changed. They said my name like a prayer."
          );
          DeepQuestDialogues.sendSequencedDialogue(
             player,
@@ -2647,7 +2651,7 @@ public class DeepQuestDialogues {
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.DARK_GREEN),
                Component.literal(this.requesterName + ": \"I wanted to hurt them. The people I loved. I could feel it pulling me toward them.\"")
                   .withStyle(ChatFormatting.DARK_RED),
-               Component.literal(this.requesterName + ": \"The apple. The potion. Coming back was... slow. Like waking up in freezing water.\"")
+               Component.literal(this.requesterName + ": \"The apple. The potion. Coming back was slow. Like waking up in freezing water.\"")
                   .withStyle(ChatFormatting.GRAY),
                Component.literal(this.requesterName + ": \"I'm me again. I think. ...How do you check?\"")
                   .withStyle(new ChatFormatting[]{ChatFormatting.RED, ChatFormatting.ITALIC})
@@ -2687,7 +2691,7 @@ public class DeepQuestDialogues {
             player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.DARK_GREEN),
-               Component.literal(this.requesterName + ": \"But I can feel it. The hunger. Not for bread or carrots...\"")
+               Component.literal(this.requesterName + ": \"But I can feel it. The hunger. Not for bread or carrots.\"")
                   .withStyle(new ChatFormatting[]{ChatFormatting.DARK_GREEN, ChatFormatting.ITALIC}),
                Component.literal(this.requesterName + ": \"I looked at the butcher's shop and felt... hungry.\"").withStyle(ChatFormatting.DARK_RED),
                Component.literal(this.requesterName + ": \"If I turn, burn me. In the sunlight. Promise.\"").withStyle(ChatFormatting.DARK_RED)
