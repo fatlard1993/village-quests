@@ -29,7 +29,7 @@ public class CastleScoutQuest extends VillagerQuest {
     public String getDescription() {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         String[] descriptions = new String[]{
-            requesterName + ": \"I heard about a strange stone fortress somewhere out there — towers, thick walls, the whole thing."
+            requesterName + ": \"I heard about a strange stone fortress somewhere out there, towers, thick walls, the whole thing."
                 + " Nobody's gone to look. Would you? I need to know if it's real.\"",
             requesterName + ": \"Traders talk about a castle. Stone. Old. I don't know where. Go find it and come back with a report."
                 + " Anything you can tell me.\"",
@@ -42,7 +42,7 @@ public class CastleScoutQuest extends VillagerQuest {
     @Override
     public String getObjective() {
         if (!this.exploredFar) {
-            return "Find the stone fortress the villager mentioned — explore far from the village";
+            return "Find the stone fortress the villager mentioned, explore far from the village";
         } else if (!this.hasVisitedCastle) {
             return "Locate the castle (look for stone brick structures) and return to the villager";
         } else {
@@ -110,9 +110,9 @@ public class CastleScoutQuest extends VillagerQuest {
     public void onComplete(ServerPlayer player) {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         String[] messages = new String[]{
-            requesterName + ": \"You've been there! Tell me — what did you find?\"",
-            requesterName + ": \"*leaning in* So it's real. I knew it. What was it like? Stone? How tall?\"",
-            requesterName + ": \"*sits down slowly* You went. You actually went. Tell me everything.\""
+            requesterName + ": \"You've been there! Tell me, what did you find?\"",
+            requesterName + ": \"*lowering voice* So it's real. I knew it. What was it like? Stone? How tall?\"",
+            requesterName + ": \"*quiet* You went. You actually went. Tell me everything.\""
         };
         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, messages[rng.nextInt(messages.length)]);
 

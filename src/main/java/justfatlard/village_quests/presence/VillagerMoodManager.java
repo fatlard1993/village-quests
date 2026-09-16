@@ -16,12 +16,12 @@ import net.minecraft.world.entity.npc.villager.VillagerProfession;
 public class VillagerMoodManager {
    private static final String[] TIRED_PREFIXES = new String[]{"*yawns*", "Mm... early.", "Long day."};
    private static final String[] ANXIOUS_PREFIXES = new String[]{"*glances around nervously*", "Did you hear that?", "I don't like this weather."};
-   private static final String[] SOCIAL_PREFIXES = new String[]{"Nice day for company.", "Everyone's out today.", "Oh, hello.", "*leans in*"};
+   private static final String[] SOCIAL_PREFIXES = new String[]{"Nice day for company.", "Everyone's out today.", "Oh, hello.", "*lowers voice*"};
    private static final String[] WITHDRAWN_PREFIXES = new String[]{"...", "*steps back*", "I'd rather not."};
    private static final String[] BUSY_PREFIXES = new String[]{"I'm working.", "Make it quick.", "Can this wait?"};
-   private static final String[] WITHDRAWN_REFUSALS = new String[]{"*turns away*", "*won't meet your eyes*", "*shakes head slowly*"};
-   private static final String[] TIRED_REFUSALS = new String[]{"*rubs eyes, shakes head*", "*waves you off sleepily*"};
-   private static final String[] BUSY_REFUSALS = new String[]{"*waves you off*", "*gestures at their work*", "*doesn't look up*"};
+   private static final String[] WITHDRAWN_REFUSALS = new String[]{"*turns away*", "*won't look at you*", "*shakes head slowly*"};
+   private static final String[] TIRED_REFUSALS = new String[]{"*yawns, shakes head*", "*turns away, yawning*"};
+   private static final String[] BUSY_REFUSALS = new String[]{"*turns away*", "*nods at their work*", "*doesn't look up*"};
 
    public static VillagerMoodManager.Mood getMood(Villager villager, ServerLevel world, ServerPlayer player) {
       if (DarkActionTracker.hasRecentVillagerAttack(player)) {

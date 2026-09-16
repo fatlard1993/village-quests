@@ -122,7 +122,6 @@ public class VillageQuests implements ModInitializer {
    // are in the village" - is exactly where actions count. It was 64 for the
    // bar and 128 for consequences, which left a ring where the village
    // watched without saying so.
-   public static final double VILLAGE_BOUNDS_RADIUS = 128.0;
    private static final long SURVIVED_NIGHT_COOLDOWN_TICKS = 72000L;
    private static final long VILLAGE_CENTER_CACHE_TTL_TICKS = 100L;
    private static final long PLAYER_DEDUP_COOLDOWN_MS = 500L;
@@ -131,7 +130,7 @@ public class VillageQuests implements ModInitializer {
    static final long MC_NIGHT_END_TICKS = 23000L;
    private static final Logger LOGGER = LoggerFactory.getLogger("VillageQuests");
    private static final String[] REMINDER_VARIANTS = new String[]{
-      "You haven't forgotten about that, have you? — %s",
+      "You haven't forgotten about that, have you? %s",
       "%s is probably still waiting on you.",
       "Something about %o... %s mentioned it.",
       "Wonder if %s still needs that help."
@@ -342,7 +341,7 @@ public class VillageQuests implements ModInitializer {
                   Village village = getCachedVillage(player);
                   // Bounds-gated like everything else now; this branch used to
                   // charge at any distance to the nearest village.
-                  if (village != null && villager.blockPosition().closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
+                  if (village != null && village.isNearby(villager.blockPosition())) {
                      // The one and only murder charge. The damage mixin used to
                      // predict the kill from pre-mitigation damage and add a
                      // second -25% on top of this one; death is the signal that
@@ -364,7 +363,7 @@ public class VillageQuests implements ModInitializer {
                   justfatlard.village_quests.quest.LessonProgress.onMentorDeath(sw, deadVillager.getUUID());
                } else if (entity instanceof IronGolem golem && source.getEntity() instanceof ServerPlayer playerx) {
                   Village village = getCachedVillage(playerx);
-                  if (village != null && golem.blockPosition().closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
+                  if (village != null && village.isNearby(golem.blockPosition())) {
                      int currentRep = reputationManager.getReputation(playerx, village);
                      int penalty = ReputationHelper.calculatePercentagePenalty(
                         ReputationHelper.getPercentagePenalty("iron_golem_kill"), currentRep, ReputationHelper.getMinimumPenalty("iron_golem_kill")
@@ -380,7 +379,7 @@ public class VillageQuests implements ModInitializer {
                   }
                } else if (entity instanceof Zombie zombie && source.getEntity() instanceof ServerPlayer playerxx) {
                   Village village = getCachedVillage(playerxx);
-                  if (village != null && zombie.blockPosition().closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
+                  if (village != null && village.isNearby(zombie.blockPosition())) {
                      RecentActionsMemory.recordAction(playerxx, RecentActionsMemory.ActionType.KILLED_ZOMBIE, zombie.blockPosition(), null);
                      ServerLevel zombieWorld = (ServerLevel)zombie.level();
                      if (zombieWorld.getOverworldClockTime() % 24000L >= 13000L) {
@@ -421,7 +420,7 @@ public class VillageQuests implements ModInitializer {
                // remembers is "they fought for us", not the body count.
                if (entity instanceof Monster slain && source.getEntity() instanceof ServerPlayer defender && entity.level() instanceof ServerLevel defenseWorld) {
                   Village village = getCachedVillage(defender);
-                  if (village != null && slain.blockPosition().closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
+                  if (village != null && village.isNearby(slain.blockPosition())) {
                      long day = defenseWorld.getOverworldClockTime() / 24000L;
                      String creditKey = defender.getUUID() + ":" + village.getId();
                      Long lastCreditedDay = villageDefenseCredits.get(creditKey);
@@ -453,7 +452,7 @@ public class VillageQuests implements ModInitializer {
 
             if (nearestPlayer != null) {
                Village village = villageManager.findNearestVillage(world, golem.blockPosition());
-               if (village != null && golem.blockPosition().closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
+               if (village != null && village.isNearby(golem.blockPosition())) {
                   reputationManager.applyReputationEvent(nearestPlayer, village, ReputationEvent.GOLEM_BUILT);
                   int newReputation = reputationManager.getReputation(nearestPlayer, village);
                   checkAndGeneratePlots(world, village.getCenter(), newReputation);
@@ -473,19 +472,19 @@ public class VillageQuests implements ModInitializer {
                   Village village = getCachedVillage(serverPlayer);
                   if (stack.is(ItemTags.BEDS)) {
                      BlockPos pos = hitResult.getBlockPos().relative(hitResult.getDirection());
-                     if (village != null && pos.closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
+                     if (village != null && village.isNearby(pos)) {
                         applyBlockPlacementEvent(serverPlayer, village, ReputationEvent.BED_PLACED);
                      }
                   } else if (item instanceof BlockItem blockItem) {
                      Block block = blockItem.getBlock();
                      if (JobBlockHelper.isJobBlock(block)) {
                         BlockPos pos = hitResult.getBlockPos().relative(hitResult.getDirection());
-                        if (village != null && pos.closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
+                        if (village != null && village.isNearby(pos)) {
                            applyBlockPlacementEvent(serverPlayer, village, ReputationEvent.JOB_BLOCK_PLACED);
                         }
                      } else if (block == Blocks.EMERALD_BLOCK) {
                         BlockPos pos = hitResult.getBlockPos().relative(hitResult.getDirection());
-                        if (village != null && pos.closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
+                        if (village != null && village.isNearby(pos)) {
                            applyBlockPlacementEvent(serverPlayer, village, ReputationEvent.WEALTH_DISPLAYED);
                         }
                      } else if (block.defaultBlockState().getLightEmission() >= 8) {
@@ -498,7 +497,7 @@ public class VillageQuests implements ModInitializer {
                         // keeps a pocketful of torches from being a rep farm.
                         BlockPos pos = hitResult.getBlockPos().relative(hitResult.getDirection());
                         if (village != null
-                           && pos.closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)
+                           && village.isNearby(pos)
                            && world.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, pos) == 0) {
                            applyBlockPlacementEvent(serverPlayer, village, ReputationEvent.LIGHT_TENDED);
                         }
@@ -553,7 +552,7 @@ public class VillageQuests implements ModInitializer {
             PlotManager damagePlots = getPlotManager();
             PlotManager.Plot damagePlot = damagePlots != null ? damagePlots.getPlotAt((ServerLevel)world, pos) : null;
             boolean onOwnPlot = damagePlot != null && damagePlot.isOwnedBy(serverPlayer.getUUID());
-            if (village != null && !onOwnPlot && pos.closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
+            if (village != null && !onOwnPlot && village.isNearby(pos)) {
                boolean isPropertyDamage = false;
                String blockName = null;
                if (block instanceof BedBlock) {
@@ -805,7 +804,7 @@ public class VillageQuests implements ModInitializer {
       for (ServerPlayer player : server.getPlayerList().getPlayers()) {
          if (!player.isSpectator() && player.isAlive()) {
             Village village = getCachedVillage(player);
-            if (village != null && player.blockPosition().closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
+            if (village != null && village.isNearby(player.blockPosition())) {
                String cooldownKey = player.getUUID() + ":" + village.getId();
                Long lastRecorded = survivedNightCooldowns.get(cooldownKey);
                if (lastRecorded == null || currentTick - lastRecorded >= 72000L) {
@@ -828,7 +827,7 @@ public class VillageQuests implements ModInitializer {
       for (ServerPlayer player : server.getPlayerList().getPlayers()) {
          BlockPos playerPos = player.blockPosition();
          Village village = getCachedVillage(player);
-         if (village != null && playerPos.closerThan(village.getCenter(), VILLAGE_BOUNDS_RADIUS)) {
+         if (village != null && village.isNearby(playerPos)) {
             int reputation = reputationManager.getReputation(player, village);
             String villageName = village.getName() != null ? village.getName() : "Unknown Village";
             FirstEncounterTracker.tryShowVillageDiscovery(player, villageName);

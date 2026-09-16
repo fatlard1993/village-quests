@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Charges theft the moment a player takes from a village chest.
@@ -35,14 +36,14 @@ public final class ChestTheftWatch {
 	/** Use-block fires just before openMenu; anything older is a stale arm. */
 	private static final long ARM_WINDOW_MS = 2000L;
 
-	private record Watch(BlockPos pos, long armedAt, boolean menuOpen) {}
+	private record Watch(ServerPlayer player, BlockPos pos, long armedAt, boolean menuOpen) {}
 
 	private static final Map<UUID, Watch> WATCHES = new ConcurrentHashMap<>();
 	private static final Map<String, Long> CHEST_COOLDOWNS = new ConcurrentHashMap<>();
 
 	/** From the use-block handler: this click is on a village-owned container. */
 	public static void arm(ServerPlayer player, BlockPos pos) {
-		WATCHES.put(player.getUUID(), new Watch(pos, System.currentTimeMillis(), false));
+		WATCHES.put(player.getUUID(), new Watch(player, pos, System.currentTimeMillis(), false));
 	}
 
 	/** From the openMenu hook, after the menu is set: the watch goes live. */
@@ -55,7 +56,7 @@ public final class ChestTheftWatch {
 			return;
 		}
 
-		WATCHES.put(player.getUUID(), new Watch(watch.pos(), watch.armedAt(), true));
+		WATCHES.put(player.getUUID(), new Watch(player, watch.pos(), watch.armedAt(), true));
 	}
 
 	/**
@@ -84,6 +85,39 @@ public final class ChestTheftWatch {
 		RecentActionsMemory.recordAction(
 			player, RecentActionsMemory.ActionType.THEFT, watch.pos(), village.getName() != null ? village.getName() : "the village"
 		);
+	}
+
+	/**
+	 * From the Slot.setByPlayer hook: a stack just went into a slot from the
+	 * player's hands. It only means something when the slot is a village chest's
+	 * and the player has said, to somebody's face, that they would put back what
+	 * they took. Then it is the promise kept, and the village says so.
+	 *
+	 * <p>The slot hook has no player on it, so the player is whoever holds a
+	 * live watch on a chest menu, which the watch remembers from arming.
+	 */
+	public static void onSlotPut(Slot slot, ItemStack stack) {
+		if (stack == null || stack.isEmpty() || WATCHES.isEmpty()) return;
+
+		for (Map.Entry<UUID, Watch> entry : WATCHES.entrySet()) {
+			Watch watch = entry.getValue();
+			if (!watch.menuOpen()) continue;
+			if (!RecentActionsMemory.hasReturnPromise(entry.getKey())) continue;
+
+			ServerPlayer player = watch.player();
+			if (player == null || player.hasDisconnected()) continue;
+			if (slot.container == player.getInventory()) continue;
+			if (!(player.level() instanceof ServerLevel world)) continue;
+
+			Village village = VillageQuests.getVillageManager().findNearestVillage(world, watch.pos());
+			if (village == null) continue;
+
+			RecentActionsMemory.keepReturnPromise(player);
+			RecentActionsMemory.recordAction(
+				player, RecentActionsMemory.ActionType.RETURNED_GOODS, watch.pos(), village.getName() != null ? village.getName() : "the village"
+			);
+			return;
+		}
 	}
 
 	/**

@@ -231,9 +231,7 @@ public final class LessonQuest extends VillagerQuest {
 			InventoryHelper.removeFirst(player.getInventory(), lesson.wants());
 		}
 
-		player.sendSystemMessage(
-			Component.literal(this.requesterName + ": \"" + lesson.atHandover() + "\"").withStyle(ChatFormatting.GREEN),
-			true);
+		VillagerVoice.queue(player, this.mentorUuid, this.requesterName, lesson.atHandover());
 		VillagerVoice.queue(player, this.mentorUuid, this.requesterName, lesson.taught());
 		VillagerVoice.queue(player, this.mentorUuid, this.requesterName, lesson.thenAdds());
 

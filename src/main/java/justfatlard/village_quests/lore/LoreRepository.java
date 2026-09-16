@@ -74,7 +74,7 @@ public class LoreRepository {
       );
       lore.add(
          new LoreFragment(LoreFragment.Topic.WITHER, "cleric")
-            .addLayer(50, "There are things we don't name. Things that shouldn't be.", false)
+            .addLayer(50, "There's a thing with three heads. I won't say more, and you shouldn't ask the smith about soul sand.", false)
             .addLayer(100, "If you know how to make that thing... forget. Please, just forget.", false)
       );
       PROFESSION_LORE.put("cleric", lore);
@@ -91,8 +91,8 @@ public class LoreRepository {
       lore.add(
          new LoreFragment(LoreFragment.Topic.WORLD_BORDER, "cartographer")
             .addLayer(0, "My maps blur at the edges. It's just bad ink.", false)
-            .addLayer(50, "My maps blur at the edges. The world thins out there.", true)
-            .addLayer(100, "My maps blur at the edges. Maybe we're the ones who are blurry.", true)
+            .addLayer(50, "My maps blur at the edges. The lines won't take. Ink just sits on the paper and goes grey.", true)
+            .addLayer(100, "My maps blur at the edges. I walked out to where they go grey once. My hands went grey too. I came back.", true)
       );
       lore.add(
          new LoreFragment(LoreFragment.Topic.RUINED_PORTALS, "cartographer")
@@ -106,15 +106,15 @@ public class LoreRepository {
       List<LoreFragment> lore = new ArrayList<>();
       lore.add(
          new LoreFragment(LoreFragment.Topic.NETHERITE, "weaponsmith")
-            .addLayer(0, "Netherite doesn't burn because it's already been through hell - literally.", false)
+            .addLayer(0, "Netherite doesn't burn. Where it's from, everything's already burning. It's had practice.", false)
             .addLayer(25, "Ancient debris isn't ore - it's the remnants of structures from before the Nether became the Nether.", false)
-            .addLayer(75, "The fact that it needs gold to be forged? Gold is the only metal that remembers the Overworld in that cursed place.", false)
+            .addLayer(75, "It only takes to gold. The ones down there want gold too. I don't think that's a coincidence.", false)
       );
       lore.add(
          new LoreFragment(LoreFragment.Topic.IRON_GOLEMS, "toolsmith")
-            .addLayer(0, "We build them, but we don't truly understand how they come alive. The pumpkin is more than decoration.", false)
-            .addLayer(25, "They protect villagers instinctively. It's not programming - it's purpose, forged into their very iron.", false)
-            .addLayer(50, "Sometimes I see them staring at the horizon. What do constructs dream of?", false)
+            .addLayer(0, "Four blocks of iron and a pumpkin. That's a recipe, not a reason. Nobody knows why it stands up.", false)
+            .addLayer(25, "It walks the same loop every night. Never told to. Show it a child and it hands over a flower.", false)
+            .addLayer(50, "Ours stands at the gate facing east every dawn. Nobody put it there. Nobody knows what's east.", false)
       );
       PROFESSION_LORE.put("weaponsmith", lore);
       PROFESSION_LORE.put("toolsmith", lore);
@@ -125,14 +125,14 @@ public class LoreRepository {
       List<LoreFragment> lore = new ArrayList<>();
       lore.add(
          new LoreFragment(LoreFragment.Topic.FARMING, "farmer")
-            .addLayer(-50, "Bone meal works because death feeds life. It's the oldest law.", false)
-            .addLayer(0, "Crops grow whether you watch or not. But they grow *differently* when observed.", false)
-            .addLayer(25, "The sun and moon affect growth, but so does your presence. We're all connected to the land.", false)
+            .addLayer(-50, "Bone meal. Ground-up bones on the wheat, and it comes up in a day. Nobody asks whose bones.", false)
+            .addLayer(0, "Wheat grows the same whether I watch it or not. But the far field, where nobody goes? That one doesn't grow at all.", false)
+            .addLayer(25, "The fields by your door come in faster than mine. Don't tell me it's the soil. It's the same soil.", false)
       );
       lore.add(
          new LoreFragment(LoreFragment.Topic.CREEPERS, "farmer")
-            .addLayer(0, "Creepers fear cats because cats see what creepers truly are. We only see the mask.", false)
-            .addLayer(25, "They're not hostile - they're trying to return to the earth. Violently.", true)
+            .addLayer(0, "A cat on the step and they won't come near the house. I've had a cat for years. I've never asked why it works.", false)
+            .addLayer(25, "They don't hit you. They get close and stop being there. Like they wanted to be a hole.", true)
             .addLayer(50, "Some say creepers are failed pigs, transformed by lightning. Nature's mistake that became nature's weapon.", true)
       );
       PROFESSION_LORE.put("farmer", lore);
@@ -147,8 +147,8 @@ public class LoreRepository {
       );
       lore.add(
          new LoreFragment(LoreFragment.Topic.OBSIDIAN, "mason")
-            .addLayer(0, "Obsidian forms when water meets lava, but it's more than cooled lava. It's crystallized conflict.", false)
-            .addLayer(25, "It's the only common block that requires diamond to harvest. It guards secrets that iron shouldn't touch.", false)
+            .addLayer(0, "Water on lava and it goes black and hard as a grudge. Diamond to cut it. Nothing less.", false)
+            .addLayer(25, "Iron won't touch it. Make of that what you like.", false)
       );
       PROFESSION_LORE.put("mason", lore);
    }
@@ -158,12 +158,12 @@ public class LoreRepository {
       lore.add(
          new LoreFragment(LoreFragment.Topic.PHANTOMS, "shepherd")
             .addLayer(0, "Phantoms aren't real - they're hallucinations from lack of sleep. But hallucinations that can kill you.", false)
-            .addLayer(25, "They're not punishing insomnia. They're attracted to the thin boundary between waking and sleeping.", false)
+            .addLayer(25, "Three nights without a bed and something up there notices. Sleep, and it stops. That's all anyone knows.", false)
       );
       lore.add(
          new LoreFragment(LoreFragment.Topic.SURVIVAL, "fisherman")
             .addLayer(0, "Fish bite more before a storm. They know what's coming before the sky does.", false)
-            .addLayer(25, "Lightning isn't random. It targets things that don't belong.", false)
+            .addLayer(25, "Lightning took the pig, the creeper and the man who stood on the hill. Not the tree next to them. Never once the tree.", false)
       );
       PROFESSION_LORE.put("shepherd", lore);
       PROFESSION_LORE.put("fisherman", lore);
@@ -175,12 +175,12 @@ public class LoreRepository {
          new LoreFragment(LoreFragment.Topic.THE_VOID, "nitwit")
             .addLayer(-100, "Sometimes I stare down and wonder what stares back?", false)
             .addLayer(0, "The void isn't empty. Empty would be something. The void is less than nothing.", false)
-            .addLayer(50, "We all came from the void, and we'll all return. The world is just a temporary argument against entropy.", false)
+            .addLayer(50, "Dig down far enough and the ground says no. Below that, nothing. Below nothing, you stop. I've heard.", false)
       );
       lore.add(
          new LoreFragment(LoreFragment.Topic.EXPERIENCE_ORBS, "nitwit")
             .addLayer(0, "Why do we call them experience orbs? Experience of what? Whose experience are we collecting?", false)
-            .addLayer(25, "Every time you pick one up, you're absorbing someone else's memories. We're all composites.", true)
+            .addLayer(25, "Kill a thing and it drops little green lights, and you soak them up. Whatever you're soaking up, it was theirs.", true)
       );
       PROFESSION_LORE.put("nitwit", lore);
       PROFESSION_LORE.put("none", lore);
@@ -235,7 +235,7 @@ public class LoreRepository {
       librarianHerobrine.add(
          new LoreFragment(LoreFragment.Topic.HEROBRINE, "librarian")
             .addLayer(80, "Stories persist. They change. They spread. Like any folklore.", false)
-            .addLayer(100, "Sometimes pages are missing. Sometimes words are crossed out. Patterns in absence.", true)
+            .addLayer(100, "Sometimes pages are missing. Sometimes words are crossed out. Somebody went through these before me, and they were careful.", true)
       );
       List<LoreFragment> existingLibrarian = PROFESSION_LORE.get("librarian");
       if (existingLibrarian != null) {
@@ -260,7 +260,7 @@ public class LoreRepository {
          new LoreFragment(LoreFragment.Topic.THE_PLAYER, "any")
             .addLayer(0, "We don't all look the same. That's... fine.", false)
             .addLayer(25, "You're not from here. We can tell. It doesn't matter.", false)
-            .addLayer(50, "Some are born to stay. Some are born to wander. We know which we are.", true)
+            .addLayer(50, "None of us has ever left. Not one. You leave every week. We notice.", true)
             .addLayer(100, "You build differently. Fight differently. Die differently. We try not to think about it.", true)
       );
       List<LoreFragment> nitwitPlayerLore = new ArrayList<>();
@@ -273,9 +273,9 @@ public class LoreRepository {
       List<LoreFragment> clericPlayerLore = new ArrayList<>();
       clericPlayerLore.add(
          new LoreFragment(LoreFragment.Topic.THE_PLAYER, "cleric")
-            .addLayer(20, "Some souls are anchored. Some souls drift. Yours... drifts.", false)
+            .addLayer(20, "We sleep in beds. You sleep in beds. When we die we stay dead. Explain that to me.", false)
             .addLayer(60, "You return from death unchanged. We return different. Or not at all.", true)
-            .addLayer(100, "Perhaps you're what we were. Or what we'll become. Or neither.", true)
+            .addLayer(100, "You look like us with the corners filed off. Or we look like you. I've stopped deciding which.", true)
       );
       PROFESSION_LORE.computeIfAbsent("none", k -> new ArrayList<>()).addAll(generalPlayerLore);
       PROFESSION_LORE.computeIfAbsent("farmer", k -> new ArrayList<>()).addAll(generalPlayerLore);
@@ -290,7 +290,7 @@ public class LoreRepository {
             .addLayer(0, "We don't use those portals.", false)
             .addLayer(30, "Fire and stone. No water. No sky. No place for us.", false)
             .addLayer(60, "Our kind tried once. Long ago. They never came back the same.", true)
-            .addLayer(100, "The burning place changes things. We're already what we need to be.", true)
+            .addLayer(100, "The ones who came back from the burning place had gold on them and wouldn't say where from. They don't come to the well anymore.", true)
       );
       List<LoreFragment> clericNetherLore = new ArrayList<>();
       clericNetherLore.add(
@@ -303,13 +303,13 @@ public class LoreRepository {
          new LoreFragment(LoreFragment.Topic.END_ABSENCE, "any")
             .addLayer(50, "Beyond? There is no beyond. Only here.", false)
             .addLayer(75, "You speak of a dark place with islands. We don't understand.", true)
-            .addLayer(100, "If such a place exists, it's not for us. We belong to the earth.", true)
+            .addLayer(100, "If such a place exists, it's not for us. We can't even cross the river.", true)
       );
       List<LoreFragment> librarianEndLore = new ArrayList<>();
       librarianEndLore.add(
          new LoreFragment(LoreFragment.Topic.END_ABSENCE, "librarian")
             .addLayer(60, "The eyes lead somewhere. We know this. We don't follow.", false)
-            .addLayer(100, "That place is the opposite of here. We are made of here.", true)
+            .addLayer(100, "You say it's all islands and nothing between. We've never seen the sea. Start there.", true)
       );
       PROFESSION_LORE.computeIfAbsent("none", k -> new ArrayList<>()).addAll(netherLore);
       PROFESSION_LORE.computeIfAbsent("none", k -> new ArrayList<>()).addAll(endLore);
@@ -329,8 +329,8 @@ public class LoreRepository {
       List<LoreFragment> clericPiglinLore = new ArrayList<>();
       clericPiglinLore.add(
          new LoreFragment(LoreFragment.Topic.PIGLINS, "cleric")
-            .addLayer(60, "They chose gold over soul. Look what they became.", true)
-            .addLayer(100, "Not corrupted. Adapted. Which is worse?", true)
+            .addLayer(60, "Show one of them gold and it forgets it was about to kill you. That's not greed. That's worse.", true)
+            .addLayer(100, "Bring one up here and it comes apart into something that shambles. It can't live where we live. I don't know what that makes us.", true)
       );
       List<LoreFragment> smithPiglinLore = new ArrayList<>();
       smithPiglinLore.add(
@@ -362,14 +362,14 @@ public class LoreRepository {
       List<LoreFragment> librarianRedstone = new ArrayList<>();
       librarianRedstone.add(
          new LoreFragment(LoreFragment.Topic.REDSTONE, "librarian")
-            .addLayer(35, "It responds to will. Or intent. Or something we can't name.", false)
+            .addLayer(35, "A lever moves a door across the square with nothing between them but that dust in the dirt. I've watched a child do it.", false)
             .addLayer(70, "The comparators are weighing something. Not items. Something else.", true)
-            .addLayer(100, "It's not electricity. Electricity is honest. This? This remembers.", true)
+            .addLayer(100, "Lay it down, pull it up, lay it down the same way. It works the second time before you've finished laying it.", true)
       );
       List<LoreFragment> brewingLore = new ArrayList<>();
       brewingLore.add(
          new LoreFragment(LoreFragment.Topic.BREWING, "cleric")
-            .addLayer(15, "Potions change you temporarily. But each change leaves a trace.", false)
+            .addLayer(15, "You drink one and your eyes go wrong for a while. After enough of them, they don't quite go back.", false)
             .addLayer(40, "Spider eyes in potions? You're drinking their sight. Literally.", false)
             .addLayer(65, "The brewing stand's bubbling isn't random. It's counting something down.", true)
             .addLayer(90, "Drink too many potions and you'll start to taste colors. Trust me.", true)
@@ -390,7 +390,7 @@ public class LoreRepository {
       List<LoreFragment> experienceLore = new ArrayList<>();
       experienceLore.add(
          new LoreFragment(LoreFragment.Topic.EXPERIENCE_ORBS, "cleric")
-            .addLayer(35, "Those green orbs? They're not knowledge. They're fragments of... attention.", false)
+            .addLayer(35, "Those green lights. You soak them up and something in your hands gets better at things. Nobody taught you. Whose lessons were they?", false)
             .addLayer(60, "Everything that dies releases them. Even breaking stones. What exactly are we collecting?", true)
             .addLayer(85, "They float toward you like they recognize you. Like they want to go home.", true)
       );

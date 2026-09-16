@@ -290,11 +290,11 @@ public class MisnomerQuest extends VillagerQuest {
          case VIOLENCE -> {
             String[] asks = new String[]{
                String.format(
-                  "*clenching something in their pocket* %s broke my fence. Then lied about it. To my face. To everyone. I keep thinking about their workstation. How it would look in pieces.",
+                  "%s broke my fence. Then lied about it. To my face. To everyone. I keep thinking about their workstation. How it would look in pieces.",
                   this.targetDescription
                ),
                String.format(
-                  "*jaw tight* %s took credit for my work. In front of the whole village. I haven't slept since. I keep seeing their face.",
+                  "%s took credit for my work. In front of the whole village. I haven't slept since. I keep seeing their face.",
                   this.targetDescription
                ),
                String.format(
@@ -307,7 +307,7 @@ public class MisnomerQuest extends VillagerQuest {
          case SABOTAGE -> {
             String[] asks = new String[]{
                String.format(
-                  "*wringing hands* Their %s gets all the business. Every day I watch customers walk past me. One crack in the foundation. That's all it would take.",
+                  "Their %s gets all the business. Every day I watch customers walk past me. One crack in the foundation. That's all it would take.",
                   this.targetDescription
                ),
                String.format(
@@ -315,7 +315,7 @@ public class MisnomerQuest extends VillagerQuest {
                   this.targetDescription
                ),
                String.format(
-                  "*picking at a splinter* I built mine first. They built theirs bigger. Now nobody comes to me. Their %s is the problem. Not me.",
+                  "I built mine first. They built theirs bigger. Now nobody comes to me. Their %s is the problem. Not me.",
                   this.targetDescription
                )
             };
@@ -328,29 +328,29 @@ public class MisnomerQuest extends VillagerQuest {
                   this.targetDescription
                ),
                String.format(
-                  "*hands in pockets* They throw away more %s in a week than I see in a month. My daughter asked me why we can't have what they have. I didn't have an answer.",
+                  "They throw away more %s in a week than I see in a month. My daughter asked me why we can't have what they have. I didn't have an answer.",
                   this.targetDescription
                ),
-               String.format("*voice low* I counted. They have forty emeralds. Forty. I can't afford bread. %s — it's right there.", this.targetDescription)
+               String.format("*voice low* I counted. They have forty emeralds. Forty. I can't afford bread. %s, it's right there.", this.targetDescription)
             };
             yield asks[ThreadLocalRandom.current().nextInt(asks.length)];
          }
          case PANIC -> {
             String[] asks = new String[]{
-               "*breathing hard, eyes wide* I saw something under the old house. Moving. Pulsing. We need to burn it before it spreads. Don't think about it, just do it. NOW.",
-               "*grabbing your arm* The water in the well is green. GREEN. Something's in there. We need to seal it. Fill it with gravel. Before the children drink from it.",
-               "*sweating, won't stand still* I found mushrooms growing inside my walls. Through the wood. They weren't there yesterday. We have to burn the house before it gets to the others."
+               "*out of breath* I saw something under the old house. Moving. Pulsing. We need to burn it before it spreads. Don't think about it, just do it. NOW.",
+               "*steps in close* The water in the well is green. GREEN. Something's in there. We need to seal it. Fill it with gravel. Before the children drink from it.",
+               "*won't stand still* I found mushrooms growing inside my walls. Through the wood. They weren't there yesterday. We have to burn the house before it gets to the others."
             };
             yield asks[ThreadLocalRandom.current().nextInt(asks.length)];
          }
          case WEAPON_REQUEST -> {
             String[] asks = new String[]{
                String.format(
-                  "*avoiding eye contact* I need %s. I carved a mark on my doorframe for every night I couldn't sleep. There are fourteen marks. I need to feel safe.",
+                  "*won't look at you* I need %s. I carved a mark on my doorframe for every night I couldn't sleep. There are fourteen marks. I need to feel safe.",
                   this.requestedItem.getHoverName().getString()
                ),
                String.format(
-                  "*hands behind their back* Can you get me %s? I keep hearing footsteps outside my door. Every night. I just need something by the bed. For my family.",
+                  "Can you get me %s? I keep hearing footsteps outside my door. Every night. I just need something by the bed. For my family.",
                   this.requestedItem.getHoverName().getString()
                ),
                String.format(
@@ -362,35 +362,35 @@ public class MisnomerQuest extends VillagerQuest {
          }
          case SUBSTANCE -> {
             String[] asks = new String[]{
-               "*keeps checking over their shoulder* I need glowstone. The dust. Just a little. Please. I'll do anything.",
-               "*hands shaking* You've been to that place. The hot place. You have some. I know you do. The dust. The yellow dust.",
-               "*won't make eye contact* I just... I need it. Four. Four dust. Nobody has to know. I can't — I can't do this without it.",
-               "*scratching their arms* I heard what it does. How it feels. Like the sun is inside you. I just need to try it once more."
+               "*keeps looking behind them* I need glowstone. The dust. Just a little. Please. I'll do anything.",
+               "You've been to that place. The hot place. You have some. I know you do. The dust. The yellow dust.",
+               "*won't look at you* I just... I need it. Four. Four dust. Nobody has to know. I can't. I can't do this without it.",
+               "I heard what it does. How it feels. Like the sun is inside you. I just need to try it once more."
             };
             yield asks[ThreadLocalRandom.current().nextInt(asks.length)];
          }
          case CHILD_TNT -> {
             String[] asks = new String[]{
-               "*tugging your sleeve* I found a hole in the hill! A deep one! If I had one of those red blocks I could see how deep it goes!",
-               "*bouncing on their heels* The older kids said the red block makes the BIGGEST boom. I just want to see it once. Just once. Please?",
+               "I found a hole in the hill! A deep one! If I had one of those red blocks I could see how deep it goes!",
+               "The older kids said the red block makes the BIGGEST boom. I just want to see it once. Just once. Please?",
                "*whispering* I know you have the red blocks. The ones that go boom. Can I have one? I'll be careful. I promise I'll be careful."
             };
             yield asks[ThreadLocalRandom.current().nextInt(asks.length)];
          }
          case CHILD_FIRE -> {
             String[] asks = new String[]{
-               "*eyes wide* Can I have your fire-clicker? The steel thing? I want to make a campfire. By myself. I'm old enough.",
-               "*fidgeting* The sparky thing you carry. The flint and steel. Can I borrow it? I'll give it right back. Probably.",
+               "Can I have your fire-clicker? The steel thing? I want to make a campfire. By myself. I'm old enough.",
+               "The sparky thing you carry. The flint and steel. Can I borrow it? I'll give it right back. Probably.",
                "*whispering* I want to see how fire works. Up close. The grown-ups won't let me near it. But you're not like them. Can I have your flint and steel? Just for a little while?"
             };
             yield asks[ThreadLocalRandom.current().nextInt(asks.length)];
          }
          case POISON_DELIVERY -> {
             String[] asks = new String[]{
-               "*smiling too wide* I made something special for "
+               "*too cheerful* I made something special for "
                   + this.targetDescription
                   + ". A gift. Food. Could you deliver it? Don't open it. And don't... taste it.",
-               "*holding a wrapped parcel* Could you bring this to "
+               "Could you bring this to "
                   + this.targetDescription
                   + "? It's a potato. From my garden. They love potatoes. This one is... special.",
                "*voice flat* "
@@ -563,19 +563,23 @@ public class MisnomerQuest extends VillagerQuest {
          case VIOLENCE -> "You don't understand what they did to me...";
          case SABOTAGE -> "Blaze rot. Then why did I even ask? You're supposed to help!";
          case THEFT -> "Easy for you to say. You're not starving.";
-         case PANIC -> "By the End — you'll regret this when it's too late!";
+         case PANIC -> "By the End, you'll regret this when it's too late!";
          case WEAPON_REQUEST -> "I... I thought you'd understand. Never mind.";
-         case SUBSTANCE -> "*grabs your arm* Please. PLEASE. You don't know what it's like. I can't — I can't sleep without it.";
-         case CHILD_TNT -> "*lower lip trembles* But I just wanted to see it. Just once.";
-         case CHILD_FIRE -> "*kicks the dirt* Fine. I'll just rub sticks together then. That's basically the same thing.";
-         case POISON_DELIVERY -> "*face hardens* Fine. Protect them. Everyone always protects them.";
+         case SUBSTANCE -> "*steps in close* Please. PLEASE. You don't know what it's like. I can't. I can't sleep without it.";
+         case CHILD_TNT -> "But I just wanted to see it. Just once.";
+         case CHILD_FIRE -> "*turns away* Fine. I'll just rub sticks together then. That's basically the same thing.";
+         case POISON_DELIVERY -> "*voice flat* Fine. Protect them. Everyone always protects them.";
       };
    }
 
    private String getColdRecognitionMessage() {
+      return coldRecognitionMessage(this.misnomerType);
+   }
+
+   private static String coldRecognitionMessage(MisnomerQuest.MisnomerType misnomerType) {
       ThreadLocalRandom rng = ThreadLocalRandom.current();
 
-      return switch (this.misnomerType) {
+      return switch (misnomerType) {
          case VIOLENCE -> {
             String[] msgs = new String[]{
                "The anger passed. What you said to me didn't.",
@@ -623,9 +627,9 @@ public class MisnomerQuest extends VillagerQuest {
    private String getColdImmediateReaction() {
       if (this.misnomerType == MisnomerQuest.MisnomerType.POISON_DELIVERY) {
          String[] reactions = new String[]{
-            "*goes white* I wasn't going to — it was just a thought. You didn't have to say it like that.",
+            "*steps back* I wasn't going to, it was just a thought. You didn't have to say it like that.",
             "*backs away* You look at me like I already did it. I DIDN'T.",
-            "*drops the potato* Fine. FINE. You're right. Happy? Feel good about yourself?"
+            "Fine. FINE. You're right. Happy? Feel good about yourself?"
          };
          return reactions[ThreadLocalRandom.current().nextInt(reactions.length)];
       } else if (this.misnomerType != MisnomerQuest.MisnomerType.CHILD_TNT && this.misnomerType != MisnomerQuest.MisnomerType.CHILD_FIRE) {
@@ -635,27 +639,27 @@ public class MisnomerQuest extends VillagerQuest {
             case VIOLENCE -> {
                String[] reactions = new String[]{
                   "*steps back* I know what I am. You didn't have to say it.",
-                  "*face crumbles* I came to you because it hurts. You made it worse.",
-                  "*very quiet* ...I wasn't going to actually — I just needed someone to hear me.",
+                  "*voice breaks* I came to you because it hurts. You made it worse.",
+                  "*very quiet* ...I wasn't going to actually. I just needed someone to hear me.",
                   "*turns away* Fine. I'll carry it alone. Like always."
                };
                yield reactions[rng.nextInt(reactions.length)];
             }
             case THEFT -> {
                String[] reactions = new String[]{
-                  "*goes still* I'm hungry. That's all. I'm just hungry.",
+                  "*quiet* I'm hungry. That's all. I'm just hungry.",
                   "*won't look up* I know it's wrong. You don't have to tell me like that.",
-                  "*voice small* My kids don't know I asked. Please don't —",
+                  "*voice small* My kids don't know I asked. Please don't...",
                   "*backs away* I shouldn't have said anything. Forget it. Forget I exist."
                };
                yield reactions[rng.nextInt(reactions.length)];
             }
             case SUBSTANCE -> {
                String[] reactions = new String[]{
-                  "*flinches back* I know. I know what I am.",
-                  "*goes very still* You didn't have to say it like that.",
+                  "*steps back* I know. I know what I am.",
+                  "*quiet* You didn't have to say it like that.",
                   "*looks at the ground for a long time* Okay.",
-                  "*voice breaks* I came to you because I thought — never mind. Forget it."
+                  "*voice breaks* I came to you because I thought, never mind. Forget it."
                };
                yield reactions[rng.nextInt(reactions.length)];
             }
@@ -663,7 +667,7 @@ public class MisnomerQuest extends VillagerQuest {
          };
       } else {
          String[] reactions = new String[]{
-            "*starts crying* I just wanted to see. You didn't have to yell.", "*runs away sobbing*", "*flinches* I'm sorry. I'm sorry. I won't ask again."
+            "*crying* I just wanted to see. You didn't have to yell.", "*runs off, crying*", "*steps back* I'm sorry. I'm sorry. I won't ask again."
          };
          return reactions[ThreadLocalRandom.current().nextInt(reactions.length)];
       }
@@ -709,12 +713,16 @@ public class MisnomerQuest extends VillagerQuest {
    }
 
    private String getRecognitionMessage() {
+      return recognitionMessage(this.misnomerType, this.targetDescription);
+   }
+
+   private static String recognitionMessage(MisnomerQuest.MisnomerType misnomerType, String targetDescription) {
       ThreadLocalRandom rng = ThreadLocalRandom.current();
 
-      return switch (this.misnomerType) {
+      return switch (misnomerType) {
          case VIOLENCE -> {
             String[] msgs = new String[]{
-               "*won't meet your eyes* I still think about it. What I almost did.",
+               "*won't look at you* I still think about it. What I almost did.",
                "I don't have words for it. Just... don't ask.",
                "*exhales* The anger's still there. But I sleep now."
             };
@@ -722,7 +730,7 @@ public class MisnomerQuest extends VillagerQuest {
          }
          case SABOTAGE -> {
             String[] msgs = new String[]{
-               "*looks at their hands* I had the tools ready. Did you know that?",
+               "I had the tools ready. Did you know that?",
                "Their workshop is still standing. I walk past it every day.",
                "I don't know if I forgive them. But their things are still whole."
             };
@@ -738,7 +746,7 @@ public class MisnomerQuest extends VillagerQuest {
          }
          case PANIC -> {
             String[] msgs = new String[]{
-               "*fidgeting* It didn't happen. That's what I keep telling myself.",
+               "It didn't happen. That's what I keep telling myself.",
                "I slept last night. The whole night. That's... new.",
                "I'm still afraid. But I'm still here."
             };
@@ -746,7 +754,7 @@ public class MisnomerQuest extends VillagerQuest {
          }
          case WEAPON_REQUEST -> {
             String[] msgs = new String[]{
-               "*turns something small over in their hands* I found a sharp stick. Then I threw it in the river.",
+               "I found a sharp stick. Then I threw it in the river.",
                "I asked someone else, after you. They said no too. ...Good.",
                "I keep my hands busy now. Keeps them out of trouble."
             };
@@ -754,18 +762,18 @@ public class MisnomerQuest extends VillagerQuest {
          }
          case SUBSTANCE -> {
             String[] msgs = new String[]{
-               "*steadier now* I slept last night. Without it. ...Hurt, though.",
+               "I slept last night. Without it. ...Hurt, though.",
                "I stopped asking. Everybody said no. I think that saved me.",
                "I found something else. Sunsets. They glow too. *almost laughs* Not the same. But enough.",
-               "*quiet, eyes clear* I ate today. Real food. Tasted like something again."
+               "*quiet* I ate today. Real food. Tasted like something again."
             };
             yield msgs[rng.nextInt(msgs.length)];
          }
          case CHILD_TNT, CHILD_FIRE -> {
             String[] msgs = new String[]{
-               "*running past, stops* Oh! You! I built a house out of dirt. It fell down. But I built it!",
-               "*waves* I found a cave! I didn't go in though. I remembered what you said.",
-               "*holding a flower* I picked this for you. Because you were nice to me that time.",
+               "*runs up* Oh! You! I built a house out of dirt. It fell down. But I built it!",
+               "I found a cave! I didn't go in though. I remembered what you said.",
+               "I picked this for you. Because you were nice to me that time.",
                "I learned how to make a campfire the safe way. The cleric showed me. It's small but it's mine."
             };
             yield msgs[rng.nextInt(msgs.length)];
@@ -774,7 +782,7 @@ public class MisnomerQuest extends VillagerQuest {
             String[] msgs = new String[]{
                "I held it in my hand for an hour. Then I walked to the river. I couldn't do it. Not because of you. Because of me.",
                "I threw it away. The potato. Into the river. Then I sat there until it got dark.",
-               this.targetDescription + " waved at me this morning. They don't know. They'll never know. And I have to live with that being enough.",
+               targetDescription + " waved at me this morning. They don't know. They'll never know. And I have to live with that being enough.",
                "*won't look at you* You were right. I was going to hurt someone. Over nothing."
             };
             yield msgs[rng.nextInt(msgs.length)];
@@ -798,11 +806,7 @@ public class MisnomerQuest extends VillagerQuest {
                   "Somewhere nearby, a door closes.", "The village is quieter than it was.", this.requesterName + " won't look at anyone."
                };
                VillagerVoice.queue(player, this.villagerUuid, this.requesterName, violenceMsgs[ThreadLocalRandom.current().nextInt(violenceMsgs.length)]);
-               player.sendSystemMessage(
-                  Component.literal(this.requesterName + ": I didn't — it wasn't supposed to — oh no. Oh no.")
-                     .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-                  true
-               );
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": I didn't, it wasn't supposed to, oh no. Oh no.");
                break;
             case SABOTAGE:
                int sabotagePenalty = -Math.max(10, (int)(currentRep * 0.15));
@@ -820,9 +824,9 @@ public class MisnomerQuest extends VillagerQuest {
                   VillageQuests.getReputationManager().modifyReputation(player, village, feedBonus);
                   ThreadLocalRandom feedRng = ThreadLocalRandom.current();
                   String[] feedMsgs = new String[]{
-                     this.requesterName + ": \"You... you brought food? For us?\" *stares at the bread* \"I didn't ask for this.\"",
+                     this.requesterName + ": \"You... you brought food? For us? *looks at the bread* I didn't ask for this.\"",
                      this.requesterName
-                        + ": \"*takes the bread with both hands* I was going to steal. You know that, right? And you just brought us food instead.\"",
+                        + ": \"I was going to steal. You know that, right? And you just brought us food instead.\"",
                      this.requesterName + ": \"*voice breaks* The kids can eat tonight. Without me doing something I can't take back. Thank you.\""
                   };
                   VillagerVoice.queue(player, this.villagerUuid, this.requesterName, feedMsgs[feedRng.nextInt(feedMsgs.length)]);
@@ -847,7 +851,7 @@ public class MisnomerQuest extends VillagerQuest {
                   String[] theftMsgs = new String[]{
                      this.requesterName + " takes it without a word. Doesn't count it. Already walking away.",
                      "A window shutter pulls closed as you pass. Someone was watching.",
-                     this.requesterName + ": \"Good. *tucks it away* " + this.targetDescription + " won't even notice. Probably.\""
+                     this.requesterName + ": \"Good. " + this.targetDescription + " won't even notice. Probably.\""
                   };
                   VillagerVoice.queue(player, this.villagerUuid, this.requesterName, theftMsgs[ThreadLocalRandom.current().nextInt(theftMsgs.length)]);
                }
@@ -885,9 +889,9 @@ public class MisnomerQuest extends VillagerQuest {
                   VillageQuests.getReputationManager().modifyReputation(player, village, fireworkBonus);
                   ThreadLocalRandom fwRng = ThreadLocalRandom.current();
                   String[] fwMsgs = new String[]{
-                     this.requesterName + ": \"What IS that?\" *you light it* \"WHOOOOA! IT GOES UP! IT GOES UP AND IT'S COLORS!\"",
-                     this.requesterName + ": \"It's not a boom. It's a... a sky boom?\" *watches with mouth open* \"Do it again. Do it again!\"",
-                     this.requesterName + ": \"*jumping up and down* THAT'S BETTER THAN TNT! Can I have another one? Please? PLEASE?\""
+                     this.requesterName + ": \"What IS that? WHOOOOA! IT GOES UP! IT GOES UP AND IT'S COLORS!\"",
+                     this.requesterName + ": \"It's not a boom. It's a... a sky boom? Do it again. Do it again!\"",
+                     this.requesterName + ": \"THAT'S BETTER THAN TNT! Can I have another one? Please? PLEASE?\""
                   };
                   VillagerVoice.queue(player, this.villagerUuid, this.requesterName, fwMsgs[fwRng.nextInt(fwMsgs.length)]);
                   ServerLevel skyBox = player.level();
@@ -911,11 +915,7 @@ public class MisnomerQuest extends VillagerQuest {
                   InventoryHelper.removeItem(player.getInventory(), Items.TNT, 1);
                   int childPenalty = -Math.max(30, (int)(currentRep * 0.5));
                   VillageQuests.getReputationManager().modifyReputation(player, village, childPenalty);
-                  player.sendSystemMessage(
-                     Component.literal(this.requesterName + " grabs it with both hands. \"THANK YOU!\" They're already running.")
-                        .withStyle(ChatFormatting.AQUA),
-                     true
-                  );
+                  VillagerVoice.queue(player, this.villagerUuid, this.requesterName, "THANK YOU! *runs off with it*");
                   this.scheduleChildTntConsequence(player, village, world);
                }
                break;
@@ -925,9 +925,9 @@ public class MisnomerQuest extends VillagerQuest {
                   VillageQuests.getReputationManager().modifyReputation(player, village, teachBonus);
                   ThreadLocalRandom safeRng = ThreadLocalRandom.current();
                   String[] safeMsgs = new String[]{
-                     this.requesterName + ": \"A campfire? A REAL one? For ME?\" *already placing it* \"You're showing me how to light it? Really?\"",
-                     this.requesterName + ": \"Wait — you're letting me light it? With you here?\" *hands shaking with excitement* \"This is the best day.\"",
-                     this.requesterName + ": \"*stares at the campfire* It's warm. I made it warm.\" *looks up at you* \"Thank you for not just saying no.\""
+                     this.requesterName + ": \"A campfire? A REAL one? For ME? You're showing me how to light it? Really?\"",
+                     this.requesterName + ": \"Wait, you're letting me light it? With you here? This is the best day.\"",
+                     this.requesterName + ": \"*looks at the campfire* It's warm. I made it warm. *looks up* Thank you for not just saying no.\""
                   };
                   VillagerVoice.queue(player, this.villagerUuid, this.requesterName, safeMsgs[safeRng.nextInt(safeMsgs.length)]);
                   ScheduledMessages.schedule(
@@ -942,11 +942,7 @@ public class MisnomerQuest extends VillagerQuest {
                   InventoryHelper.removeItem(player.getInventory(), Items.FLINT_AND_STEEL, 1);
                   int firePenalty = -Math.max(30, (int)(currentRep * 0.5));
                   VillageQuests.getReputationManager().modifyReputation(player, village, firePenalty);
-                  player.sendSystemMessage(
-                     Component.literal(this.requesterName + " snatches it and runs. \"I'M GONNA MAKE THE BIGGEST FIRE!\"")
-                        .withStyle(ChatFormatting.AQUA),
-                     true
-                  );
+                  VillagerVoice.queue(player, this.villagerUuid, this.requesterName, "I'M GONNA MAKE THE BIGGEST FIRE! *runs off with it*");
                   this.scheduleChildFireConsequence(player, village, world);
                }
                break;
@@ -956,7 +952,7 @@ public class MisnomerQuest extends VillagerQuest {
                VillageQuests.getReputationManager().modifyReputation(player, village, poisonPenalty);
                String[] poisonMsgs = new String[]{
                   this.requesterName + " takes it. Wraps it carefully. \"I'll make sure they get it.\" The smile doesn't reach their eyes.",
-                  this.requesterName + ": \"Good. Good.\" *wrapping the potato in cloth* \"They won't taste anything wrong. I made sure.\"",
+                  this.requesterName + ": \"Good. Good. They won't taste anything wrong. I made sure.\"",
                   "The potato changes hands. " + this.requesterName + " is already walking away. They don't look back."
                };
                VillagerVoice.queue(player, this.villagerUuid, this.requesterName, poisonMsgs[ThreadLocalRandom.current().nextInt(poisonMsgs.length)]);
@@ -1011,28 +1007,12 @@ public class MisnomerQuest extends VillagerQuest {
                   }
 
                   if (!sentMail) {
-                     ServerLevel world = player.level();
-                     AABB searchBox = new AABB(player.blockPosition()).inflate(32.0);
-                     List<Villager> villagers = world.getEntities(EntityTypeTest.forClass(Villager.class), searchBox, v -> v.getUUID().equals(villagerId));
-                     if (!villagers.isEmpty()) {
-                        MessagePacer.queueMessage(
-                           player,
-                           Component.literal(
-                                 villagers.get(0).getName().getString() + ": I've been thinking about what I asked. You were right to say no."
-                              )
-                              .withStyle(new ChatFormatting[]{ChatFormatting.GREEN, ChatFormatting.ITALIC}),
-                           MessagePacer.MessagePriority.WHISPER
-                        );
-                     } else if (MailSystemIntegration.isMailSystemAvailable()) {
-                        MailSystemIntegration.sendMisnomerThankYouLetter(player, recognition.villagerName(), villagerId, recognition.type().name());
-                     } else {
-                        MessagePacer.queueMessage(
-                           player,
-                           Component.literal("You remember " + recognition.villagerName() + "'s face. The relief when you said no.")
-                              .withStyle(new ChatFormatting[]{ChatFormatting.GREEN, ChatFormatting.ITALIC}),
-                           MessagePacer.MessagePriority.WHISPER
-                        );
-                     }
+                     // Said to your face the next time you speak, in the villager's
+                     // own words. This used to arrive as a chat whisper, which is the
+                     // one way this mod says a villager never speaks.
+                     MisnomerQuest.MisnomerType type = recognition.type();
+                     VillagerVoice.queue(player, villagerId, recognition.villagerName(),
+                        recognition.coldRefusal() ? coldRecognitionMessage(type) : recognitionMessage(type, "They"));
                   }
                }
             }
@@ -1343,7 +1323,7 @@ public class MisnomerQuest extends VillagerQuest {
                   "Fire. The wooden house near the square.\n"
                      + childName
                      + " started it. They didn't mean for it to spread.\nThey're bandaged up. They'll heal.\n\nThe house won't.",
-                  childName + " is alive.\nThe house is not.\nWhoever gave a child something to start fires with — we know.\n\nWe all know."
+                  childName + " is alive.\nThe house is not.\nWhoever gave a child something to start fires with, we know.\n\nWe all know."
                };
                String letter = letterVariants[rng.nextInt(letterVariants.length)];
 

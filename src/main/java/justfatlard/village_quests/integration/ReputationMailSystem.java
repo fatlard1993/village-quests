@@ -82,7 +82,11 @@ public class ReputationMailSystem {
                   float totalChance = Math.min(baseChance + plotBonus, 0.8F);
                   ServerLevel world = player.level();
                   AABB searchBox = new AABB(player.blockPosition()).inflate(64.0);
-                  List<Villager> nearbyVillagers = world.getEntities(EntityTypeTest.forClass(Villager.class), searchBox, v -> !v.isBaby());
+                  // Only a villager who knows the player writes to them: standing with the
+                  // village is not an introduction to every stranger in it, and a player who
+                  // had never spoken to a villager was getting job offers from a dozen.
+                  List<Villager> nearbyVillagers = world.getEntities(EntityTypeTest.forClass(Villager.class), searchBox,
+                     v -> !v.isBaby() && v.getGossips().getReputation(playerId, type -> true) > 0);
                   if (!nearbyVillagers.isEmpty()) {
                      for (Villager villager : nearbyVillagers) {
                         if (ThreadLocalRandom.current().nextFloat() < totalChance) {
@@ -216,7 +220,7 @@ public class ReputationMailSystem {
                      + villagerName;
                };
             case "weaponsmith":
-               return "The forge has been quiet.\n\nNot for lack of work, but... I keep thinking about protection. Real protection. The kind that matters when the bells ring.\n\nYou know where to find me.\n\n"
+               return "The forge has been quiet.\n\nNot for lack of work, but... I keep thinking about what stands between the bell and the door when the bell rings. Iron does. I make iron.\n\nYou know where to find me.\n\n"
                   + villagerName;
             case "butcher":
                return "Running low on supplies.\n\nThe hunters have been... unsuccessful lately. If you're out that way and see anything.\n\nNo pressure.\n\n"

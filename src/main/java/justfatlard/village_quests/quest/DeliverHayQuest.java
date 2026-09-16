@@ -37,7 +37,7 @@ class DeliverHayQuest extends TimeSensitiveQuest {
 
    @Override
    public String getObjective() {
-      return this.recipientName + " needs the hay before it rains — wet hay is useless";
+      return this.recipientName + " needs the hay before it rains, wet hay is useless";
    }
 
    @Override
@@ -69,11 +69,8 @@ class DeliverHayQuest extends TimeSensitiveQuest {
          }
       } else {
          InventoryHelper.removeItem(player.getInventory(), Items.HAY_BLOCK, this.hayAmount);
-         player.sendSystemMessage(Component.literal(this.recipientName + ": \"Got it. Just in time, too.\"").withStyle(ChatFormatting.GREEN), true);
+         VillagerVoice.queue(player, this.villagerUuid, this.recipientName, this.recipientName + ": \"Got it. Just in time, too.\"");
          ConversationMemory.recordTopic(player.getUUID(), this.villagerUuid, ConversationMemory.ConversationTopic.QUEST_GIVEN);
-         ScheduledMessages.schedule(
-            player, Component.literal(this.recipientName + " waved from the barn. The hay's stacked.").withStyle(ChatFormatting.GRAY), 600
-         );
       }
 
       this.completed = true;

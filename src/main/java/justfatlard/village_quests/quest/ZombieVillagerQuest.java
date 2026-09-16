@@ -46,7 +46,7 @@ class ZombieVillagerQuest extends MobEventQuest {
 
    @Override
    public String getObjective() {
-      return this.deceasedName + " is a zombie now — put them down or find a way to cure them";
+      return this.deceasedName + " is a zombie now, put them down or find a way to cure them";
    }
 
    @Override
@@ -98,16 +98,10 @@ class ZombieVillagerQuest extends MobEventQuest {
       ServerLevel world = player.level();
       if (this.expired) {
          this.cleanupMobs(world);
-         player.sendSystemMessage(
-            Component.literal(
-                  this.deceasedName + " wandered back into the dark. " + this.requesterName + " stood at the edge watching until they couldn't see anymore."
-               )
-               .withStyle(ChatFormatting.YELLOW),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.deceasedName + " wandered back into the dark. I stood at the edge watching until I couldn't see them anymore.");
       } else if (this.wasCured) {
          String[] msgs = new String[]{
-            this.requesterName + ": \"" + this.deceasedName + "? *reaches out, then pulls back* Is it really...?\"",
+            this.requesterName + ": \"" + this.deceasedName + "? Is it really...?\"",
             this.requesterName + ": \"Their eyes. Their eyes are clear. *starts crying* It's them.\""
          };
          VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
@@ -121,7 +115,7 @@ class ZombieVillagerQuest extends MobEventQuest {
       } else {
          String[] msgs = new String[]{
             this.requesterName + ": \"It's done. *won't look at the spot* That wasn't them anymore. I know that.\"",
-            this.requesterName + ": \"Thank you. I couldn't have — *long pause* I'm going to go sit down.\""
+            this.requesterName + ": \"Thank you. I couldn't have... *long pause* I'm going to go sit down.\""
          };
          VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          this.scheduleAftermathLetter(

@@ -57,7 +57,7 @@ public class MissingTraderCampQuest extends VillagerQuest {
     public String getDescription() {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         String[] lines = {
-            requesterName + ": \"The merchant — " + traderName + ", they call them — hasn't come. Three weeks now."
+            requesterName + ": \"The merchant. " + traderName + ", they call them, hasn't come. Three weeks now."
                 + " They always arrive with their llamas and those strange saplings. Always from the east."
                 + " I'm worried something happened on the trail.\"",
             requesterName + ": \"There's a Wandering Trader I rely on. " + traderName + ". Patchwork cloak, two llamas, never the same route twice."
@@ -72,11 +72,11 @@ public class MissingTraderCampQuest extends VillagerQuest {
     @Override
     public String getObjective() {
         if (!campSpawned) {
-            return "Find the trader's camp — look " + directionHint + " of the village, 200-400 blocks out";
+            return "Find the trader's camp, look " + directionHint + " of the village, 200-400 blocks out";
         } else if (!foundCamp) {
             return "Search for the camp (look for a campfire and bedrolls) to the " + directionHint;
         } else {
-            return "The camp is empty — bring back what you find";
+            return "The camp is empty: bring back what you find";
         }
     }
 
@@ -151,12 +151,7 @@ public class MissingTraderCampQuest extends VillagerQuest {
         }
 
         campSpawned = true;
-
-        player.sendSystemMessage(
-            Component.literal(requesterName + " last saw " + traderName + " heading " + directionHint + ".")
-                .withStyle(ChatFormatting.GRAY),
-            true
-        );
+        VillagerVoice.queue(player, villagerUuid, requesterName, "Last I saw " + traderName + ", they were heading " + directionHint + ".");
     }
 
     @Override
@@ -165,22 +160,17 @@ public class MissingTraderCampQuest extends VillagerQuest {
 
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         String[] messages = {
-            requesterName + ": \"*examines the compass carefully* The hay was burned. That's how traders signal a forced retreat."
+            requesterName + ": \"*looks at the compass* The hay was burned. That's how traders signal a forced retreat."
                 + " " + traderName + " left it on purpose. They got out. But where did they go?\"",
             requesterName + ": \"*quiet for a moment* " + traderName + " wouldn't abandon their navigation tools"
                 + " unless they had no choice. Wandering traders drink those invisibility potions and vanish when something spooks them."
                 + " Something frightened them badly.\"",
-            requesterName + ": \"*sets the compass down slowly* Left on purpose. That's the signal — leave the compass,"
+            requesterName + ": \"*sets the compass down slowly* Left on purpose. That's the signal, leave the compass,"
                 + " burn the hay, disappear. " + traderName + " is alive. But they ran from something.\""
         };
         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, messages[rng.nextInt(messages.length)]);
 
-        ScheduledMessages.schedule(
-            player,
-            Component.literal(requesterName + ": \"Keep the compass. You found it — it's yours now.\"")
-                .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC),
-            60
-        );
+        VillagerVoice.queue(player, this.villagerUuid, requesterName, requesterName + ": \"Keep the compass. You found it, it's yours now.\"");
 
         // Give the compass back
         player.addItem(new ItemStack(Items.COMPASS));

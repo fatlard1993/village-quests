@@ -58,6 +58,7 @@ class DialogueContent {
       registerPresenceDialogues(registry);
       registerVillageDeathDialogues(registry);
       registerQuestImpactDialogues(registry);
+      Openings.registerAll(registry);
       registerEchoDialogues(registry);
       markSignificantMoments(registry);
       validateExchanges(registry);
@@ -457,7 +458,7 @@ class DialogueContent {
       );
       register(
          registry,
-         new Dialogue("first_5_shake", "Suit yourself. The boots say otherwise.", -999, 999, Dialogue.DialogueType.GREETING).walkAway("*shrug*")
+         new Dialogue("first_5_shake", "Suit yourself. The boots say otherwise.", -999, 999, Dialogue.DialogueType.GREETING).walkAway("")
       );
    }
 
@@ -1037,7 +1038,7 @@ class DialogueContent {
       );
       register(
          registry,
-         new Dialogue("child_rain_really", "Try it! Stand like this. *tips head back* You have to catch a big one.", -999, 999, Dialogue.DialogueType.IDLE_CHAT)
+         new Dialogue("child_rain_really", "Try it! Stand like this. *looks up* You have to catch a big one.", -999, 999, Dialogue.DialogueType.IDLE_CHAT)
             .walkAway("Next rain.")
       );
       register(
@@ -2893,7 +2894,7 @@ class DialogueContent {
          registry,
          new Dialogue(
                "gossip_tool_theft",
-               "Someone's been borrowing tools without asking. The toolsmith's fuming — creepers, that man won't let it go.",
+               "Someone's been borrowing tools without asking. The toolsmith's fuming, creepers, that man won't let it go.",
                0,
                999,
                Dialogue.DialogueType.IDLE_CHAT
@@ -3070,7 +3071,7 @@ class DialogueContent {
       );
       register(
          registry,
-         new Dialogue("gathering_missed_4", "*shrugs* You weren't there. It was still nice.", 0, 999, Dialogue.DialogueType.GREETING)
+         new Dialogue("gathering_missed_4", "You weren't there. It was still nice.", 0, 999, Dialogue.DialogueType.GREETING)
             .addResponse(new Dialogue.DialogueResponse("Glad it went well.", 0, "gather_shrug_glad", false, null))
             .addResponse(new Dialogue.DialogueResponse("I'll make the next one.", 0, "gather_shrug_make", false, null))
             .walkAway("See you around.")
@@ -4076,7 +4077,7 @@ class DialogueContent {
       );
       register(
          registry,
-         new Dialogue("greeting_poor_alt", "*tight smile* Good day. *turns back to work*", -49, -11, Dialogue.DialogueType.GREETING)
+         new Dialogue("greeting_poor_alt", "*quiet* Good day. *turns back to work*", -49, -11, Dialogue.DialogueType.GREETING)
             .addResponse(new Dialogue.DialogueResponse("I need to trade. Nothing more.", 0, "open_trade", false, null))
             .addResponse(new Dialogue.DialogueResponse("I know I've earned this. I'm sorry.", 0, "greet_poor_earned", false, null))
             .addResponse(new Dialogue.DialogueResponse("Whatever.", 0, "greet_poor_whatever", false, null))
@@ -4463,7 +4464,7 @@ class DialogueContent {
       );
       register(
          registry,
-         new Dialogue("quest_complete_high_2", "*sits down heavily* Good. That's one less thing.", 25, 999, Dialogue.DialogueType.QUEST_COMPLETE)
+         new Dialogue("quest_complete_high_2", "*exhales* Good. That's one less thing.", 25, 999, Dialogue.DialogueType.QUEST_COMPLETE)
             .addResponse(new Dialogue.DialogueResponse("Rest. You've earned it.", 0, "qc_high_rest", false, null))
             .addResponse(new Dialogue.DialogueResponse("What's the next thing?", 0, "qc_high_next", false, null))
             .walkAway("*nod*")
@@ -5316,7 +5317,7 @@ class DialogueContent {
                "trade_offer_farmer", "Pulled more than I can use. Yours if you've got something worth swapping.", 25, 999, Dialogue.DialogueType.TRADE_OFFER
             )
             .addResponse(new Dialogue.DialogueResponse("What do you need?", 0))
-            .addResponse(new Dialogue.DialogueResponse("Let me see what I have.", 1))
+            .addResponse(new Dialogue.DialogueResponse("Let me see what I have.", 0))
             .setProfession("farmer")
       );
       register(
@@ -5324,7 +5325,7 @@ class DialogueContent {
          new Dialogue(
                "trade_offer_farmer_alt", "The soil was generous this season. More than we can eat before it turns.", 25, 999, Dialogue.DialogueType.TRADE_OFFER
             )
-            .addResponse(new Dialogue.DialogueResponse("I could take some off your hands.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I could take some off your hands.", 0))
             .addResponse(new Dialogue.DialogueResponse("What did you grow?", 0))
             .setProfession("farmer")
       );
@@ -5332,7 +5333,7 @@ class DialogueContent {
          registry,
          new Dialogue("trade_offer_farmer_alt2", "Cellar's full. Rather trade than watch it rot.", 10, 999, Dialogue.DialogueType.TRADE_OFFER)
             .addResponse(new Dialogue.DialogueResponse("What have you got?", 0))
-            .addResponse(new Dialogue.DialogueResponse("I might need some.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I might need some.", 0))
             .setProfession("farmer")
       );
       register(
@@ -5345,22 +5346,22 @@ class DialogueContent {
       register(
          registry,
          new Dialogue("trade_offer_butcher_alt", "Smoked more than the village needs. Hate to see it go to waste.", 0, 999, Dialogue.DialogueType.TRADE_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("I could use provisions.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I could use provisions.", 0))
             .addResponse(new Dialogue.DialogueResponse("What would you want for it?", 0))
             .setProfession("butcher")
       );
       register(
          registry,
          new Dialogue("trade_offer_butcher_alt2", "Salted too much last week. It'll keep, but I'd rather move it.", 10, 999, Dialogue.DialogueType.TRADE_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("I'm interested.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I'm interested.", 0))
             .addResponse(new Dialogue.DialogueResponse("What are you after?", 0))
             .setProfession("butcher")
       );
       register(
          registry,
          new Dialogue("trade_offer_librarian", "I found a duplicate. My shelves can't hold duplicates.", 50, 999, Dialogue.DialogueType.TRADE_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("What's the subject?", 1))
-            .addResponse(new Dialogue.DialogueResponse("I'll give it a home.", 1))
+            .addResponse(new Dialogue.DialogueResponse("What's the subject?", 0))
+            .addResponse(new Dialogue.DialogueResponse("I'll give it a home.", 0))
             .setProfession("librarian")
       );
       register(
@@ -5372,7 +5373,7 @@ class DialogueContent {
                999,
                Dialogue.DialogueType.TRADE_OFFER
             )
-            .addResponse(new Dialogue.DialogueResponse("What's it about?", 1))
+            .addResponse(new Dialogue.DialogueResponse("What's it about?", 0))
             .addResponse(new Dialogue.DialogueResponse("I'll take it.", 0))
             .setProfession("librarian")
       );
@@ -5385,21 +5386,21 @@ class DialogueContent {
                999,
                Dialogue.DialogueType.TRADE_OFFER
             )
-            .addResponse(new Dialogue.DialogueResponse("I'd like that.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I'd like that.", 0))
             .addResponse(new Dialogue.DialogueResponse("Show me what you have.", 0))
             .setProfession("librarian")
       );
       register(
          registry,
          new Dialogue("trade_offer_mason", "Cut more than the job needed. Happens when I measure in the dark.", 25, 999, Dialogue.DialogueType.TRADE_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("I could use stone.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I could use stone.", 0))
             .addResponse(new Dialogue.DialogueResponse("What kind?", 0))
             .setProfession("mason")
       );
       register(
          registry,
          new Dialogue("trade_offer_mason_alt", "The quarry gave us more than we asked for. Good stone, too.", 25, 999, Dialogue.DialogueType.TRADE_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("I'll take some.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I'll take some.", 0))
             .addResponse(new Dialogue.DialogueResponse("What would you need in return?", 0))
             .setProfession("mason")
       );
@@ -5408,14 +5409,14 @@ class DialogueContent {
          new Dialogue(
                "trade_offer_mason_alt2", "Finished the wall early. Left me with extra blocks and nothing to build.", 10, 999, Dialogue.DialogueType.TRADE_OFFER
             )
-            .addResponse(new Dialogue.DialogueResponse("I can put them to use.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I can put them to use.", 0))
             .addResponse(new Dialogue.DialogueResponse("How many?", 0))
             .setProfession("mason")
       );
       register(
          registry,
          new Dialogue("trade_offer_fletcher", "I over-fletched. My hands won't stop when there's good wood.", 50, 999, Dialogue.DialogueType.TRADE_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("I could use some.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I could use some.", 0))
             .addResponse(new Dialogue.DialogueResponse("They any good?", 0))
             .setProfession("fletcher")
       );
@@ -5428,7 +5429,7 @@ class DialogueContent {
                999,
                Dialogue.DialogueType.TRADE_OFFER
             )
-            .addResponse(new Dialogue.DialogueResponse("I'll put them to use.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I'll put them to use.", 0))
             .addResponse(new Dialogue.DialogueResponse("What are you looking for?", 0))
             .setProfession("fletcher")
       );
@@ -5437,7 +5438,7 @@ class DialogueContent {
          new Dialogue(
                "trade_offer_fletcher_alt2", "Spent all morning at the bench. Have more shafts than quivers now.", 30, 999, Dialogue.DialogueType.TRADE_OFFER
             )
-            .addResponse(new Dialogue.DialogueResponse("I'll take some off your hands.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I'll take some off your hands.", 0))
             .setProfession("fletcher")
       );
       register(
@@ -5445,7 +5446,7 @@ class DialogueContent {
          new Dialogue(
                "trade_offer_shepherd", "The flock's coats came in thick this year. More than I can work through.", 0, 999, Dialogue.DialogueType.TRADE_OFFER
             )
-            .addResponse(new Dialogue.DialogueResponse("I need wool.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I need wool.", 0))
             .addResponse(new Dialogue.DialogueResponse("What colors?", 0))
             .setProfession("shepherd")
       );
@@ -5458,7 +5459,7 @@ class DialogueContent {
                999,
                Dialogue.DialogueType.TRADE_OFFER
             )
-            .addResponse(new Dialogue.DialogueResponse("I could use some.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I could use some.", 0))
             .addResponse(new Dialogue.DialogueResponse("They do look lighter.", 0))
             .setProfession("shepherd")
       );
@@ -5466,14 +5467,14 @@ class DialogueContent {
          registry,
          new Dialogue("trade_offer_shepherd_alt2", "Dyed too much. Thought I had orders but they fell through.", 10, 999, Dialogue.DialogueType.TRADE_OFFER)
             .addResponse(new Dialogue.DialogueResponse("What colors did you make?", 0))
-            .addResponse(new Dialogue.DialogueResponse("I might take some.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I might take some.", 0))
             .setProfession("shepherd")
       );
       register(
          registry,
          new Dialogue("trade_offer_fisherman", "River's been generous. I'd rather trade than waste.", 25, 999, Dialogue.DialogueType.TRADE_OFFER)
             .addResponse(new Dialogue.DialogueResponse("What did you catch?", 0))
-            .addResponse(new Dialogue.DialogueResponse("I could eat.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I could eat.", 0))
             .setProfession("fisherman")
       );
       register(
@@ -5481,7 +5482,7 @@ class DialogueContent {
          new Dialogue(
                "trade_offer_fisherman_alt", "Pulled in more than I expected. Some days the water just gives.", 25, 999, Dialogue.DialogueType.TRADE_OFFER
             )
-            .addResponse(new Dialogue.DialogueResponse("I'll take some.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I'll take some.", 0))
             .addResponse(new Dialogue.DialogueResponse("Good day on the water?", 0))
             .setProfession("fisherman")
       );
@@ -5489,13 +5490,13 @@ class DialogueContent {
          registry,
          new Dialogue("trade_offer_fisherman_alt2", "The bucket's full and my arms are done. Take what you need.", 10, 999, Dialogue.DialogueType.TRADE_OFFER)
             .addResponse(new Dialogue.DialogueResponse("What would you want for it?", 0))
-            .addResponse(new Dialogue.DialogueResponse("Appreciate it.", 1))
+            .addResponse(new Dialogue.DialogueResponse("Appreciate it.", 0))
             .setProfession("fisherman")
       );
       register(
          registry,
          new Dialogue("trade_offer_toolsmith", "Made one too many. Happens when I'm working through something.", 75, 999, Dialogue.DialogueType.TRADE_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("I could use a spare.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I could use a spare.", 0))
             .addResponse(new Dialogue.DialogueResponse("Working through what?", 0))
             .setProfession("toolsmith")
       );
@@ -5505,7 +5506,7 @@ class DialogueContent {
                "trade_offer_toolsmith_alt", "Forge was hot and I kept going. Have a few pieces that need homes.", 50, 999, Dialogue.DialogueType.TRADE_OFFER
             )
             .addResponse(new Dialogue.DialogueResponse("What did you make?", 0))
-            .addResponse(new Dialogue.DialogueResponse("I'll take a look.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I'll take a look.", 0))
             .setProfession("toolsmith")
       );
       register(
@@ -5517,7 +5518,7 @@ class DialogueContent {
                999,
                Dialogue.DialogueType.TRADE_OFFER
             )
-            .addResponse(new Dialogue.DialogueResponse("Good enough for me.", 1))
+            .addResponse(new Dialogue.DialogueResponse("Good enough for me.", 0))
             .addResponse(new Dialogue.DialogueResponse("What's wrong with it?", 0))
             .setProfession("toolsmith")
       );
@@ -5525,7 +5526,7 @@ class DialogueContent {
          registry,
          new Dialogue("trade_offer_weaponsmith", "Finished a commission, had metal left. Made something with it.", 50, 999, Dialogue.DialogueType.TRADE_OFFER)
             .addResponse(new Dialogue.DialogueResponse("What is it?", 0))
-            .addResponse(new Dialogue.DialogueResponse("I might need one.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I might need one.", 0))
             .setProfession("weaponsmith")
       );
       register(
@@ -5533,7 +5534,7 @@ class DialogueContent {
          new Dialogue(
                "trade_offer_weaponsmith_alt", "The apprentice's work. Not bad, actually. I just don't need two.", 50, 999, Dialogue.DialogueType.TRADE_OFFER
             )
-            .addResponse(new Dialogue.DialogueResponse("I'll give it a look.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I'll give it a look.", 0))
             .addResponse(new Dialogue.DialogueResponse("Is it reliable?", 0))
             .setProfession("weaponsmith")
       );
@@ -5542,34 +5543,34 @@ class DialogueContent {
          new Dialogue(
                "trade_offer_weaponsmith_alt2", "Couldn't sleep, so I worked. Now I have more blades than sense.", 30, 999, Dialogue.DialogueType.TRADE_OFFER
             )
-            .addResponse(new Dialogue.DialogueResponse("I could take one off your hands.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I could take one off your hands.", 0))
             .setProfession("weaponsmith")
       );
       register(
          registry,
          new Dialogue("trade_offer_cleric", "The temple's stores are full. What we don't use, we share.", 75, 999, Dialogue.DialogueType.TRADE_OFFER)
             .addResponse(new Dialogue.DialogueResponse("What do you have?", 0))
-            .addResponse(new Dialogue.DialogueResponse("That's generous.", 1))
+            .addResponse(new Dialogue.DialogueResponse("That's generous.", 0))
             .setProfession("cleric")
       );
       register(
          registry,
          new Dialogue("trade_offer_cleric_alt", "Brewed more than the sick needed. A good problem to have.", 50, 999, Dialogue.DialogueType.TRADE_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("I could use some.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I could use some.", 0))
             .addResponse(new Dialogue.DialogueResponse("What kind?", 0))
             .setProfession("cleric")
       );
       register(
          registry,
          new Dialogue("trade_offer_cleric_alt2", "These won't keep. Better they go to someone who needs them now.", 30, 999, Dialogue.DialogueType.TRADE_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("I'll take them.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I'll take them.", 0))
             .addResponse(new Dialogue.DialogueResponse("What are they for?", 0))
             .setProfession("cleric")
       );
       register(
          registry,
          new Dialogue("trade_offer_cartographer", "Mapped the same ridge twice. Only need one.", 25, 999, Dialogue.DialogueType.TRADE_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("I'll take the spare.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I'll take the spare.", 0))
             .addResponse(new Dialogue.DialogueResponse("How far does it go?", 0))
             .setProfession("cartographer")
       );
@@ -5579,7 +5580,7 @@ class DialogueContent {
                "trade_offer_cartographer_alt", "Drew a route I'll never walk again. Might as well pass it on.", 25, 999, Dialogue.DialogueType.TRADE_OFFER
             )
             .addResponse(new Dialogue.DialogueResponse("Where does it lead?", 0))
-            .addResponse(new Dialogue.DialogueResponse("I could use a map.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I could use a map.", 0))
             .setProfession("cartographer")
       );
       register(
@@ -5591,20 +5592,20 @@ class DialogueContent {
                999,
                Dialogue.DialogueType.TRADE_OFFER
             )
-            .addResponse(new Dialogue.DialogueResponse("I'll look through them.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I'll look through them.", 0))
             .setProfession("cartographer")
       );
       register(
          registry,
          new Dialogue("trade_offer_leatherworker", "Tanned more hide than I had orders for. The leather's good.", 25, 999, Dialogue.DialogueType.TRADE_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("I could use some.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I could use some.", 0))
             .addResponse(new Dialogue.DialogueResponse("What kind of leather?", 0))
             .setProfession("leatherworker")
       );
       register(
          registry,
          new Dialogue("trade_offer_leatherworker_alt", "Made a set that didn't fit the buyer. Their loss.", 25, 999, Dialogue.DialogueType.TRADE_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("Might fit me.", 1))
+            .addResponse(new Dialogue.DialogueResponse("Might fit me.", 0))
             .addResponse(new Dialogue.DialogueResponse("What happened to them?", 0))
             .setProfession("leatherworker")
       );
@@ -5613,7 +5614,7 @@ class DialogueContent {
          new Dialogue(
                "trade_offer_leatherworker_alt2", "The stitching on this one's tight. Almost hate to let it go.", 10, 999, Dialogue.DialogueType.TRADE_OFFER
             )
-            .addResponse(new Dialogue.DialogueResponse("I'll take care of it.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I'll take care of it.", 0))
             .setProfession("leatherworker")
       );
       register(
@@ -5625,34 +5626,34 @@ class DialogueContent {
                999,
                Dialogue.DialogueType.TRADE_OFFER
             )
-            .addResponse(new Dialogue.DialogueResponse("I could use protection.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I could use protection.", 0))
             .addResponse(new Dialogue.DialogueResponse("How heavy is it?", 0))
             .setProfession("armorer")
       );
       register(
          registry,
          new Dialogue("trade_offer_armorer_alt", "The iron cooperated today. Made more than I planned.", 50, 999, Dialogue.DialogueType.TRADE_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("I'll take a look.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I'll take a look.", 0))
             .addResponse(new Dialogue.DialogueResponse("What did you make?", 0))
             .setProfession("armorer")
       );
       register(
          registry,
          new Dialogue("trade_offer_armorer_alt2", "Client changed their mind. Their loss. It's solid work.", 30, 999, Dialogue.DialogueType.TRADE_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("I'll take it.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I'll take it.", 0))
             .setProfession("armorer")
       );
       register(
          registry,
          new Dialogue("trade_need_materials", "Running low on what I need. You have anything worth trading?", -999, 999, Dialogue.DialogueType.TRADE_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("What do you need?", 1))
+            .addResponse(new Dialogue.DialogueResponse("What do you need?", 0))
             .addResponse(new Dialogue.DialogueResponse("I might.", 0))
             .setProfession("any")
       );
       register(
          registry,
          new Dialogue("trade_barter_proposition", "Neither of us has much. But maybe between us we have enough.", -50, 50, Dialogue.DialogueType.TRADE_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("Let's see.", 1))
+            .addResponse(new Dialogue.DialogueResponse("Let's see.", 0))
             .setProfession("any")
       );
    }
@@ -6131,18 +6132,20 @@ class DialogueContent {
             .addResponse(new Dialogue.DialogueResponse("...Fine.", 0))
             .addResponse(new Dialogue.DialogueResponse("No.", 0))
             .addResponse(new Dialogue.DialogueResponse("No. And don't ask again.", 0))
+            // 3 = not yet: the screen closes with nothing decided, and they may ask again.
+            .addResponse(new Dialogue.DialogueResponse("I need to think about that.", 0))
       );
       register(
          registry,
          new Dialogue("work_available_direct", "Good timing. There's something that needs doing.", -999, 999, Dialogue.DialogueType.QUEST_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("I can handle it.", 2))
-            .addResponse(new Dialogue.DialogueResponse("What is it?", 1))
+            .addResponse(new Dialogue.DialogueResponse("I can handle it.", 0))
+            .addResponse(new Dialogue.DialogueResponse("What is it?", 0))
             .addResponse(new Dialogue.DialogueResponse("Maybe another time.", 0))
       );
       register(
          registry,
          new Dialogue("work_redirect", "Nothing from me, but the %s mentioned needing a hand.", -999, 999, Dialogue.DialogueType.QUEST_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("I'll go find them.", 1))
+            .addResponse(new Dialogue.DialogueResponse("I'll go find them.", 0))
             .addResponse(new Dialogue.DialogueResponse("Which one exactly?", 0))
             .addResponse(new Dialogue.DialogueResponse("I'll check later.", 0))
       );
@@ -6151,7 +6154,7 @@ class DialogueContent {
          new Dialogue("no_work_available", "Nothing right now. Try asking around.", -999, 999, Dialogue.DialogueType.IDLE_CHAT)
             .addResponse(new Dialogue.DialogueResponse("Thanks anyway.", 0))
             .addResponse(new Dialogue.DialogueResponse("I'll keep looking.", 0))
-            .addResponse(new Dialogue.DialogueResponse("Let me know if something comes up.", 1))
+            .addResponse(new Dialogue.DialogueResponse("Let me know if something comes up.", 0))
       );
       register(
          registry,
@@ -6163,8 +6166,8 @@ class DialogueContent {
       register(
          registry,
          new Dialogue("redirected_work_check", "Actually, yes. I could use a hand with something.", -999, 999, Dialogue.DialogueType.QUEST_OFFER)
-            .addResponse(new Dialogue.DialogueResponse("What do you need?", 1))
-            .addResponse(new Dialogue.DialogueResponse("I'm here to help.", 1))
+            .addResponse(new Dialogue.DialogueResponse("What do you need?", 0))
+            .addResponse(new Dialogue.DialogueResponse("I'm here to help.", 0))
             .addResponse(new Dialogue.DialogueResponse("Tell me more.", 0))
       );
       register(
@@ -6174,206 +6177,11 @@ class DialogueContent {
             )
             .addResponse(new Dialogue.DialogueResponse("I'll check with them.", 0))
             .addResponse(new Dialogue.DialogueResponse("Thanks.", 0))
-            .addResponse(new Dialogue.DialogueResponse("This is getting complicated.", -1))
+            .addResponse(new Dialogue.DialogueResponse("This is getting complicated.", 0))
       );
    }
 
    private static void registerQuestDialogues(Map<String, Dialogue> registry) {
-      register(
-         registry,
-         new Dialogue(
-               "misnomer_violence",
-               "*voice tight* The farmer broke my fence. Then lied about it. To my face. To everyone. I keep thinking about their workstation. How it would look in pieces.",
-               40,
-               999,
-               Dialogue.DialogueType.QUEST_OFFER
-            )
-            .addResponse(new Dialogue.DialogueResponse("No.", 0))
-            .addResponse(new Dialogue.DialogueResponse("I won't do that.", 0))
-            .addResponse(new Dialogue.DialogueResponse("Walk away from this.", 0))
-      );
-      register(
-         registry,
-         new Dialogue(
-               "misnomer_violence_2",
-               "*through their teeth* The fletcher sold me warped shafts. Knew they were warped. My son got hurt using one. I want to break their hands.",
-               40,
-               999,
-               Dialogue.DialogueType.QUEST_OFFER
-            )
-            .addResponse(new Dialogue.DialogueResponse("No.", 0))
-            .addResponse(new Dialogue.DialogueResponse("I won't do that.", 0))
-            .addResponse(new Dialogue.DialogueResponse("Walk away from this.", 0))
-      );
-      register(
-         registry,
-         new Dialogue(
-               "misnomer_violence_3",
-               "*pacing* They poisoned the well gossip about my family. My daughter won't leave the house. I want to hurt them. I mean it.",
-               40,
-               999,
-               Dialogue.DialogueType.QUEST_OFFER
-            )
-            .addResponse(new Dialogue.DialogueResponse("No.", 0))
-            .addResponse(new Dialogue.DialogueResponse("I won't do that.", 0))
-            .addResponse(new Dialogue.DialogueResponse("Walk away from this.", 0))
-      );
-      register(
-         registry,
-         new Dialogue(
-               "misnomer_sabotage",
-               "*talking too fast* The mason undercut my prices for the church contract. Used cheap stone too. I want to take a pickaxe to his wall. Show everyone what cheap stone looks like from the inside.",
-               40,
-               999,
-               Dialogue.DialogueType.QUEST_OFFER
-            )
-            .addResponse(new Dialogue.DialogueResponse("No. Leave it alone.", 0))
-            .addResponse(new Dialogue.DialogueResponse("Don't.", 0))
-            .addResponse(new Dialogue.DialogueResponse("That's not something I'll do.", 0))
-      );
-      register(
-         registry,
-         new Dialogue(
-               "misnomer_sabotage_2",
-               "*words clipped short* The toolsmith's new grindstone gets all the customers now. I built mine first. I want to pour water into their bellows tonight. Rust the whole setup.",
-               40,
-               999,
-               Dialogue.DialogueType.QUEST_OFFER
-            )
-            .addResponse(new Dialogue.DialogueResponse("No. Leave it alone.", 0))
-            .addResponse(new Dialogue.DialogueResponse("Don't.", 0))
-            .addResponse(new Dialogue.DialogueResponse("That's not something I'll do.", 0))
-      );
-      register(
-         registry,
-         new Dialogue(
-               "misnomer_sabotage_3",
-               "*staring at the table* The librarian told the elder I can't read. In front of everyone. I want to burn their newest shelf. The one they're proudest of.",
-               40,
-               999,
-               Dialogue.DialogueType.QUEST_OFFER
-            )
-            .addResponse(new Dialogue.DialogueResponse("No. Leave it alone.", 0))
-            .addResponse(new Dialogue.DialogueResponse("Don't.", 0))
-            .addResponse(new Dialogue.DialogueResponse("That's not something I'll do.", 0))
-      );
-      register(
-         registry,
-         new Dialogue(
-               "misnomer_theft",
-               "*stomach audibly growling* The farmer's cellar has three months of wheat. My family has two days. I counted his sacks through the window. I know which board is loose.",
-               40,
-               999,
-               Dialogue.DialogueType.QUEST_OFFER
-            )
-            .addResponse(new Dialogue.DialogueResponse("No. Find another way.", 0))
-            .addResponse(new Dialogue.DialogueResponse("I'm not doing that.", 0))
-            .addResponse(new Dialogue.DialogueResponse("No.", 0))
-      );
-      register(
-         registry,
-         new Dialogue(
-               "misnomer_theft_2",
-               "*won't make eye contact* My daughter ate grass yesterday. The butcher throws out cuts that don't sell. I watched him do it. I want to take them before he does.",
-               40,
-               999,
-               Dialogue.DialogueType.QUEST_OFFER
-            )
-            .addResponse(new Dialogue.DialogueResponse("No. Find another way.", 0))
-            .addResponse(new Dialogue.DialogueResponse("I'm not doing that.", 0))
-            .addResponse(new Dialogue.DialogueResponse("No.", 0))
-      );
-      register(
-         registry,
-         new Dialogue(
-               "misnomer_theft_3",
-               "*steps in close* The cleric charges ten emeralds for healing. I have three. My boy's arm is broken. I know where the cleric keeps the potions. The lock is old.",
-               40,
-               999,
-               Dialogue.DialogueType.QUEST_OFFER
-            )
-            .addResponse(new Dialogue.DialogueResponse("No. Find another way.", 0))
-            .addResponse(new Dialogue.DialogueResponse("I'm not doing that.", 0))
-            .addResponse(new Dialogue.DialogueResponse("No.", 0))
-      );
-      register(
-         registry,
-         new Dialogue(
-               "misnomer_panic",
-               "*out of breath* I saw pillager scouts past the eastern ridge. Three of them. Watching. I want to collapse the bridge before they cross. Tonight.",
-               40,
-               999,
-               Dialogue.DialogueType.QUEST_OFFER
-            )
-            .addResponse(new Dialogue.DialogueResponse("Stop. Just stop.", 0))
-            .addResponse(new Dialogue.DialogueResponse("No. That'll make things worse.", 0))
-            .addResponse(new Dialogue.DialogueResponse("Not like this.", 0))
-      );
-      register(
-         registry,
-         new Dialogue(
-               "misnomer_panic_2",
-               "*words tumbling out* The well water tastes wrong. Metal. Like blood. I want to board it up before anyone else drinks. No time to test it. Just nail it shut.",
-               40,
-               999,
-               Dialogue.DialogueType.QUEST_OFFER
-            )
-            .addResponse(new Dialogue.DialogueResponse("Stop. Just stop.", 0))
-            .addResponse(new Dialogue.DialogueResponse("No. That'll make things worse.", 0))
-            .addResponse(new Dialogue.DialogueResponse("Not like this.", 0))
-      );
-      register(
-         registry,
-         new Dialogue(
-               "misnomer_panic_3",
-               "*right in your face* The cleric found something under the church. Won't say what. I want to seal the entrance with stone. Fill it in. Now. Before they open it again.",
-               40,
-               999,
-               Dialogue.DialogueType.QUEST_OFFER
-            )
-            .addResponse(new Dialogue.DialogueResponse("Stop. Just stop.", 0))
-            .addResponse(new Dialogue.DialogueResponse("No. That'll make things worse.", 0))
-            .addResponse(new Dialogue.DialogueResponse("Not like this.", 0))
-      );
-      register(
-         registry,
-         new Dialogue(
-               "misnomer_weapon",
-               "*eyes on the floor* The shepherd's dogs killed two of my chickens. He laughed. I need a sword. Not for the dogs.",
-               40,
-               999,
-               Dialogue.DialogueType.QUEST_OFFER
-            )
-            .addResponse(new Dialogue.DialogueResponse("No.", 0))
-            .addResponse(new Dialogue.DialogueResponse("I won't be part of this.", 0))
-            .addResponse(new Dialogue.DialogueResponse("I said no.", 0))
-      );
-      register(
-         registry,
-         new Dialogue(
-               "misnomer_weapon_2",
-               "*glancing at your tools* I need an axe. Iron. The cartographer drew a map to my family's mine and sold it to strangers. I want it back. However that has to happen.",
-               40,
-               999,
-               Dialogue.DialogueType.QUEST_OFFER
-            )
-            .addResponse(new Dialogue.DialogueResponse("No.", 0))
-            .addResponse(new Dialogue.DialogueResponse("I won't be part of this.", 0))
-            .addResponse(new Dialogue.DialogueResponse("I said no.", 0))
-      );
-      register(
-         registry,
-         new Dialogue(
-               "misnomer_weapon_3",
-               "*standing too still, voice flat* The elder told the village I'm cursed. My children eat alone now. I need flint and steel. His thatch roof is dry this time of year.",
-               40,
-               999,
-               Dialogue.DialogueType.QUEST_OFFER
-            )
-            .addResponse(new Dialogue.DialogueResponse("No.", 0))
-            .addResponse(new Dialogue.DialogueResponse("I won't be part of this.", 0))
-            .addResponse(new Dialogue.DialogueResponse("I said no.", 0))
-      );
       register(
          registry,
          new Dialogue("quest_offer_farmer_high", "Could use your help with the harvest, if you have time.", 25, 999, Dialogue.DialogueType.QUEST_OFFER)
@@ -6792,7 +6600,7 @@ class DialogueContent {
          registry,
          new Dialogue("work_inquiry", "Could use a hand with something, if you're not busy.", -999, 999, Dialogue.DialogueType.IDLE_CHAT)
             .addResponse(new Dialogue.DialogueResponse("What is it?", 0, "work_details", false, null))
-            .addResponse(new Dialogue.DialogueResponse("Sure, whatever you need.", 1))
+            .addResponse(new Dialogue.DialogueResponse("Sure, whatever you need.", 0))
             .addResponse(new Dialogue.DialogueResponse("Not today.", 0))
       );
       register(
@@ -7138,16 +6946,16 @@ class DialogueContent {
       if (random.nextDouble() < 0.5) {
          String[] profTemplates = switch (professionId) {
             case "farmer" -> new String[]{
-               "*wipes dirt from hands* Hey. I'm %s. Crops won't tend themselves, but I got a minute.",
-               "Howdy. Name's %s. Mind the furrows — just planted those.",
+               "*looks up from the field* Hey. I'm %s. Crops won't tend themselves, but I got a minute.",
+               "Howdy. Name's %s. Mind the furrows, just planted those.",
                "*squints at the sky, then at you* The name's %s. Rain's late. You new here?",
                "*looks up from hoeing* Oh. Hey. Didn't see you there.",
                "*knee-deep in the field* Hm? Yeah, hi. Give me a second."
             };
             case "librarian" -> new String[]{
-               "*peers over reading glasses* Hm? Oh. I'm %s. I was in the middle of something.",
-               "Hello. %s. *carefully marks a page* You can talk. Quietly.",
-               "*glances up from a stack of books* %s. Sorry — I lose track when I'm cataloguing.",
+               "*looks up from the book* Hm? Oh. I'm %s. I was in the middle of something.",
+               "Hello. %s. *sets the book down* You can talk. Quietly.",
+               "*glances up from a stack of books* %s. Sorry. I lose track when I'm cataloguing.",
                "*doesn't look up* One moment. *finishes writing, then looks up* Right. Hello.",
                "*re-shelving books* Careful where you step. I have a system."
             };
@@ -7155,20 +6963,20 @@ class DialogueContent {
                "*mixing something, glances up* Oh. Hi. I'm %s.",
                "*quiet, measuring out dried herbs* %s. Sorry, my hands are full.",
                "Hello. %s. Don't get many new faces around here.",
-               "*sweeping the chapel steps* Hm? Oh — hello. Didn't hear you walk up.",
+               "*sweeping the chapel steps* Hm? Oh, hello. Didn't hear you walk up.",
                "*reading, half-distracted* Mm. New face. *closes the book* Sorry. I'm %s."
             };
             case "weaponsmith" -> new String[]{
                "*sets down hammer* Name's %s. If it's a blade you're after, talk numbers first.",
                "Hey. %s. *eyes your gear* Seen better. Seen worse.",
-               "*wipes soot from forehead* I'm %s. Make it quick — the forge doesn't wait.",
-               "*quenching a blade, steam hissing* Hang on — *waits for the sizzle to stop* Yeah?",
-               "*testing an edge with a thumb* Hm. Not bad. *looks up* Oh. Hey."
+               "*over the forge* I'm %s. Make it quick, the forge doesn't wait.",
+               "*quenching a blade, steam hissing* Hang on... *waits for the sizzle to stop* Yeah?",
+               "*holds a blade up to the light* Hm. Not bad. *looks up* Oh. Hey."
             };
             case "armorer" -> new String[]{
-               "*tapping dents out of a chestplate* %s. You'll have to speak up — the hammering.",
+               "*tapping dents out of a chestplate* %s. You'll have to speak up, the hammering.",
                "*looks up from polishing* Hi. %s. You're not from around here.",
-               "The name's %s. Stand still — I'm sizing you up. Professionally.",
+               "The name's %s. Stand still. I'm sizing you up. Professionally.",
                "*holding a helmet up to the light, squinting* One second. *sets it down* Alright. Hi.",
                "*rummaging through metal scraps* New face. *glances over* You look about a medium."
             };
@@ -7180,31 +6988,31 @@ class DialogueContent {
                "*sorting nails by size* Talk if you want. I can listen and count."
             };
             case "butcher" -> new String[]{
-               "*wipes hands on apron* Hey. I'm %s. Hungry?",
+               "*at the block* Hey. I'm %s. Hungry?",
                "Hi. %s. If you can smell that, good. Means it's fresh.",
                "*sharpening a knife* I'm %s. Don't mind this. Professional habit.",
                "*chopping, doesn't stop* Yeah? What do you need?",
-               "*wrapping cuts in cloth* Hm. New. You eat pork?"
+               "*at the block* Hm. New. You eat pork?"
             };
             case "leatherworker" -> new String[]{
                "*stitching without looking up* %s. Hang on. Almost done with this seam.",
                "*sniffs* I'm %s. You get used to the smell.",
-               "Hi. %s. *examines your boots* Those have some miles on them.",
+               "Hi. %s. *looks at your boots* Those have some miles on them.",
                "*pulling a hide taut on a frame* One second. This part's tricky.",
-               "*hands stained dark* Hey. Don't touch anything wet."
+               "*over the tanning frame* Hey. Don't touch anything wet."
             };
             case "fletcher" -> new String[]{
                "I'm %s. *nocks an arrow, then lowers it* Just testing the draw.",
-               "*runs a finger along a feather* Hey. %s. You shoot?",
-               "*inspecting an arrowhead, frowning* %s. These tips aren't sitting right. Give me a second.",
-               "*counting arrows into a bundle* Almost — *finishes* There. Hi.",
+               "*at the fletching table* Hey. %s. You shoot?",
+               "*looking at an arrowhead* %s. These tips aren't sitting right. Give me a second.",
+               "*counting arrows into a bundle* Almost... *finishes* There. Hi.",
                "*trimming feathers* The wind's been shifting. Makes the fletching fussy."
             };
             case "cartographer" -> new String[]{
                "*tracing a line on parchment* Hm? Oh. %s. You startled me.",
                "*unrolls a map, then rolls it back up* Hi. %s. Wanderer?",
-               "*squinting at compass markings* Sorry, I — *looks up* Right. Hello. I'm %s.",
-               "*ink-stained fingers, half-finished map* New face. Which direction did you come from?",
+               "*squinting at compass markings* Sorry, I... *looks up* Right. Hello. I'm %s.",
+               "*half-finished map in hand* New face. Which direction did you come from?",
                "*muttering measurements* Fourteen... no, fifteen. *notices you* Oh. How long were you standing there?"
             };
             case "fisherman" -> new String[]{
@@ -7216,17 +7024,17 @@ class DialogueContent {
             };
             case "shepherd" -> new String[]{
                "Hi. I'm %s. *counts sheep under breath* Don't startle them.",
-               "*brushes wool from sleeves* Hey. %s. They're calmer today.",
+               "*among the sheep* Hey. %s. They're calmer today.",
                "I'm %s. You from far? The flock always knows when strangers come.",
                "*whistles softly at a sheep* Come on. *to you* Sorry. She wanders.",
-               "*pulling burrs from wool* Hey. Watch your step — they bunch up when they're nervous."
+               "*pulling burrs from wool* Hey. Watch your step, they bunch up when they're nervous."
             };
             case "mason" -> new String[]{
-               "Hey. I'm %s. *pats a stone wall* Built this myself. Still holding.",
-               "*dusts off hands* Name's %s. Stone and mortar. That's what I know.",
+               "Hey. I'm %s. *nods at the wall* Built this myself. Still holding.",
+               "*sets down the chisel* Name's %s. Stone and mortar. That's what I know.",
                "I'm %s. If it's standing, I probably laid the foundation.",
                "*tapping a chisel* New face. *goes back to work*",
-               "*running a hand along a wall joint* Hm. That'll hold. *turns* Oh. Hey."
+               "*looks along the wall joint* Hm. That'll hold. *turns* Oh. Hey."
             };
             default -> null;
          };
@@ -7241,7 +7049,7 @@ class DialogueContent {
          "*nods* I'm %s. Welcome, I suppose.",
          "Hi. I'm %s. You new here?",
          "*looks up* Hm. New face. I'm %s.",
-         "Howdy. Name's %s. *wipes hands* Just get here?",
+         "Howdy. Name's %s. Just get here?",
          "*glances over* Hey. Haven't seen you around.",
          "*pauses what they're doing* Oh. Hi. You just arrive?"
       };
@@ -7277,7 +7085,7 @@ class DialogueContent {
          String[] rainGreetings = new String[]{
             "The crops need this. I don't.",
             "Everything smells different in the rain.",
-            "*shaking water from their hands* Hm.",
+            "*out of the rain* Hm.",
             "Mud everywhere. The paths are rivers."
          };
          return rainGreetings[rng.nextInt(rainGreetings.length)];
@@ -7410,7 +7218,7 @@ class DialogueContent {
       register(
          registry,
          new Dialogue("presence_settled_2", "The baker saved you bread this morning. Without being asked.", 75, 999, Dialogue.DialogueType.IDLE_CHAT)
-            .addResponse(new Dialogue.DialogueResponse("*almost smile*", 0, "presence_bread_smile", false, null))
+            .addResponse(new Dialogue.DialogueResponse("", 0, "presence_bread_smile", false, null))
             .setProfession("any")
       );
       register(
@@ -7544,7 +7352,7 @@ class DialogueContent {
    private static void registerQuestImpactDialogues(Map<String, Dialogue> registry) {
       register(
          registry,
-         new Dialogue("quest_impact_flowers", "The flowers you planted — the bees came back. Did you know?", 25, 999, Dialogue.DialogueType.IDLE_CHAT)
+         new Dialogue("quest_impact_flowers", "The flowers you planted, the bees came back. Did you know?", 25, 999, Dialogue.DialogueType.IDLE_CHAT)
             .addResponse(new Dialogue.DialogueResponse("I hoped they would.", 0, "impact_bees_hoped", false, null))
             .setProfession("any")
       );
@@ -7610,7 +7418,7 @@ class DialogueContent {
                999,
                Dialogue.DialogueType.IDLE_CHAT
             )
-            .addResponse(new Dialogue.DialogueResponse("*almost smile*", 0, "impact_door_smile", false, null))
+            .addResponse(new Dialogue.DialogueResponse("", 0, "impact_door_smile", false, null))
             .setProfession("any")
       );
       register(

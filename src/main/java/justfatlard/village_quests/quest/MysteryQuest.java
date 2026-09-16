@@ -155,11 +155,11 @@ public class MysteryQuest extends VillagerQuest {
    @Override
    public String getObjective() {
       if (this.cluesInvestigated == 0) {
-         return "ask around about " + this.targetDescription + " — someone must know something";
+         return "ask around about " + this.targetDescription + ", someone must know something";
       } else if (this.cluesInvestigated == 1) {
-         return "getting closer — keep asking";
+         return "getting closer: keep asking";
       } else if (this.cluesInvestigated == 2) {
-         return "almost there — one more person might know";
+         return "almost there, one more person might know";
       } else if (this.inAccusationPhase && !this.accusationMade) {
          return "tell " + this.requesterName + " who you think is responsible";
       } else {
@@ -184,7 +184,7 @@ public class MysteryQuest extends VillagerQuest {
                this.culpritName + " had it the whole time. Said they forgot to mention it.",
                "Found it in " + this.culpritName + "'s place. They looked embarrassed. That's enough, I suppose.",
                "It was under " + this.culpritName + "'s workbench. Nobody's sure how it got there.",
-               "Turns out I moved it myself. Before you say anything — I know.",
+               "Turns out I moved it myself. Before you say anything. I know.",
                this.culpritName + " borrowed it weeks ago. I... forgot I lent it out.",
                "Gone. Nobody knows. " + this.culpritName + " thought they saw something, but... I'll manage.",
                "It was exactly where I left it. Just buried under everything else. Don't look at me like that.",
@@ -202,9 +202,9 @@ public class MysteryQuest extends VillagerQuest {
                "Still missing. " + this.culpritName + " said they saw it heading east, but... I don't know.",
                this.culpritName + "'s kid had been feeding it. Of course it wandered over.",
                "Found it tangled in " + this.culpritName + "'s garden fence. Took two of us to get it out.",
-               "It's back. Won't tell me where it's been. *almost smiles*",
+               "It's back. Won't tell me where it's been.",
                "Turns out it had babies. Behind " + this.culpritName + "'s shed. So. That's new.",
-               "Fox led it away. Found them both by the river — the fox just... sitting there. Strangest thing.",
+               "Fox led it away. Found them both by the river, the fox just... sitting there. Strangest thing.",
                "A fox had been visiting the pen at night. Not hunting. Just... visiting. The gate was open."
             };
             yield resolutions[rng.nextInt(resolutions.length)];
@@ -217,7 +217,7 @@ public class MysteryQuest extends VillagerQuest {
                "Wind damage. Just wind. I accused " + this.culpritName + " and now I owe an apology.",
                this.culpritName + " confessed. Said they were angry about something else. We talked. Sort of.",
                "Creeper got too close. Not anyone's fault. I feel foolish for suspecting " + this.culpritName + ".",
-               "Still don't know who. " + this.culpritName + " helped me patch it up. That matters more, maybe.",
+               "Still don't know who. " + this.culpritName + " helped me patch it up. Stayed until it was done. I'll take that over knowing.",
                this.culpritName + " and I fixed it together. Didn't talk about who did it. Didn't need to."
             };
             yield resolutions[rng.nextInt(resolutions.length)];
@@ -245,7 +245,7 @@ public class MysteryQuest extends VillagerQuest {
                this.targetDescription + " and someone from " + this.culpritName + " were working on something together. In secret, apparently.",
                "They're back. Tired. Wouldn't explain. " + this.culpritName + " seems to know more but isn't saying.",
                this.targetDescription + " said they needed to think. Went to " + this.culpritName + " for quiet. I understand. I think.",
-               "Still gone. " + this.culpritName + " found a note — they'll be back. When they're ready, I suppose."
+               "Still gone. " + this.culpritName + " found a note, they'll be back. When they're ready, I suppose."
             };
             yield resolutions[rng.nextInt(resolutions.length)];
          }
@@ -276,16 +276,8 @@ public class MysteryQuest extends VillagerQuest {
    private void handleSecretProtectionOutcome(ServerPlayer player) {
       DialogueManager.SecretData secret = DialogueManager.getPlayerSecret(player.getUUID());
       String confiderName = secret != null ? secret.confiderName() : "Someone";
-      player.sendSystemMessage(
-         Component.literal(this.requesterName + ": \"...You know something. I can see it on your face. But you won't say.\"")
-            .withStyle(ChatFormatting.YELLOW),
-         true
-      );
-      ScheduledMessages.schedule(
-         player,
-         Component.literal(this.requesterName + ": \"*long pause* Alright. I'll live with not knowing.\"").withStyle(ChatFormatting.YELLOW),
-         40
-      );
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"...You know something. I can see it on your face. But you won't say.\"");
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"*long pause* Alright. I'll live with not knowing.\"");
       if (this.secretConfiderUuid != null) {
          VillagerMemory.recordMemory(this.secretConfiderUuid, VillagerMemory.MemoryType.SECRET_KEPT);
          DialogueManager.consumePlayerSecret(player.getUUID());
@@ -753,7 +745,7 @@ public class MysteryQuest extends VillagerQuest {
                default:
                   yield alt
                      ? culpritName + " offered to help fix it. Unprompted. That's... unusual."
-                     : "What a load of gravel. *won't meet your eyes* I think you know who. Everyone does.";
+                     : "What a load of gravel. *won't look at you* I think you know who. Everyone does.";
             }
          }
          case STRANGE_SOUNDS -> {

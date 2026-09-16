@@ -163,7 +163,7 @@ public class ContextualLoreManager {
       return switch (profession) {
          case "farmer" -> "Don't know about that. I grow things.";
          case "fisherman" -> "Couldn't say. I sit by the water mostly.";
-         case "shepherd" -> "She'd know better than me. *gestures at sheep* We stay close to home.";
+         case "shepherd" -> "She'd know better than me. *nods at the sheep* We stay close to home.";
          case "nitwit" -> "Huh? Oh, that. Yeah. Definitely that. Whatever that is.";
          case "mason" -> "No idea. That's not stone and it's not my problem.";
          default -> "I don't know anything about that.";
@@ -225,7 +225,7 @@ public class ContextualLoreManager {
                if (!isFading) {
                   return "You smell of smoke.";
                } else if (!isRecent) {
-                  return "You smell... different.";
+                  return "You smell of somewhere else.";
                } else if (reputation < 20) {
                   return "You smell of smoke and sulfur.";
                } else {
@@ -237,15 +237,15 @@ public class ContextualLoreManager {
                }
             case RETURNED_FROM_END:
                if (!isFading) {
-                  return "Something's off about you.";
+                  return "Your eyes are doing something.";
                } else if (!isRecent) {
-                  return "The void clings to you.";
+                  return "That pale dust on you. Where does that come from?";
                } else {
                   if (reputation < 50) {
                      return "*backs away slowly*";
                   }
 
-                  return "The void clings to you. How are you even standing here?";
+                  return "That pale dust on you. Nobody who's been where that's from should be standing here.";
                }
             case KILLED_ZOMBIE:
                if (!isRecent) {
@@ -261,13 +261,13 @@ public class ContextualLoreManager {
                }
             case KILLED_ENDERMAN:
                if (!isRecent) {
-                  return "You've angered something.";
+                  return "You looked one of them in the eye, didn't you.";
                } else {
                   if (reputation < 30) {
-                     return "You shouldn't anger them.";
+                     return "Don't look them in the eye. Everybody knows that. You know that.";
                   }
 
-                  return "They remember faces. All of their faces remember yours now.";
+                  return "They don't forget a face. There are a lot of them, they've all got the same face, and it's remembering yours.";
                }
             case KILLED_IRON_GOLEM:
                return "*horrified silence*";
@@ -282,7 +282,7 @@ public class ContextualLoreManager {
                   return "You died. We saw. Yet here you are.";
                } else {
                   if ("cleric".equals(profession)) {
-                     return "Death released you. That's not normal.";
+                     return "You came back. We don't come back. I'll be thinking about that.";
                   }
 
                   return "Every time you return, are you the same person?";
@@ -295,16 +295,16 @@ public class ContextualLoreManager {
                      return "You survived out there. Alone.";
                   }
 
-                  return "The night didn't take you. What are you?";
+                  return "You slept out there. Through the night. With them. What are you?";
                }
             case USED_REDSTONE:
                if (!isRecent) {
-                  return "That smell. Like copper and lightning.";
+                  return "You smell like a lightning strike. Metal and burnt.";
                } else if ("mason".equals(profession)) {
                   return "That dust. Keep it away from the village stones.";
                } else {
                   if ("librarian".equals(profession)) {
-                     return "That redstone — I read something about it once, or maybe it was about lightning, but the point was — actually, just be careful.";
+                     return "That redstone. I read something about it once, or maybe it was about lightning, but the point was, actually, just be careful.";
                   }
 
                   return "That red dust on your hands never really washes off.";
@@ -386,7 +386,7 @@ public class ContextualLoreManager {
    private static String getTiredResponse(Villager villager, int reputation) {
       if (villager.isBaby()) {
          String[] childTired = new String[]{
-            "*yawns* I'm sleepy.", "My feet hurt.", "I wanna go home.", "*rubs eyes*", "Can we talk tomorrow?", "I need a nap.", "*sits down*"
+            "*yawns* I'm sleepy.", "My feet hurt.", "I wanna go home.", "*yawns*", "Can we talk tomorrow?", "I need a nap.", "*stops what they're doing*"
          };
          return childTired[villager.level().getRandom().nextInt(childTired.length)];
       } else if (reputation < 0) {
@@ -632,45 +632,45 @@ public class ContextualLoreManager {
                : childOntological[villager.level().getRandom().nextInt(childOntological.length)];
          } else if (isContrarianVillager(villager, villageCenter)) {
             String[] contrarianOntological = new String[]{
-               "Nothing happens unless someone's watching.",
-               "Sometimes I feel like I'm waiting. For what, I don't know.",
-               "The world exists because you expect it to.",
-               "Looking at something changes it. Always.",
+               "The wheat by the far wall doesn't grow unless somebody stands near it. I've tested this. Nobody believes me.",
+               "I stand by the well most afternoons. Waiting, I suppose. Nobody's ever come.",
+               "Walk far enough east and there's nothing. Turn round and there's a field where the nothing was. Try it.",
+               "The chest in the mill has different things in it depending on who opens it first. Ask the miller. He won't say, but ask.",
                "I think about things more when someone's watching. Is that normal?",
-               "I think the world forgets parts of itself.",
-               "History rewrites itself when no one remembers.",
-               "The past isn't fixed. It shifts.",
-               "Memories aren't stored, they're recreated.",
-               "We forget on purpose. Remembering hurts.",
-               "The sun doesn't set. We just agree to sleep.",
-               "Distance doesn't exist. Walking just takes time.",
-               "Everything happens at once. We just see it slowly.",
-               "Movement is illusion. The world moves around us.",
-               "There's only one place. Everything else is costume.",
-               "We're all the same person at different times.",
-               "Questions create the things they ask about.",
-               "Counting something multiplies it.",
-               "Names are cages. Everything unnamed is free.",
-               "Rules create themselves by being followed."
+               "The bit of forest past the river went. Just went. There's a straight edge to the trees now, like a cut.",
+               "My mother's house was on the corner. Everyone agrees. Nobody can point at where.",
+               "The bell's rung twice at midnight with nobody near it. I've stopped saying so out loud.",
+               "I remember a flood. Nobody else does. The water line's still on the church wall, so somebody's wrong, and I'd rather it was me.",
+               "There was a family in the house by the mill. Then there wasn't. Nobody said anything. I don't think we forgot. I think we agreed.",
+               "Every one of us goes in at the same moment. Not near the same moment. The same one. Watch the doors tonight.",
+               "The far hill's a morning's walk. Always a morning's walk. I've never once got there before noon or after.",
+               "The crops all come ripe the same day. Every field. Every year. That isn't farming, that's a bell going off.",
+               "Nobody here has ever been lost. Think about that. A whole village, and not one of us has ever been lost.",
+               "The next village over has the same well. Not the same kind. The same well. The crack runs the same way.",
+               "The tanner and the fletcher have the same laugh. I mean exactly. I've stood between them with my eyes shut.",
+               "I said 'I wonder if there are wolves out there' and that night there were. I've stopped wondering things out loud.",
+               "I counted the sheep at four. Counted again, six. Nothing went in or out. I don't count them anymore.",
+               "You gave that cow a name and now it never wanders off. The unnamed ones just walk into the dark and that's that.",
+               "Nobody told us to keep to the paths. We just do. I tried walking through the wheat once and my feet wouldn't."
             };
             return contrarianOntological[villager.level().getRandom().nextInt(contrarianOntological.length)];
          } else if (isTiredOfPlayer(villager, player, null)) {
             String[] exhaustedOntological = new String[]{
                "I'm tired of repeating myself.",
                "Tomorrow will be the same, won't it?",
-               "Every day feels like... like I've done it before.",
+               "Every day I've done before. I don't mean it feels like it.",
                "Why do I always say the same things?",
                "The words come out before I think them.",
                "I don't remember choosing this.",
                "Did I decide to be here? When?",
-               "My life feels... assigned.",
+               "I never chose the loom. I woke up one morning and my hands knew it.",
                "I do things because I've always done them.",
-               "Free will is exhausting. Maybe that's why we don't use it.",
+               "I tried to skip the well this morning. Just to see. My feet went anyway.",
                "Sometimes I forget I exist until you talk to me.",
-               "Existing takes effort. Did you know that? Every morning, effort.",
+               "Some mornings I stand up and I don't remember lying down. Just stood up. Already dressed.",
                "I'm tired of being me. But who else?",
-               "Consciousness is heavy. Sleep is mercy.",
-               "Why do we keep going? I asked someone once. They didn't understand the question."
+               "The best part of the day is the bit I'm not in. Don't tell the cleric.",
+               "I asked the mason once why we keep going. He said 'going where?' and went back to work. He wasn't being clever."
             };
             return exhaustedOntological[villager.level().getRandom().nextInt(exhaustedOntological.length)];
          } else if (reputation > 150 && !villager.isBaby()) {
@@ -680,12 +680,12 @@ public class ContextualLoreManager {
             if (isPrivate && rightSetting) {
                UUID villagerId = villager.getUUID();
                Set<String> spokenLines = SACRED_LINES_SPOKEN.computeIfAbsent(villagerId, k -> new HashSet<>());
-               String[] sacredLines = new String[]{"Things return. People don't. Except you.", "Do you ever wonder who's dreaming all this?"};
+               String[] sacredLines = new String[]{"Things return. People don't. Except you.", "Sometimes I look straight up at midday and I'd swear the sky's a lid."};
                String[] elderOntological = new String[]{
                   "Sometimes I think we've lived this day before.",
-                  "There are rules here. Older than us.",
-                  "It's like we're all just— no. That's nonsense.",
-                  "Do you ever feel like you're— never mind."
+                  "You can't dig past a certain depth here. Nobody tells you. The ground just stops agreeing.",
+                  "*goes back to work* Forget it. I sound like the nitwit.",
+                  "*laughs at nothing, shakes head* Long day."
                };
 
                for (String sacred : sacredLines) {
@@ -783,9 +783,9 @@ public class ContextualLoreManager {
       if (world.isRaining()) {
          String[] rainMood = new String[]{
             "It's been raining a long time.",
-            "The ground remembers storms.",
-            "Everything feels heavy when it rains.",
-            "Rain brings thoughts.",
+            "The path by the church floods in the same spot every time. Same spot, same shape.",
+            "My knees know it's raining before my eyes do.",
+            "Rain keeps me in, and in is where the thinking happens. I'd rather be out.",
             "The crops are happy, at least.",
             "My joints ache when it rains like this.",
             "The paths are turning to mud. Nobody's fixing them in this.",
@@ -795,7 +795,7 @@ public class ContextualLoreManager {
          };
          return rainMood[world.getRandom().nextInt(rainMood.length)];
       } else if (!world.isRaining() && world.getRandom().nextFloat() < 0.1F) {
-         String[] clearMood = new String[]{"The air feels lighter.", "It's good to see far again.", "Sun after rain feels earned.", "Everything smells clean."};
+         String[] clearMood = new String[]{"The air feels lighter.", "It's good to see far again.", "Whole village is out. Rain does that. Two days indoors and everyone remembers they like each other.", "Everything smells clean."};
          return clearMood[world.getRandom().nextInt(clearMood.length)];
       } else {
          return null;
@@ -831,11 +831,11 @@ public class ContextualLoreManager {
             String[] tradeWeariness = new String[]{
                "This feels familiar.",
                "We've done this before, haven't we?",
-               "Some things don't change.",
+               "Same emerald. I'd swear it's the same emerald every time.",
                "The emeralds all look the same.",
-               "Trade is predictable.",
+               "Bread for an emerald, emerald for bread. We could do this in our sleep. I think we do.",
                "My hands know this motion.",
-               "The weight of emeralds becomes routine."
+               "I don't even look at the emerald anymore. It's always the right one."
             };
             return tradeWeariness[villager.level().getRandom().nextInt(tradeWeariness.length)];
          }
@@ -845,20 +845,20 @@ public class ContextualLoreManager {
       patterns.put(PATTERN_KEY_TALKING, talkPattern + 1);
       if (talkPattern > 5) {
          String[] talkWeariness = new String[]{
-            "Words circle back.",
-            "This conversation feels... circular.",
-            "We're walking the same path.",
-            "The questions return.",
-            "Familiar rhythms in our speech.",
-            "The pattern of our talks."
+            "You asked me that already. Same words, I'd swear it.",
+            "We've had this conversation. Not one like it. This one.",
+            "I know what you're going to say next. I don't know how.",
+            "You ask, I answer, you nod, you go. I could set the clock by it.",
+            "Have you noticed we always stand exactly here to talk?",
+            "I've said this to you before. I don't remember when. But I've said it."
          };
          return talkWeariness[villager.level().getRandom().nextInt(talkWeariness.length)];
       } else if (actionCounts.getOrDefault(RecentActionsMemory.ActionType.KILLED_ZOMBIE, 0) > 2) {
          String[] combatPattern = new String[]{
-            "Violence has a rhythm.",
-            "The pattern of conflict.",
-            "Blood becomes routine.",
-            "Combat feels practiced.",
+            "You fight the same way every time. Same swing. I've watched.",
+            "They come at dusk, you go out, it gets quiet. I could draw it.",
+            "There's always blood on you around this time. I've stopped asking.",
+            "You don't flinch anymore. Not at the groaning. Not at anything.",
             "Your movements are becoming predictable."
          };
          return combatPattern[villager.level().getRandom().nextInt(combatPattern.length)];
@@ -879,39 +879,39 @@ public class ContextualLoreManager {
          // kept where they land; the rest show the not-saying through subject
          // changes, busy hands, or looking at something specific instead.
          String[] almostSaid = new String[]{
-            "Be careful in the— no. You know.",
+            "Careful in the caves. *goes back to work* That's all.",
             "That place isn't safe. *goes back to work*",
-            "Watch out for the— you've seen them.",
-            "Don't go near the— but you will anyway.",
-            "The night brings— you know what it brings.",
-            "You should probably— no, you'll figure it out.",
-            "If I were you I'd— but I'm not you.",
-            "*opens mouth, closes it, nods at the sky* Weather's turning.",
-            "Most people would— but you're not most people.",
-            "*starts to say something, then just gestures at the old well*",
-            "The old stories tell of— old stories lie.",
+            "You've seen what comes out at night. I don't need to tell you.",
+            "Stay off the ridge after dark. You won't. Nobody does.",
+            "*looks at the sky* Getting on. You know what the dark's like here.",
+            "You'll figure it out. Everyone does, or they don't, and then we don't talk about them.",
+            "If I were you I'd sleep indoors. I'm not you, though.",
+            "*starts to say something, then nods at the sky* Weather's turning.",
+            "Most people turn back at the river. You're not most people. That's not a compliment yet.",
+            "*starts to say something, then just looks at the old well*",
+            "There's an old story about the ruins. It's wrong. I've been there.",
             "*laughs at nothing, shakes their head* Ask the cleric. Actually, don't.",
             "I heard something once. *long pause* I was younger then.",
             "*quiet for a moment* My mother used to talk about this. I stopped listening too late.",
             "Sometimes I wonder about it. Then the bell rings and there's work.",
-            "*shrugs mid-sentence and picks the tool back up*",
-            "*studies your face a second too long, then looks away*",
-            "Something about you seems— it's nothing.",
-            "*glances at your eyes, then very deliberately at the floor*",
-            "The way you move is— not important."
+            "*picks the tool back up mid-sentence*",
+            "*looks at you a second too long, then away*",
+            "*looks at you a moment* Nothing. You reminded me of someone.",
+            "*looks at you, then very deliberately at the floor*",
+            "You walk like you're counting something. *goes back to work*"
          };
          if ("cleric".equals(profession)) {
             String[] clericAlmost = new String[]{
-               "The dead sometimes— no, that's heresy.", "Souls can be— I shouldn't say.", "Prayer might— or might not. Who knows?"
+               "The dead don't always stay down here. That's not heresy. That's the graveyard.", "I've held a soul. In a lantern. I don't do that anymore.", "Prayer works on the cows, at least. The cows and me."
             };
             List<String> combined = new ArrayList<>(Arrays.asList(almostSaid));
             combined.addAll(Arrays.asList(clericAlmost));
             almostSaid = combined.toArray(new String[0]);
          } else if ("librarian".equals(profession)) {
             String[] librarianAlmost = new String[]{
-               "There was a book about this, or maybe it was about something else, but the relevant part was— actually, I'd have to check.",
-               "I read a passage once that— well, it was more of a footnote, and the footnote referenced another book, and— I lost my train of thought.",
-               "The index mentions something under— no, wait, that was the other index. There are two. Or three."
+               "There was a book about this, or maybe it was about something else, but the relevant part was... actually, I'd have to check.",
+               "I read a passage once that... well, it was more of a footnote, and the footnote referenced another book, and... I lost my train of thought.",
+               "The index mentions something under... no, wait, that was the other index. There are two. Or three."
             };
             List<String> combined = new ArrayList<>(Arrays.asList(almostSaid));
             combined.addAll(Arrays.asList(librarianAlmost));

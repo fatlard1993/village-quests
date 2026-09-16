@@ -40,8 +40,8 @@ public class PlotDeedQuest extends VillagerQuest {
 				+ this.purchase.getContribution() + " emeralds is what we settled on.\"",
 			this.requesterName + ": \"You've been here long enough to be from here. There's land free. "
 				+ this.purchase.getContribution() + " emeralds toward the common fund and it's yours.\"",
-			this.requesterName + ": \"The elders talked about you. There's a plot. It isn't a gift — "
-				+ this.purchase.getContribution() + " emeralds — but it is an offer.\""
+			this.requesterName + ": \"The elders talked about you. There's a plot. It isn't a gift. "
+				+ this.purchase.getContribution() + " emeralds, but it is an offer.\""
 		};
 		return lines[rng.nextInt(lines.length)];
 	}

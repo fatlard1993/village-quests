@@ -41,7 +41,7 @@ class SignalFireQuest extends CreationQuest {
 
    @Override
    public String getObjective() {
-      return "light a soul campfire on high ground — " + this.targetVillageName + " needs to see the smoke";
+      return "light a soul campfire on high ground. " + this.targetVillageName + " needs to see the smoke";
    }
 
    @Override
@@ -86,7 +86,7 @@ class SignalFireQuest extends CreationQuest {
    @Override
    public void onComplete(ServerPlayer player) {
       String[] responses = new String[]{
-         "Blue smoke. *shielding eyes, looking at the horizon* Can you see it from here? I think I can.",
+         "Blue smoke. *looks at the horizon* Can you see it from here? I think I can.",
          "The old way still works. If they're watching, they'll know.",
          "*stares at the smoke for a long time* I hope someone's there to see it."
       };

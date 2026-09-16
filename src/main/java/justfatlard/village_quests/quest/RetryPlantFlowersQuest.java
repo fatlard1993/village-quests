@@ -38,7 +38,7 @@ class RetryPlantFlowersQuest extends CreationQuest {
 
    @Override
    public String getObjective() {
-      return "plant flowers again — the bees need another chance";
+      return "plant flowers again, the bees need another chance";
    }
 
    @Override
@@ -83,11 +83,7 @@ class RetryPlantFlowersQuest extends CreationQuest {
    @Override
    public void onComplete(ServerPlayer player) {
       if (this.attempt >= 3) {
-         player.sendSystemMessage(
-            Component.literal(this.requesterName + ": \"*sits down* ...We did it. It took us " + (this.attempt + 1) + " tries but we did it.\"")
-               .withStyle(ChatFormatting.GREEN),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"*stops what they're doing* ...We did it. It took us " + (this.attempt + 1) + " tries but we did it.\"");
          VillagerQuest.clearFailureHistory(this.villagerUuid);
          this.completed = true;
       } else {

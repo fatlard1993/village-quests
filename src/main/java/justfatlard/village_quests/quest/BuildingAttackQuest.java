@@ -49,7 +49,7 @@ class BuildingAttackQuest extends MobEventQuest {
 
    @Override
    public String getObjective() {
-      return (this.useWitches ? "a witch" : "armed strangers") + " near " + this.targetName + "'s house — they need help";
+      return (this.useWitches ? "a witch" : "armed strangers") + " near " + this.targetName + "'s house, they need help";
    }
 
    @Override

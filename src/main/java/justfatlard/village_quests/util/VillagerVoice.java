@@ -33,13 +33,14 @@ public final class VillagerVoice {
 	private VillagerVoice() {}
 
 	/**
-	 * Lines held per villager. Small on purpose: a villager greeting you with a
+	 * Things held per villager. Small on purpose: a villager greeting you with a
 	 * monologue of everything you did last week reads as a changelog, not a
-	 * person, so the oldest is dropped once the queue is full.
+	 * person, so the oldest is dropped once the queue is full. A thing is one
+	 * line or one sequence of beats; a confession in five beats counts as one.
 	 */
-	private static final int MAX_PENDING_PER_VILLAGER = 3;
+	private static final int MAX_PENDING_PER_VILLAGER = 6;
 
-	private static final Map<UUID, Map<UUID, Deque<String>>> pending = new ConcurrentHashMap<>();
+	private static final Map<UUID, Map<UUID, Deque<List<String>>>> pending = new ConcurrentHashMap<>();
 
 	/**
 	 * Hold a line until the player next speaks to this villager.
@@ -50,21 +51,42 @@ public final class VillagerVoice {
 	 *                     presents it as speech
 	 */
 	public static void queue(ServerPlayer player, UUID villagerUuid, String speakerName, String line) {
-		if (player == null || villagerUuid == null || line == null || line.isBlank()) {
+		if (line == null || line.isBlank()) {
 			return;
 		}
 
-		line = stripAttribution(speakerName, line);
+		queueBeats(player, villagerUuid, speakerName, List.of(line));
+	}
 
-		Deque<String> queue = pending
-			.computeIfAbsent(player.getUUID(), k -> new ConcurrentHashMap<UUID, Deque<String>>())
+	/**
+	 * Hold several lines said in one breath: a confession, a reaction and its
+	 * afterthought. Played as one sequence, a screen per beat, when the player
+	 * is in front of the villager; joined into one line when they are not.
+	 */
+	public static void queueBeats(ServerPlayer player, UUID villagerUuid, String speakerName, List<String> beats) {
+		if (player == null || villagerUuid == null || beats == null) {
+			return;
+		}
+
+		List<String> kept = new java.util.ArrayList<>();
+		for (String beat : beats) {
+			if (beat != null && !beat.isBlank()) {
+				kept.add(stripAttribution(speakerName, beat));
+			}
+		}
+		if (kept.isEmpty()) {
+			return;
+		}
+
+		Deque<List<String>> queue = pending
+			.computeIfAbsent(player.getUUID(), k -> new ConcurrentHashMap<UUID, Deque<List<String>>>())
 			.computeIfAbsent(villagerUuid, k -> new ArrayDeque<>());
 
 		synchronized (queue) {
 			while (queue.size() >= MAX_PENDING_PER_VILLAGER) {
 				queue.pollFirst();
 			}
-			queue.addLast(line);
+			queue.addLast(List.copyOf(kept));
 		}
 	}
 
@@ -86,21 +108,24 @@ public final class VillagerVoice {
 		}
 
 		// Only when the whole line is quoted; a line that merely contains a quoted
-		// aside keeps its punctuation.
-		if (result.length() > 1 && result.startsWith("\"") && result.endsWith("\"")
-			&& result.indexOf('"', 1) == result.length() - 1) {
-			result = result.substring(1, result.length() - 1).trim();
+		// aside keeps its punctuation. Some quests wrote their speech in single
+		// quotes, which is the same wrapper.
+		for (char quote : new char[]{'"', '\''}) {
+			if (result.length() > 1 && result.charAt(0) == quote && result.charAt(result.length() - 1) == quote
+				&& result.indexOf(quote, 1) == result.length() - 1) {
+				result = result.substring(1, result.length() - 1).trim();
+			}
 		}
 
 		return result;
 	}
 
 	/** Everything this villager has been holding, oldest first, cleared as it is read. */
-	public static List<String> drain(ServerPlayer player, UUID villagerUuid) {
-		Map<UUID, Deque<String>> byVillager = pending.get(player.getUUID());
+	public static List<List<String>> drain(ServerPlayer player, UUID villagerUuid) {
+		Map<UUID, Deque<List<String>>> byVillager = pending.get(player.getUUID());
 		if (byVillager == null) return List.of();
 
-		Deque<String> queue = byVillager.remove(villagerUuid);
+		Deque<List<String>> queue = byVillager.remove(villagerUuid);
 		if (queue == null) return List.of();
 
 		synchronized (queue) {
@@ -109,7 +134,7 @@ public final class VillagerVoice {
 	}
 
 	public static boolean hasPending(ServerPlayer player, UUID villagerUuid) {
-		Map<UUID, Deque<String>> byVillager = pending.get(player.getUUID());
+		Map<UUID, Deque<List<String>>> byVillager = pending.get(player.getUUID());
 		return byVillager != null && byVillager.containsKey(villagerUuid);
 	}
 

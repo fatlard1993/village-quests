@@ -39,7 +39,17 @@ public class MailSystemIntegration {
          Method recipientMethod = messageBuilderClass.getMethod("recipient", UUID.class);
          builder = recipientMethod.invoke(builder, recipientId);
          Method typeMethod = messageBuilderClass.getMethod("type", messageTypeClass);
-         Object typeValue = messageTypeClass.getField(messageType).get(null);
+         // Named by string across the mod line, so a rename on the far side is only found here, at
+         // runtime. A type that has gone is sent as VILLAGER, which every letter from here is,
+         // rather than dropping the letter: PERSONAL and NOTICE went that way and took every
+         // village letter with them.
+         Object typeValue;
+         try {
+            typeValue = messageTypeClass.getField(messageType).get(null);
+         } catch (NoSuchFieldException renamed) {
+            LOGGER.warn("village-mail has no message type {}; sending as VILLAGER", messageType);
+            typeValue = messageTypeClass.getField("VILLAGER").get(null);
+         }
          builder = typeMethod.invoke(builder, typeValue);
          Method bodyMethod = messageBuilderClass.getMethod("body", String.class);
          builder = bodyMethod.invoke(builder, body);
@@ -86,7 +96,7 @@ public class MailSystemIntegration {
       if (!isLoaded) {
          dropUndeliverable(player, villagerName, letterContent, "misnomer thank-you letter");
       } else {
-         boolean sent = buildAndSendMail(server, villagerUuid, villagerName, player.getUUID(), "PERSONAL", letterContent, gift);
+         boolean sent = buildAndSendMail(server, villagerUuid, villagerName, player.getUUID(), "VILLAGER", letterContent, gift);
          if (sent) {
             // village-mail's unread badge is the notification; a floating line here
             // duplicates it and is exactly the drive-by text this mod is dropping.
@@ -312,7 +322,7 @@ public class MailSystemIntegration {
             dropUndeliverable(player, villagerName, content, "quest thank-you letter");
          }
       } else {
-         if (!buildAndSendMail(server, villagerUuid, villagerName, playerId, "PERSONAL", content, gift)) {
+         if (!buildAndSendMail(server, villagerUuid, villagerName, playerId, "VILLAGER", content, gift)) {
             ServerPlayer player = server.getPlayerList().getPlayer(playerId);
             if (player != null) {
                dropUndeliverable(player, villagerName, content, "quest thank-you letter (reflection failure)");
@@ -329,7 +339,7 @@ public class MailSystemIntegration {
             dropUndeliverable(player, senderName, content, "gathering invitation");
          }
       } else {
-         if (!buildAndSendMail(server, villageUuid, senderName, playerId, "NOTICE", content, null)) {
+         if (!buildAndSendMail(server, villageUuid, senderName, playerId, "VILLAGER", content, null)) {
             ServerPlayer player = server.getPlayerList().getPlayer(playerId);
             if (player != null) {
                dropUndeliverable(player, senderName, content, "gathering invitation (reflection failure)");
@@ -455,7 +465,7 @@ public class MailSystemIntegration {
             dropUndeliverable(player, villagerName, body, "letter from villager");
          }
       } else {
-         if (!buildAndSendMail(server, villagerUuid, villagerName, playerId, "PERSONAL", body, null)) {
+         if (!buildAndSendMail(server, villagerUuid, villagerName, playerId, "VILLAGER", body, null)) {
             ServerPlayer player = server.getPlayerList().getPlayer(playerId);
             if (player != null) {
                dropUndeliverable(player, villagerName, body, "letter from villager (reflection failure)");

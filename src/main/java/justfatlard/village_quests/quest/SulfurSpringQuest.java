@@ -41,11 +41,11 @@ public class SulfurSpringQuest extends VillagerQuest {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         String[] lines = {
             requesterName + ": \"Something's wrong near the old quarry road."
-                + " The ground smells of rotten eggs. A yellow spring appeared — just appeared."
+                + " The ground smells of rotten eggs. A yellow spring appeared, just appeared."
                 + " I don't know what it is. Could you go look? Tell me what it is.\"",
             requesterName + ": \"The livestock won't go near the south field anymore."
                 + " The children have been getting headaches. There's something yellow and bubbling"
-                + " out there — a spring, maybe, but it doesn't smell like water."
+                + " out there, a spring, maybe, but it doesn't smell like water."
                 + " I need someone to go find out what we're dealing with.\"",
             requesterName + ": \"Rotten eggs. That's the only way to describe it."
                 + " A yellow patch opened up in the ground, maybe half a mile out."
@@ -60,9 +60,9 @@ public class SulfurSpringQuest extends VillagerQuest {
         if (!exploredFar) {
             return "Travel at least 150 blocks from the village and look for a sulfur spring";
         } else if (!foundSpring) {
-            return "Find the sulfur spring — look for yellow bubbling ground (you're in the right area)";
+            return "Find the sulfur spring, look for yellow bubbling ground (you're in the right area)";
         } else {
-            return "Spring found — the quest will complete when you speak to a villager";
+            return "Spring found, the quest will complete when you speak to a villager";
         }
     }
 
@@ -85,7 +85,7 @@ public class SulfurSpringQuest extends VillagerQuest {
             if (isNearSulfurBlock(player)) {
                 foundSpring = true;
                 player.sendSystemMessage(
-                    Component.literal("You find it — yellow and bubbling, the ground warm underfoot."
+                    Component.literal("You find it, yellow and bubbling, the ground warm underfoot."
                         + " The smell is overwhelming. This is a sulfur spring.")
                         .withStyle(ChatFormatting.YELLOW),
                     true
@@ -133,10 +133,10 @@ public class SulfurSpringQuest extends VillagerQuest {
                 + " I think we've been living over one all this time.\"",
             requesterName + ": \"*quiet for a moment*"
                 + " Sulfur springs don't just appear. They come up from below."
-                + " Something's shifted down there. The caves — the yellow ones the deep miners warned about."
+                + " Something's shifted down there. The caves, the yellow ones the deep miners warned about."
                 + " They're closer to the surface than anyone thought.\"",
-            requesterName + ": \"*sits down*"
-                + " I knew something was wrong. The animals knew first — they always do."
+            requesterName + ": \"*stops what they're doing*"
+                + " I knew something was wrong. The animals knew first, they always do."
                 + " Something's been disturbed deep below us."
                 + " Sulfur caves. We've got sulfur caves underneath this village.\""
         };

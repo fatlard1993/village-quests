@@ -35,7 +35,7 @@ class RetryHealGolemQuest extends CreationQuest {
 
    @Override
    public String getObjective() {
-      return "try again to mend the golem — bring iron ingots";
+      return "try again to mend the golem: bring iron ingots";
    }
 
    @Override
@@ -65,11 +65,7 @@ class RetryHealGolemQuest extends CreationQuest {
    @Override
    public void onComplete(ServerPlayer player) {
       if (this.attempt >= 3) {
-         player.sendSystemMessage(
-            Component.literal(this.requesterName + ": \"*sits down* ...We did it. It took us " + (this.attempt + 1) + " tries but we did it.\"")
-               .withStyle(ChatFormatting.GREEN),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"*stops what they're doing* ...We did it. It took us " + (this.attempt + 1) + " tries but we did it.\"");
          VillagerQuest.clearFailureHistory(this.villagerUuid);
          VillagerMemory.recordMemory(this.villagerUuid, VillagerMemory.MemoryType.GOLEM_HEALED);
          this.completed = true;

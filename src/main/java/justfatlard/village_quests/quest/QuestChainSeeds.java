@@ -265,9 +265,9 @@ public class QuestChainSeeds {
             ThreadLocalRandom rng = ThreadLocalRandom.current();
             String[] greetings = new String[]{
                villagerName
-                  + ": '*almost smiles* She's better. The coughing stopped three days ago. She asked who brought the honey. I told her.' *pause* 'She made you something. It's on the windowsill. Take it when you pass by.'",
+                  + ": 'She's better. The coughing stopped three days ago. She asked who brought the honey. I told her.' *pause* 'She made you something. It's on the windowsill. Take it when you pass by.'",
                villagerName
-                  + ": '*stops what they're doing* The honey worked. My wife — she's breathing easy again. First time in weeks.' *quiet* 'She wanted to thank you herself but she's resting. She left something for you.'",
+                  + ": '*stops what they're doing* The honey worked. My wife, she's breathing easy again. First time in weeks.' *quiet* 'She wanted to thank you herself but she's resting. She left something for you.'",
                villagerName
                   + ": '*looks up, and for the first time you see something other than worry* She's okay. She's going to be okay. The honey... it helped. She baked something. For you. Said it was the least she could do.'"
             };
@@ -423,7 +423,7 @@ public class QuestChainSeeds {
       public String getDescription() {
          String[] descriptions = new String[]{
             this.childName
-               + ": '*tugging your sleeve* My "
+               + ": '*runs up* My "
                + this.getParentWord()
                + " told me about you. About the bread. I want to help people too. Can you show me how?'",
             this.childName
@@ -431,7 +431,7 @@ public class QuestChainSeeds {
                + this.parentName
                + " told me. Can I come with you next time?'",
             this.childName
-               + ": '*fidgeting* "
+               + ": '"
                + this.parentName
                + " said you didn't have to help. But you did. I want to do that. I want to be the kind of person who does that.'"
          };
@@ -451,23 +451,14 @@ public class QuestChainSeeds {
       @Override
       public void onComplete(ServerPlayer player) {
          ThreadLocalRandom rng = ThreadLocalRandom.current();
-         player.sendSystemMessage(
-            Component.literal(this.childName + ": '*walks beside you in silence for a while, then:* Do you get scared? When you go out there?'")
-               .withStyle(ChatFormatting.GREEN),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.childName, this.childName + ": '*walks beside you a while, then* Do you get scared? When you go out there?'");
          ScheduledMessages.schedule(
             player,
             Component.literal("*" + this.childName + " picks up a stick and holds it like a sword. Then puts it down and picks up a flower instead.*")
                .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
             80
          );
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.childName + ": '*quiet* " + this.parentName + " cried that night. I heard. But it was the good kind. I think.'")
-               .withStyle(ChatFormatting.GREEN),
-            160
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.childName, this.childName + ": '*quiet* " + this.parentName + " cried that night. I heard. But it was the good kind. I think.'");
          int mailDelay = (int)((2 + rng.nextInt(2)) * 24000L);
          ScheduledMessages.schedule(
             player,
@@ -533,23 +524,14 @@ public class QuestChainSeeds {
 
       @Override
       public void onComplete(ServerPlayer player) {
-         player.sendSystemMessage(
-            Component.literal(this.requesterName + ": 'The fence you mended held. The one nobody else touched didn't.'")
-               .withStyle(ChatFormatting.GREEN),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": 'The fence you mended held. The one nobody else touched didn't.'");
          ScheduledMessages.schedule(
             player,
-            Component.literal(this.requesterName + ": '*counting on fingers* Three missing from the west pen. All safe on your side. Every one.'")
+            Component.literal(this.requesterName + ": '*counting under breath* Three missing from the west pen. All safe on your side. Every one.'")
                .withStyle(ChatFormatting.GREEN),
             60
          );
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.requesterName + ": 'You fixed a fence. That's what you did. And that was enough.'")
-               .withStyle(ChatFormatting.GREEN),
-            140
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": 'You fixed a fence. That's what you did. And that was enough.'");
          ScheduledMessages.schedule(
             player,
             Component.literal("*" + this.originalRequester + " is standing by the repaired fence. They don't say anything. They don't need to.*")
@@ -590,15 +572,8 @@ public class QuestChainSeeds {
       @Override
       protected void deliverDialogue(ServerPlayer player) {
          VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": '*holds the message to their chest*'");
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(
-                  this.requesterName
-                     + ": 'They couldn't come themselves. All those years. And then they sent you. A stranger. With the only words that mattered.'"
-               )
-               .withStyle(ChatFormatting.GRAY),
-            60
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName
+                     + ": 'They couldn't come themselves. All those years. And then they sent you. A stranger. With the only words that mattered.'");
          ScheduledMessages.schedule(
             player,
             Component.literal("*" + this.requesterName + " doesn't say anything else. Neither do you.*")
@@ -632,14 +607,8 @@ public class QuestChainSeeds {
 
       @Override
       protected void deliverDialogue(ServerPlayer player) {
-         player.sendSystemMessage(
-            Component.literal(this.requesterName + ": 'I go up there now. To see what you planted. It's growing.'")
-               .withStyle(ChatFormatting.GRAY),
-            true
-         );
-         ScheduledMessages.schedule(
-            player, Component.literal(this.requesterName + ": '*voice breaks* She would have liked that.'").withStyle(ChatFormatting.GRAY), 80
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": 'I go up there now. To see what you planted. It's growing.'");
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": '*voice breaks* She would have liked that.'");
          ScheduledMessages.schedule(
             player,
             Component.literal("*Neither of you says anything for a long time.*")
@@ -679,23 +648,14 @@ public class QuestChainSeeds {
 
       @Override
       public void onComplete(ServerPlayer player) {
-         player.sendSystemMessage(
-            Component.literal(this.requesterName + ": 'I watched them every morning. Same rock. Same pickaxe. Didn't miss a day.'")
-               .withStyle(ChatFormatting.GREEN),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": 'I watched them every morning. Same rock. Same pickaxe. Didn't miss a day.'");
          ScheduledMessages.schedule(
             player,
             Component.literal(this.requesterName + ": 'The handle broke twice. They fixed it both times. Didn't ask for help. Didn't complain.'")
                .withStyle(ChatFormatting.GREEN),
             60
          );
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.requesterName + ": '*quiet pride* You gave them something to reach for. They don't know that. But I do.'")
-               .withStyle(ChatFormatting.GREEN),
-            140
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": '*quiet* You gave them something to reach for. They don't know that. But I do.'");
          ScheduledMessages.schedule(
             player,
             Component.literal("*In the distance, a child is carefully chipping at stone with an iron pickaxe. Their tongue is out in concentration.*")

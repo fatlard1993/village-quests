@@ -456,7 +456,7 @@ public class HolidayQuest {
 
       @Override
       public String getObjective() {
-         return "plant a stack of saplings around the village — make the hills green again";
+         return "plant a stack of saplings around the village: make the hills green again";
       }
 
       @Override
@@ -617,7 +617,7 @@ public class HolidayQuest {
 
       @Override
       public String getObjective() {
-         return "figure out how to flip the " + this.animalWord + " back over — maybe a name tag?";
+         return "figure out how to flip the " + this.animalWord + " back over, maybe a name tag?";
       }
 
       @Override
@@ -691,7 +691,7 @@ public class HolidayQuest {
 
       @Override
       public String getObjective() {
-         return "a skeleton horse rider is circling the village at night — deal with it";
+         return "a skeleton horse rider is circling the village at night, deal with it";
       }
 
       @Override
@@ -735,7 +735,7 @@ public class HolidayQuest {
          } else {
             String[] msgs = new String[]{
                this.requesterName
-                  + ": \"It's done? The horse — the thing — it's gone? *sits down heavily* I'm sleeping with the curtains closed for a month.\"",
+                  + ": \"It's done? The horse, the thing, it's gone? *exhales* I'm sleeping with the curtains closed for a month.\"",
                this.requesterName
                   + ": \"I heard the bones hit the ground from inside my house. That's a sound I'll be hearing for a while. But it's over. Thank you.\"",
                this.requesterName + ": \"The kids wanted to keep the skull. I said absolutely not. *pause* ...Where did you put the skull?\""
@@ -768,11 +768,11 @@ public class HolidayQuest {
       public String getDescription() {
          String[] descriptions = new String[]{
             this.requesterName
-               + ": \"Okay so my sheep ate something in the field — mushroom, flower, I don't know — and then it just LOST it. Sprinting, smashing through fences. I swear it was moving so fast it looked like it was changing colors. Now it's on somebody's roof. I need it back. Bring a lead.\"",
+               + ": \"Okay so my sheep ate something in the field, mushroom, flower, I don't know, and then it just LOST it. Sprinting, smashing through fences. I swear it was moving so fast it looked like it was changing colors. Now it's on somebody's roof. I need it back. Bring a lead.\"",
             this.requesterName
                + ": \"One of my sheep went completely crazy. Ate something weird, started running like a maniac, and I'm pretty sure it ended up on a roof. I could've sworn it was flashing different colors while it was running. Bring a lead, I need that thing back.\"",
             this.requesterName
-               + ": \"*out of breath* The sheep. It ate a weird flower and went insane. So fast — creepers, I thought I was seeing things, it looked like it was changing color mid-stride. It's on a roof now. I can see it from here. Lead. Please.\""
+               + ": \"*out of breath* The sheep. It ate a weird flower and went insane. So fast, creepers, I thought I was seeing things, it looked like it was changing color mid-stride. It's on a roof now. I can see it from here. Lead. Please.\""
          };
          return descriptions[ThreadLocalRandom.current().nextInt(descriptions.length)];
       }
@@ -806,29 +806,10 @@ public class HolidayQuest {
 
       @Override
       public void onComplete(ServerPlayer player) {
-         player.sendSystemMessage(
-            Component.literal(this.requesterName + ": \"You got it down! How did you even — wait. Wait. Look at it.\"")
-               .withStyle(ChatFormatting.GREEN),
-            true
-         );
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.requesterName + ": \"Is it... is it changing color? Right now? You see that?\"")
-               .withStyle(ChatFormatting.AQUA),
-            60
-         );
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.requesterName + ": \"It just went blue. Now green. Now — what the Nether?! What did it EAT?\"")
-               .withStyle(ChatFormatting.LIGHT_PURPLE),
-            140
-         );
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.requesterName + ": \"I'm keeping it. I don't care what's wrong with it. Hold on — I'm building it a pen right now.\"")
-               .withStyle(ChatFormatting.GOLD),
-            220
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"You got it down! How did you even, wait. Wait. Look at it.\"");
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"Is it... is it changing color? Right now? You see that?\"");
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"It just went blue. Now green. Now, what the Nether?! What did it EAT?\"");
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"I'm keeping it. I don't care what's wrong with it. Hold on. I'm building it a pen right now.\"");
          ServerLevel witnessBox = player.level();
          if (witnessBox instanceof ServerLevel) {
             this.buildRainbowSheepPen(witnessBox, this.villageCenter, this.sheepUuid);
@@ -946,10 +927,7 @@ public class HolidayQuest {
             "The baker's kid. Every night after bedtime. They said they wanted the village to look 'spooky.' Mission accomplished.",
             "It was the shepherd's daughter. She's been saving pumpkin seeds all season. I'm not even mad. They look good, actually."
          };
-         player.sendSystemMessage(
-            Component.literal(this.requesterName + ": \"" + resolutions[rng.nextInt(resolutions.length)] + "\"").withStyle(ChatFormatting.GREEN),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"" + resolutions[rng.nextInt(resolutions.length)] + "\"");
          ScheduledMessages.schedule(
             player,
             Component.literal("There are even more pumpkins today. The adults have started carving them too.")
@@ -971,7 +949,7 @@ public class HolidayQuest {
             this.requesterName
                + ": \"Okay, hear me out. It's Friday the 13th. Everyone's already on edge. Put on a pumpkin head and go stand behind someone. Just... stand there. I want to see what happens.\"",
             this.requesterName
-               + ": \"I dare you. Skull, pumpkin, whatever you've got. Put it on and walk up to someone. Slowly. Don't say anything. It's Friday the 13th — they'll lose it.\"",
+               + ": \"I dare you. Skull, pumpkin, whatever you've got. Put it on and walk up to someone. Slowly. Don't say anything. It's Friday the 13th, they'll lose it.\"",
             this.requesterName
                + ": \"*whispering* I've got an idea. You got a carved pumpkin? Or a mob head? Put it on and sneak up on someone. It's the 13th. They're already jumpy. Come on. It'll be funny.\""
          };
@@ -980,7 +958,7 @@ public class HolidayQuest {
 
       @Override
       public String getObjective() {
-         return "put on a scary head and get close to a villager — it's Friday the 13th";
+         return "put on a scary head and get close to a villager, it's Friday the 13th";
       }
 
       @Override
@@ -1016,7 +994,7 @@ public class HolidayQuest {
          String[] msgs = new String[]{
             this.requesterName + ": \"*dying laughing* Did you see their face?! They jumped! They actually jumped! Oh, that was worth it.\"",
             this.requesterName + ": \"*can barely breathe* The SOUND they made. I'm going to remember that forever. You're terrible. Thank you.\"",
-            this.requesterName + ": \"*wiping tears* They're going to be so mad. That was awful. That was the best thing I've seen all year.\""
+            this.requesterName + ": \"*still laughing* They're going to be so mad. That was awful. That was the best thing I've seen all year.\""
          };
          VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
          ScheduledMessages.schedule(
@@ -1101,7 +1079,7 @@ public class HolidayQuest {
       @Override
       public void onComplete(ServerPlayer player) {
          String[] completions = new String[]{
-            this.requesterName + ": \"You did it? They don't know? *almost smiles* Good. Good. That's all I wanted.\"",
+            this.requesterName + ": \"You did it? They don't know? Good. Good. That's all I wanted.\"",
             this.requesterName + ": \"*exhales* I've been thinking about doing that for months. Thank you. Don't tell anyone.\"",
             this.requesterName + ": \"Was it weird? Standing at their door? ...Yeah, it would've been worse if I did it. Thanks.\""
          };
@@ -1160,7 +1138,7 @@ public class HolidayQuest {
 
       @Override
       public String getObjective() {
-         return "there are named squids flopping around the village — clear them out";
+         return "there are named squids flopping around the village: clear them out";
       }
 
       @Override
@@ -1214,7 +1192,7 @@ public class HolidayQuest {
       public String getDescription() {
          String[] descriptions = new String[]{
             this.requesterName
-               + ": \"There's a rabbit in the village. It's got this pattern I've never seen before — black and white, really specific. Like someone painted it. The kids are calling it Toast. Can you go check on it?\"",
+               + ": \"There's a rabbit in the village. It's got this pattern I've never seen before, black and white, really specific. Like someone painted it. The kids are calling it Toast. Can you go check on it?\"",
             this.requesterName
                + ": \"One of the children found a rabbit. Won't stop talking about it. Says its markings are 'special.' Called it Toast. Would you go look? I want to know if it's just a rabbit or... something else.\"",
             this.requesterName
@@ -1287,7 +1265,7 @@ public class HolidayQuest {
 
       @Override
       public String getObjective() {
-         return "someone's cold at the edge of the village — bring warmth and bread";
+         return "someone's cold at the edge of the village: bring warmth and bread";
       }
 
       @Override
@@ -1361,7 +1339,7 @@ public class HolidayQuest {
       public String getDescription() {
          String[] descriptions = new String[]{
             this.requesterName
-               + ": \"*leaning in* Okay. You know what day it is? It's the day. Go put a melon on "
+               + ": \"*lowering voice* Okay. You know what day it is? It's the day. Go put a melon on "
                + this.targetName
                + "'s doorstep. Don't let them see you do it.\"",
             this.requesterName + ": \"It's August 8th. You know the tradition. Melon. " + this.targetName + "'s porch. Don't get caught. Go.\"",
@@ -1375,7 +1353,7 @@ public class HolidayQuest {
 
       @Override
       public String getObjective() {
-         return "sneak a melon onto " + this.targetName + "'s doorstep — don't get caught";
+         return "sneak a melon onto " + this.targetName + "'s doorstep, don't get caught";
       }
 
       @Override

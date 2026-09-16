@@ -29,7 +29,7 @@ public class BounceMusicDiscQuest extends VillagerQuest {
     public String getDescription() {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         String[] lines = {
-            requesterName + ": \"The miners who came back from the sulfur caves — the deep ones, with the old minecart tunnels —"
+            requesterName + ": \"The miners who came back from the sulfur caves, the deep ones, with the old minecart tunnels..."
                 + " they said they heard music."
                 + " Bouncing, they said. Like it was happy. Their word: bouncy."
                 + " Coming from somewhere in those tunnels."
@@ -47,7 +47,7 @@ public class BounceMusicDiscQuest extends VillagerQuest {
                 + " Not recently. The dust tells you that. But someone was there."
                 + " And they left a music disc in a minecart chest."
                 + " The miners who found it wouldn't touch it. I understand why."
-                + " But I need to know. If you'll go — if you find it — bring it here."
+                + " But I need to know. If you'll go, if you find it: bring it here."
                 + " I'll keep it safe. I just need to know it's real.\""
         };
         return lines[rng.nextInt(lines.length)];
@@ -55,7 +55,7 @@ public class BounceMusicDiscQuest extends VillagerQuest {
 
     @Override
     public String getObjective() {
-        return "Find the music disc from the sulfur cave mineshafts — someone left it there";
+        return "Find the music disc from the sulfur cave mineshafts, someone left it there";
     }
 
     @Override
@@ -88,15 +88,15 @@ public class BounceMusicDiscQuest extends VillagerQuest {
                 + " Not sure I want to play it.\"",
             requesterName + ": \"*doesn't say anything for a while*"
                 + " Bounce. That's what they called it."
-                + " Whoever was down there — they made something that sounds happy."
+                + " Whoever was down there, they made something that sounds happy."
                 + " In the sulfur caves. In the dark."
                 + " I don't know what to do with that."
                 + " *quietly* Thank you for finding it.\"",
-            requesterName + ": \"*turns it over once. Sets it face-down.*"
+            requesterName + ": \"*looks at it once, then sets it face-down*"
                 + " We may never know who left it."
                 + " Not everything needs an answer. I've learned that."
                 + " But this confirms someone was there."
-                + " That matters. I don't know why yet, but it does."
+                + " Somebody sat in that clearing and played it. I keep picturing that."
                 + " It goes in the chest. Not the trash. The chest.\""
         };
         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, messages[rng.nextInt(messages.length)]);

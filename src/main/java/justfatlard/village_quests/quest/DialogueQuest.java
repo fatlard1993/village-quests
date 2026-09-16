@@ -33,7 +33,7 @@ public class DialogueQuest extends VillagerQuest {
    private static final String[][] MESSAGE_VARIANTS = new String[][]{
       {"the wheat shipment will be late", "I'm too busy with the harvest."},
       {"I won't be able to help with the roof after all", "Something came up. They deserve to hear it from me, but..."},
-      {"their grandmother's recipe — I found it in my things", "I've had it for years. Didn't realize until I was cleaning."},
+      {"their grandmother's recipe turned up in my things", "I've had it for years. Didn't realize until I was cleaning."},
       {"the seeds they wanted are ready", "Took longer than I thought. They've been patient."},
       {"I owe them an apology but I can't face them", "Just tell them I said it. They'll know what it means."},
       {"the firewood is stacked by my door if they still need it", "I said I'd bring it over but my back isn't what it was."},
@@ -251,15 +251,15 @@ public class DialogueQuest extends VillagerQuest {
 
    @Override
    public String getObjective() {
-      String hint = this.targetProfessionHint != null ? " — " + this.targetProfessionHint : "";
+      String hint = this.targetProfessionHint != null ? ", " + this.targetProfessionHint : "";
       if (!this.messageDelivered) {
          return switch (this.dialogueType) {
-            case DELIVER_MESSAGE -> "find " + this.targetVillagerName + hint + " — " + this.requesterName + " has something for them to hear";
-            case DELIVER_APOLOGY -> "find " + this.targetVillagerName + hint + " — " + this.requesterName + " needs to make things right";
-            case DELIVER_NEWS -> "find " + this.targetVillagerName + hint + " — they should hear what " + this.requesterName + " knows";
-            case MEDIATE_DISPUTE -> "find " + this.targetVillagerName + hint + " — " + this.requesterName + " and they need someone to sit between them";
+            case DELIVER_MESSAGE -> "find " + this.targetVillagerName + hint + ": " + this.requesterName + " has something for them to hear";
+            case DELIVER_APOLOGY -> "find " + this.targetVillagerName + hint + ": " + this.requesterName + " needs to make things right";
+            case DELIVER_NEWS -> "find " + this.targetVillagerName + hint + ": they should hear what " + this.requesterName + " knows";
+            case MEDIATE_DISPUTE -> "find " + this.targetVillagerName + hint + ": " + this.requesterName + " and they need someone to sit between them";
             case GATHER_GOSSIP -> this.requesterName + " wants to know what people are saying";
-            case VILLAGE_TO_VILLAGE -> "find " + this.targetVillagerName + hint + " — " + this.requesterName + " has word from the village";
+            case VILLAGE_TO_VILLAGE -> "find " + this.targetVillagerName + hint + ": " + this.requesterName + " has word from the village";
             case DELIVER_ITEM -> "bring " + (this.deliveryItemName != null ? this.deliveryItemName : "the item") + " to " + this.targetVillagerName + hint;
          };
       } else {
@@ -294,7 +294,7 @@ public class DialogueQuest extends VillagerQuest {
                   "At least they know now. That's all I needed.",
                   "...I see."
                };
-               yield this.requesterName + ": What did they say?... \"" + this.deliveryReaction + "\" " + closings[rng.nextInt(closings.length)];
+               yield this.requesterName + ": \"" + this.deliveryReaction + "\" " + closings[rng.nextInt(closings.length)];
             }
             case DELIVER_APOLOGY -> {
                String[] closings = new String[]{
@@ -303,40 +303,40 @@ public class DialogueQuest extends VillagerQuest {
                   "I should've gone myself. But I couldn't. So... thank you. For carrying that.",
                   "*exhales* Okay."
                };
-               yield this.requesterName + ": And?... \"" + this.deliveryReaction + "\" " + closings[rng.nextInt(closings.length)];
+               yield this.requesterName + ": \"" + this.deliveryReaction + "\" " + closings[rng.nextInt(closings.length)];
             }
             case DELIVER_NEWS -> {
                String[] closings = new String[]{
                   "That's about what I expected.", "Better they heard it from us than found out on their own.", "*nods* At least it's done."
                };
-               yield this.requesterName + ": How'd they take it?... \"" + this.deliveryReaction + "\" " + closings[rng.nextInt(closings.length)];
+               yield this.requesterName + ": \"" + this.deliveryReaction + "\" " + closings[rng.nextInt(closings.length)];
             }
             case MEDIATE_DISPUTE -> {
                String[] closings = new String[]{
-                  "*sits with it* They said they'd talk. That's more than I hoped for.",
+                  "*quiet for a moment* They said they'd talk. That's more than I hoped for.",
                   "Willing but not yet. ...I can work with that.",
                   "You heard both sides. *quiet* Maybe there is a way through this after all.",
                   "Fair enough."
                };
-               yield this.requesterName + ": What did they say?... \"" + this.deliveryReaction + "\" " + closings[rng.nextInt(closings.length)];
+               yield this.requesterName + ": \"" + this.deliveryReaction + "\" " + closings[rng.nextInt(closings.length)];
             }
             case GATHER_GOSSIP -> {
                String[] closings = new String[]{
-                  "*leans in* ...Really? That's more than I expected. I owe you one.",
+                  "*lowers voice* ...Really? That's more than I expected. I owe you one.",
                   "I had a feeling. Now I know for sure. That changes things.",
                   "Hm. Figures."
                };
-               yield this.requesterName + ": And?... \"" + this.deliveryReaction + "\" " + closings[rng.nextInt(closings.length)];
+               yield this.requesterName + ": \"" + this.deliveryReaction + "\" " + closings[rng.nextInt(closings.length)];
             }
             case VILLAGE_TO_VILLAGE -> this.requesterName + ": Their answer?... \"" + this.deliveryReaction + "\" That'll do.";
             case DELIVER_ITEM -> {
                String[] closings = new String[]{
                   "They took it? *nods slowly* Good. I was afraid they'd refuse.",
                   "Did they say anything when they saw it? ...Tell me exactly what they said.",
-                  "*almost smiles* I should've brought it myself. But I'm glad you were the one.",
+                  "I should've brought it myself. But I'm glad you were the one.",
                   "Good."
                };
-               yield this.requesterName + ": Did they get it?... \"" + this.deliveryReaction + "\" " + closings[rng.nextInt(closings.length)];
+               yield this.requesterName + ": \"" + this.deliveryReaction + "\" " + closings[rng.nextInt(closings.length)];
             }
          };
       } else {
@@ -390,6 +390,15 @@ public class DialogueQuest extends VillagerQuest {
       return this.deliveryItem.getItem();
    }
 
+   /**
+    * What the player hands the target. Usually what they were given to carry,
+    * but not always: a subclass that asks the player to make the thing has
+    * nothing to give on the offer screen and still has something to hand over.
+    */
+   public Item getCarriedItem() {
+      return this.getGiveItem();
+   }
+
    private String pickDeliveryReaction() {
       ThreadLocalRandom rng = ThreadLocalRandom.current();
 
@@ -424,7 +433,7 @@ public class DialogueQuest extends VillagerQuest {
             String[] reactions = new String[]{
                "Both sides, huh? That's... complicated.",
                "I'll think about it. That's all I can promise.",
-               "*rubs the back of their neck* Tell them... tell them I'm willing to talk. Not yet. But willing.",
+               "Tell them... tell them I'm willing to talk. Not yet. But willing.",
                "I didn't think they'd send someone. That means something.",
                "*exhales* Fine. I'll hear them out. Once."
             };
@@ -432,7 +441,7 @@ public class DialogueQuest extends VillagerQuest {
          }
          case GATHER_GOSSIP -> {
             String[] reactions = new String[]{
-               "*leans in* Really? *sits back* Well. That explains a few things.",
+               "*lowers voice* Really? Well. That explains a few things.",
                "I knew it. I just knew it.",
                "*looks around first* That's more than I expected. Keep this between us."
             };
@@ -442,17 +451,17 @@ public class DialogueQuest extends VillagerQuest {
             String[] reactions = new String[]{
                "We've been hearing things. Good to have it straight from someone.",
                "Tell them we'll think about it. No promises.",
-               "*sits with it for a moment* That changes things. Not sure how yet."
+               "*quiet for a moment* That changes things. Not sure how yet."
             };
             yield reactions[rng.nextInt(reactions.length)];
          }
          case DELIVER_ITEM -> {
             String[] reactions = new String[]{
                "*takes it carefully* Oh. This is... tell them thank you.",
-               "*turns it over in their hands* They made this. For me.",
+               "*looks it over* They made this. For me.",
                "*holds it for a moment* ...I didn't expect this today.",
                "*quiet* It's still warm.",
-               "I was wondering when this would arrive. *almost smiles*"
+               "I was wondering when this would arrive."
             };
             yield reactions[rng.nextInt(reactions.length)];
          }
@@ -473,6 +482,11 @@ public class DialogueQuest extends VillagerQuest {
 
    public UUID getTargetVillagerUuid() {
       return this.targetVillagerUuid;
+   }
+
+   /** Where the target tends to be ("usually near the fields"), or null when their trade says nothing. */
+   public String getTargetProfessionHint() {
+      return this.targetProfessionHint;
    }
 
    public DialogueQuest.DialogueType getDialogueType() {

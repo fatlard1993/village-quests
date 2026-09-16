@@ -69,7 +69,7 @@ class LightTownQuest extends CreationQuest {
          };
          case "savanna" -> new String[]{
             "The open ground goes dark all at once out here. No trees to break the horizon. We need lights along the paths.",
-            "The children won't go out after sundown. The grass hides everything at night — mobs, holes, all of it.",
+            "The children won't go out after sundown. The grass hides everything at night, mobs, holes, all of it.",
             "Used to be the stars were enough. They're not. Not with what comes out at night.",
             "The farmer's kid fell in the dark last week. Split their chin open. We can't keep pretending the paths are safe.",
             "The shepherd lost two animals to the dark. Walked right off the path."

@@ -37,7 +37,7 @@ class FishHatQuest extends TimeSensitiveQuest {
 
    @Override
    public String getObjective() {
-      return this.requesterName + "'s " + this.hatType + " is in the water — the current won't wait";
+      return this.requesterName + "'s " + this.hatType + " is in the water, the current won't wait";
    }
 
    @Override
@@ -80,16 +80,8 @@ class FishHatQuest extends TimeSensitiveQuest {
                && stack.has(DataComponents.CUSTOM_NAME)
                && stack.getHoverName().getString().equals(this.requesterName + "'s " + this.hatType)
          );
-         player.sendSystemMessage(
-            Component.literal(this.requesterName + ": \"My " + this.hatType + "! Still dry enough to wear.\"").withStyle(ChatFormatting.GREEN),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"My " + this.hatType + "! Still dry enough to wear.\"");
          ConversationMemory.recordTopic(player.getUUID(), this.villagerUuid, ConversationMemory.ConversationTopic.QUEST_GIVEN);
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.requesterName + " is wearing the " + this.hatType + ". Hasn't taken it off.").withStyle(ChatFormatting.GRAY),
-            600
-         );
       }
 
       this.completed = true;

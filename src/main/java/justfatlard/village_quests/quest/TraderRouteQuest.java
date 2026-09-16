@@ -45,11 +45,11 @@ public class TraderRouteQuest extends VillagerQuest {
     public String getDescription() {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         String[] lines = {
-            requesterName + ": \"Someone saw llamas near the birch grove a few days ago. " + traderName + " wouldn't go far when they bolt —"
+            requesterName + ": \"Someone saw llamas near the birch grove a few days ago. " + traderName + " wouldn't go far when they bolt..."
                 + " traders hide nearby and watch. They'd want to see the road before moving again.\"",
-            requesterName + ": \"" + traderName + " wouldn't go far. Traders never do when they bolt — they find a ridge or a grove"
+            requesterName + ": \"" + traderName + " wouldn't go far. Traders never do when they bolt, they find a ridge or a grove"
                 + " and wait. Watch the village from a distance. Still close, I think.\"",
-            requesterName + ": \"" + traderName + " would have left a cache apart from the main camp — in case they had to run without it."
+            requesterName + ": \"" + traderName + " would have left a cache apart from the main camp, in case they had to run without it."
                 + " If we find where they're hiding, we find whatever they left behind too.\""
         };
         return lines[rng.nextInt(lines.length)];
@@ -58,7 +58,7 @@ public class TraderRouteQuest extends VillagerQuest {
     @Override
     public String getObjective() {
         if (!traderSpawned) {
-            return "Search for " + traderName + " — hiding nearby, watching the village";
+            return "Search for " + traderName + ", hiding nearby, watching the village";
         } else if (!foundTrader) {
             return "Find " + traderName + " to the " + directionHint + " of the village";
         } else {
@@ -129,11 +129,7 @@ public class TraderRouteQuest extends VillagerQuest {
 
         traderSpawned = true;
 
-        player.sendSystemMessage(
-            Component.literal(requesterName + ": \"If " + traderName + " is watching, they'd be to the " + traderDirection + ". That's where the high ground is.\"")
-                .withStyle(ChatFormatting.GRAY),
-            true
-        );
+        VillagerVoice.queue(player, this.villagerUuid, requesterName, requesterName + ": \"If " + traderName + " is watching, they'd be to the " + traderDirection + ". That's where the high ground is.\"");
     }
 
     private BlockPos parseCampPos(String detail) {
@@ -180,11 +176,11 @@ public class TraderRouteQuest extends VillagerQuest {
     public void onComplete(ServerPlayer player) {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         String[] messages = {
-            traderName + ": \"*startled, then relieved* You're not with them. Good. A pillager patrol — they were watching the road."
+            traderName + ": \"*startled, then relieved* You're not with them. Good. A pillager patrol, they were watching the road."
                 + " I saw the banner. I bolted. Left everything. *pauses* I shouldn't have, but I did.\"",
             traderName + ": \"I saw a light from underground. Straight up through the earth, blue-white. Then the mobs came."
                 + " I'm not ashamed to say I ran. That kind of light means something old is awake.\"",
-            traderName + ": \"The mob activity near the old ruins — it tripled in a week. Something disturbed them."
+            traderName + ": \"The mob activity near the old ruins, it tripled in a week. Something disturbed them."
                 + " I drink the potion, I disappear, I watch. That's how you stay alive on the road."
                 + " *looks at you* Your friend in the village must have sent you. Thank them for me.\""
         };
@@ -192,7 +188,7 @@ public class TraderRouteQuest extends VillagerQuest {
 
         ScheduledMessages.schedule(
             player,
-            Component.literal(traderName + ": \"Take this. My route map — marked with what I found. Things others should know about.\"")
+            Component.literal(traderName + ": \"Take this. My route map, marked with what I found. Things others should know about.\"")
                 .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC),
             60
         );

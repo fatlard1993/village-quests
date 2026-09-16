@@ -26,7 +26,7 @@ public class BuilderMaterialsQuest extends VillagerQuest {
             requesterName + ": \"Construction's been stalled. The builder has the plans, we just need material."
                 + " Can you bring thirty-two cobblestone?\"",
             requesterName + ": \"We're supposed to be building. The builder keeps asking me where the stone is."
-                + " Thirty-two cobblestone — that's all we need to get started.\""
+                + " Thirty-two cobblestone, that's all we need to get started.\""
         };
         return descriptions[rng.nextInt(descriptions.length)];
     }
@@ -59,7 +59,7 @@ public class BuilderMaterialsQuest extends VillagerQuest {
         String[] messages = new String[]{
             requesterName + ": \"*hauls it over* The builder will be pleased. Work starts tomorrow.\"",
             requesterName + ": \"Perfect. This is exactly what we needed. The builder can finally get going.\"",
-            requesterName + ": \"*nods, counting the stack* That'll do it. Thank you — the village needed this.\""
+            requesterName + ": \"*nods, counting the stack* That'll do it. Thank you, the village needed this.\""
         };
         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, messages[rng.nextInt(messages.length)]);
         this.completed = true;

@@ -72,7 +72,7 @@ public class FirstEncounterTracker {
             data.setSeenTradeHint(playerId);
             data.setDirty();
             player.sendSystemMessage(
-               Component.literal("Sneak and right-click to trade directly.")
+               Component.translatableWithFallback("village-quests-justfatlard.hint.trade", "Sneak and right-click to trade directly.")
                   .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
                true
             );

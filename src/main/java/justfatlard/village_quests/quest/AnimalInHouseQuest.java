@@ -63,7 +63,7 @@ class AnimalInHouseQuest extends MobEventQuest {
 
    @Override
    public String getObjective() {
-      return "a " + this.animalWord + " is stuck in " + this.homeOwnerName + "'s house — get it out";
+      return "a " + this.animalWord + " is stuck in " + this.homeOwnerName + "'s house, get it out";
    }
 
    @Override
@@ -111,11 +111,7 @@ class AnimalInHouseQuest extends MobEventQuest {
       ServerLevel world = player.level();
       if (this.expired) {
          this.cleanupMobs(world);
-         player.sendSystemMessage(
-            Component.literal(this.homeOwnerName + " eventually lured it out with bread. Took most of the morning. The curtains didn't survive.")
-               .withStyle(ChatFormatting.YELLOW),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.homeOwnerName, "Lured it out with bread in the end. Took most of the morning. The curtains didn't survive.");
       } else {
          Entity animal = this.stuckAnimalUuid != null ? world.getEntity(this.stuckAnimalUuid) : null;
          boolean alive = animal != null && animal.isAlive();

@@ -23,7 +23,7 @@ public class RandomKindnessHandler {
                "You're my favorite. Don't tell the others.",
                "Here! I found this. It's for you.",
                "I saved this from dinner. *holds it out with both hands*",
-               "*tugs on your sleeve* This is yours now.",
+               "*runs up* This is yours now.",
                "You always come back. So I got you something.",
                "I made you something. It's not very good. But I made it."
             };
@@ -50,10 +50,10 @@ public class RandomKindnessHandler {
          if (isPoisoned || isWithered) {
             String[] msgs = new String[]{
                "*takes one look at you* Sit down. Drink this. Don't argue.",
-               "Blaze rot — you look awful. Here. Milk. Drink it now.",
+               "Blaze rot, you look awful. Here. Milk. Drink it now.",
                "*already holding out a bucket* I saw you coming. Drink.",
                "You're green. Greener than the creepers. Take this before you fall over.",
-               "*grabs your arm, steadies you* Hey. Hey. Drink this. Right now."
+               "*steps in close* Hey. Hey. Drink this. Right now."
             };
             return Optional.of(new KindnessResult(
                villagerName + ": \"" + msgs[rng.nextInt(msgs.length)] + "\"",
@@ -104,7 +104,7 @@ public class RandomKindnessHandler {
                   gift.set(DataComponents.CUSTOM_NAME, Component.literal("Passed-Down Apple"));
                   break;
                default:
-                  messages = new String[]{"*quiet* You're part of this place now. Here.", "I don't say this to people. But you matter here. Take this."};
+                  messages = new String[]{"*quiet* The kids play by your door now. Here.", "I don't give these to people. Take it before I change my mind."};
                   gift = new ItemStack(Items.CAKE);
             }
          } else {

@@ -115,7 +115,7 @@ public final class BrewingLessons {
 				+ "Eight gold nuggets around a carrot makes the carrot, if nobody's shown you. Nuggets. Not an ingot.",
 			"brew a potion of night vision for {name} -- awkward base, then a golden carrot",
 			"The carrot didn't go into the water. It told the water what to be.",
-			"*tilts the bottle toward the window* Right colour. Good. Now understand what actually happened, because it isn't what it looks "
+			"*holds the bottle up* Right colour. Good. Now understand what actually happened, because it isn't what it looks "
 				+ "like -- nothing of the carrot is in there.",
 			"Sugar in that same blank gets you speed. Magma cream gets you fire. A spider eye gets you poison. One bottle, one ingredient "
 				+ "deciding what it is. That's the craft. Everything past this is fussing.",
@@ -126,7 +126,7 @@ public final class BrewingLessons {
 				+ "potion, after, not before. I want the long one. Eight minutes, not three.",
 			"brew an extended potion of fire resistance for {name} -- magma cream, then redstone",
 			"Redstone stretches it. Glowstone strengthens it. One or the other, once.",
-			"*checks the label anyway* Eight minutes instead of three. Understand that you've spent the choice: glowstone would have made it "
+			"*looks at the label anyway* Eight minutes instead of three. Understand that you've spent the choice: glowstone would have made it "
 				+ "stronger and cut the time down, and you get one or the other on the fresh potion. Add the second afterward and the stand "
 				+ "simply won't take it.",
 			"Which suits this one, as it happens. There's no strong fire resistance to be had at all -- you're either standing in the lava "
@@ -138,7 +138,7 @@ public final class BrewingLessons {
 				+ "finished potion. I want it throwable, not drinkable, and I will know.",
 			"brew a splash potion of healing for {name} -- glistering melon, then gunpowder",
 			"Same healing. The gunpowder changed who can get at it, not what's in it.",
-			"*reads the label properly* Same healing, same strength as the one you'd have drunk. People assume the powder weakens it. It "
+			"*looks at the label properly* Same healing, same strength as the one you'd have drunk. People assume the powder weakens it. It "
 				+ "doesn't touch it.",
 			"Which is most of why I'm standing here at all. A man pinned under his own roof can't unstopper anything. You throw this at the "
 				+ "floor beside him and it works regardless. Drinkable potions are for people with a free hand.",
@@ -149,7 +149,7 @@ public final class BrewingLessons {
 				+ "sugar, shaken together. You'll find the mushroom in a cave, or under a big enough tree.",
 			"brew a potion of invisibility for {name} -- night vision, then a fermented spider eye",
 			"That eye doesn't add anything. It turns what's there inside out.",
-			"*turns it over once* You can see straight through it. Appropriate. Night vision became invisibility. Healing becomes harming. "
+			"*looks it over once* You can see straight through it. Appropriate. Night vision became invisibility. Healing becomes harming. "
 				+ "Swiftness becomes slowness. Same eye every time.",
 			"And nothing on the stand warns you which way you're pointed. Same wart, same water, same hour of work, and the difference "
 				+ "between mending a man and hurting one is one ingredient you can grow on a rotten log. Keep hold of that longer than you "

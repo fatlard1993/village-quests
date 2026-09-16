@@ -271,6 +271,15 @@ Every string lands on exactly one surface, and each surface has a voice:
 - **The villager's line** (screen text, chat, mail, overheard fragments): the villager's voice, always.
 - **The buttons**: the PLAYER's voice, always. A button is a sentence the player chooses to say. A villager line on a button ("Give it time.") reads as the player talking to themselves.
 - **Buttons also carry intent.** Clicking one *does something*, and the label has to own that. "While we're both stuck here." is a fine fragment of a trade offer — but as a label it never says *trade*, so the click feels like a lottery. If the button opens the trade screen, the words must be a way of asking to trade. If it hands an item over, the words hand it over. Write the label, then ask: "if I clicked this, is what happens next what I just said?"
+- **A villager is heard in conversation, read on paper, or not at all.** Never
+  in chat. A line a quest wants to say goes through `VillagerVoice.queue`
+  (or `queueBeats` for several lines in one breath), and the manager plays
+  it: as the close of the moment that earned it if the player is standing
+  there, one screen per beat, or as the opening of the next conversation if
+  not. Chat is for the world (smoke on the wind, a spring found), never for a
+  person. The old sequenced confessions went to chat three seconds apart
+  while the screen closed; now the pause between beats is the player choosing
+  to stay for the next one.
 - **Context additions inherit the surface.** A rain-flavored variant of a trade button is still a trade button; the rain flavor rides along, it doesn't replace the ask.
 
 ## The Exchange (CRITICAL)
@@ -335,6 +344,34 @@ pulled from the scene ("Leave it buried."); an explicit departure ("Leave.")
 is one shape among several, saved for when the scene earns its bluntness.
 What the label never does is invite a response. The pool rule applies to
 walk-away labels like every other pool.
+
+### One voice per opening
+
+A villager opens with one thing. The registry's greetings were never the
+problem here; the problem was everything the systems generate around them: the
+reaction held since you fixed the door, the accusation after a theft, the
+callback to last week's talk, the remark about your glowing skin, the mood, the
+weather. For a long time each of those was glued in front of the next, so a
+villager could open with "*cold* We know what you took from Tomas. Long day.
+Bees are late this year. Noticed that?" and the buttons answered the bees.
+
+Now the manager picks exactly one opening per conversation
+(`DialogueManager.chooseOpening`), in the order a person would raise things:
+what is between us first (a held reaction, a secret, what you just did, what
+they remember), then what the village has been through, then the light stuff,
+then the world, then whatever greeting came up. Every candidate keeps the gate
+it always had; they just no longer stack. A *manner* beat may precede the
+light ones ("*yawns*", "Oh, you're back.", "*lowers voice*"): at most one,
+never before anything heavy, never before a line that already opens with the
+body doing something.
+
+The generated openers live in `Openings.java` and get the same treatment as
+authored nodes: replies that answer the line, closes in the villager's voice,
+a fitting walk-away. Accountability is the one that matters most. "We know
+what you took" now has *own it / deny it / say nothing* behind it. Owning it
+pays a little and quiets the rest of the village (word travels both ways);
+denying it costs, and the chorus keeps going. When you add a new generated
+line, give it a `Kind` there, or it will hang the way the old ones did.
 
 ### Vary the option axes
 

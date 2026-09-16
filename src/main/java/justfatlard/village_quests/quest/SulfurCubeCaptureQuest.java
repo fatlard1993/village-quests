@@ -28,7 +28,7 @@ public class SulfurCubeCaptureQuest extends VillagerQuest {
     public String getDescription() {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         String[] lines = {
-            requesterName + ": \"The miners who came back from the deep caves — the yellow ones —"
+            requesterName + ": \"The miners who came back from the deep caves, the yellow ones..."
                 + " they described these bouncing cube things. Sulfur cubes, they called them."
                 + " Passive, apparently. They just... bounce around."
                 + " They change when you feed them things. A log makes them bouncy."
@@ -36,9 +36,9 @@ public class SulfurCubeCaptureQuest extends VillagerQuest {
                 + " Could you bring me one? The large ones go into a bucket.\"",
             requesterName + ": \"I know this is a strange request."
                 + " There are cube-shaped creatures in the sulfur caves deep underground."
-                + " They bounce. They're not dangerous — they just bounce."
+                + " They bounce. They're not dangerous, they just bounce."
                 + " Apparently if you feed them different things they behave differently."
-                + " I want to study one. The large ones — you can put them in a bucket."
+                + " I want to study one. The large ones, you can put them in a bucket."
                 + " Please.\"",
             requesterName + ": \"I've been thinking about those sulfur cubes ever since I heard about them."
                 + " Bouncing cubes that change based on what you feed them."
@@ -76,14 +76,14 @@ public class SulfurCubeCaptureQuest extends VillagerQuest {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         String[] messages = {
             requesterName + ": \"*stares at it* It's moving. It's actually moving in there."
-                + " Look at it. It's just — bouncing. Against the sides."
+                + " Look at it. It's just, bouncing. Against the sides."
                 + " I'm going to feed it a piece of wood. *carefully*."
                 + " Thank you for this. I genuinely do not know what I'm going to find out.\"",
-            requesterName + ": \"*crouches to look at it at eye level*"
+            requesterName + ": \"*looks at it closely*"
                 + " The miners were right. It's real. It's actually real."
                 + " I have so many questions. None of them can be answered quickly."
                 + " I'll start with the wood. See what happens."
-                + " Thank you. This is — yes. Thank you.\"",
+                + " Thank you. This is, yes. Thank you.\"",
             requesterName + ": \"*takes it very gingerly*"
                 + " It's heavier than I expected. And warm."
                 + " I'm going to put it in the back room where it's quiet."

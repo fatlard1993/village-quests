@@ -36,15 +36,15 @@ public class GoldenDandelionQuest extends VillagerQuest {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         String[] lines = {
             requesterName + ": \"I have " + babyAnimal + ". It's small and ridiculous and perfect."
-                + " I heard there's a flower — golden, made from a dandelion and gold nuggets —"
+                + " I heard there's a flower, golden, made from a dandelion and gold nuggets..."
                 + " that keeps baby animals from growing. I know it sounds foolish. I don't care."
                 + " Please. Just bring me one.\"",
-            requesterName + ": \"You've heard of golden dandelions? Craft one — a dandelion, eight gold nuggets."
+            requesterName + ": \"You've heard of golden dandelions? Craft one, a dandelion, eight gold nuggets."
                 + " I have " + babyAnimal + " and I can't watch it grow up."
                 + " I know how that sounds. I know. But if there's a way to keep them small, I want to try it.\"",
             requesterName + ": \"There's something called a golden dandelion."
-                + " It stops little ones from aging — animals, I mean. Baby ones."
-                + " I have " + babyAnimal + " and it's just — it's just the right size right now."
+                + " It stops little ones from aging, animals, I mean. Baby ones."
+                + " I have " + babyAnimal + " and it's just, it's just the right size right now."
                 + " One dandelion and eight gold nuggets, I'm told. I'd make it myself but I can't find the dandelion.\""
         };
         return lines[rng.nextInt(lines.length)];

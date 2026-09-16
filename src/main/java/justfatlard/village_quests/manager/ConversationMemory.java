@@ -81,50 +81,58 @@ public class ConversationMemory {
       return topics != null && !topics.isEmpty();
    }
 
-   public static String getConversationCallback(UUID playerUuid, UUID villagerUuid) {
-      Deque<ConversationMemory.ConversationTopic> topics = getTopics(playerUuid, villagerUuid);
-      if (topics != null && !topics.isEmpty()) {
-         if (ThreadLocalRandom.current().nextDouble() > 0.15) {
-            return null;
-         } else {
-            ConversationMemory.ConversationTopic lastTopic;
-            synchronized (topics) {
-               lastTopic = topics.peekLast();
-            }
+   /** Something a villager brings up from the last time you spoke, and what it was about. */
+   public record Callback(ConversationMemory.ConversationTopic topic, String text) {
+   }
 
-            if (lastTopic == null) {
-               return null;
-            } else {
-               return switch (lastTopic) {
-                  case WEATHER -> pickRandom(
-                     "Remember that rain? My roof still hasn't dried.", "Better weather than last time we talked.", "At least it's not pouring like before."
-                  );
-                  case NIGHT_VISIT -> pickRandom(
-                     "Late again? Or is this just when you visit now.", "You keep finding me at odd hours.", "The dark doesn't bother you, does it."
-                  );
-                  case QUEST_GIVEN -> pickRandom(
-                     "How'd that go? The thing I asked about.",
-                     "I've been meaning to ask — did it work out?",
-                     "Last time I asked you for something. This time, just talking."
-                  );
-                  case LORE_SHARED -> pickRandom(
-                     "I've been thinking about what I told you.",
-                     "That thing I said last time — forget I said it.",
-                     "You didn't tell anyone what I said, did you?"
-                  );
-                  case GOSSIP -> pickRandom("I shouldn't have said what I said.", "Don't repeat what I told you.", "You didn't hear that from me. Remember.");
-                  case REFUSED_WORK -> pickRandom("No work today either. Just... checking in.", "I had nothing for you last time. Still don't. Sorry.");
-                  case FIRST_MEETING -> pickRandom(
-                     "I remember when you first showed up. Wasn't sure about you.", "You've been here a while now. Feels like it, anyway."
-                  );
-                  case GATHERING -> pickRandom("The gathering was... it was good. Wasn't it?", "Everyone's still talking about the other night.");
-                  case DEEP_MOMENT -> pickRandom("I haven't forgotten what we talked about.", "...Anyway.", "Some conversations stay with you.");
-               };
-            }
-         }
-      } else {
+   public static ConversationMemory.Callback getConversationCallback(UUID playerUuid, UUID villagerUuid) {
+      Deque<ConversationMemory.ConversationTopic> topics = getTopics(playerUuid, villagerUuid);
+      if (topics == null || topics.isEmpty()) {
          return null;
       }
+
+      if (ThreadLocalRandom.current().nextDouble() > 0.15) {
+         return null;
+      }
+
+      ConversationMemory.ConversationTopic lastTopic;
+      synchronized (topics) {
+         lastTopic = topics.peekLast();
+      }
+
+      if (lastTopic == null) {
+         return null;
+      }
+
+      // Every line that asks something has its answers in Openings.CALLBACK_*;
+      // a variant written as a statement leaves the player's replies answering
+      // a question nobody asked, so the questioning topics only carry questions.
+      String text = switch (lastTopic) {
+         case WEATHER -> pickRandom(
+            "Remember that rain? My roof still hasn't dried.", "Better weather than last time we talked.", "At least it's not pouring like before."
+         );
+         case NIGHT_VISIT -> pickRandom(
+            "Late again? Or is this just when you visit now.", "You keep finding me at odd hours.", "The dark doesn't bother you, does it."
+         );
+         case QUEST_GIVEN -> pickRandom(
+            "How'd that go? The thing I asked about.",
+            "I've been meaning to ask. Did it work out?",
+            "Last time it was work. Did it get done, in the end?"
+         );
+         case LORE_SHARED -> pickRandom(
+            "I've been thinking about what I told you. Have you?",
+            "That thing I said last time. You've kept it to yourself?",
+            "You didn't tell anyone what I said, did you?"
+         );
+         case GOSSIP -> pickRandom("I shouldn't have said what I said.", "Don't repeat what I told you.", "You didn't hear that from me. Remember.");
+         case REFUSED_WORK -> pickRandom("No work today either. Just checking in.", "I had nothing for you last time. Still don't. Sorry.");
+         case FIRST_MEETING -> pickRandom(
+            "I remember when you first showed up. Wasn't sure about you.", "You've been here a while now. Feels like it, anyway."
+         );
+         case GATHERING -> pickRandom("The gathering was good. Wasn't it?", "Everyone's still talking about the other night.");
+         case DEEP_MOMENT -> pickRandom("I haven't forgotten what we talked about.", "Still thinking about what I told you. In a good way, mostly.");
+      };
+      return new ConversationMemory.Callback(lastTopic, text);
    }
 
    private static String pickRandom(String... options) {

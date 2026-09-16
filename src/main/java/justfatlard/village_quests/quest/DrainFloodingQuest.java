@@ -30,11 +30,7 @@ class DrainFloodingQuest extends CreationQuest {
    @Override
    public void onAccept(ServerPlayer player) {
       player.getInventory().add(new ItemStack(Items.SPONGE, 4));
-      player.sendSystemMessage(
-         Component.literal(this.requesterName + ": \"Here — I've been saving these. Place them where the water's worst.\"")
-            .withStyle(ChatFormatting.YELLOW),
-         true
-      );
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"Here. I've been saving these. Place them where the water's worst.\"");
    }
 
    @Override
@@ -80,11 +76,11 @@ class DrainFloodingQuest extends CreationQuest {
       switch (var1) {
          case "taiga":
          case "snowy":
-            return "the snowmelt is rising — sponge might hold it back";
+            return "the snowmelt is rising, sponge might hold it back";
          case "swamp":
-            return "the bog is creeping in — sponge might hold it back";
+            return "the bog is creeping in, sponge might hold it back";
          default:
-            return "the water's rising — sponge might hold it back";
+            return "the water's rising, sponge might hold it back";
       }
    }
 
@@ -128,14 +124,8 @@ class DrainFloodingQuest extends CreationQuest {
       if (ThreadLocalRandom.current().nextFloat() < 0.1F) {
          this.gracefulFailure = true;
          VillagerQuest.recordGracefulFailure(this.villagerUuid, CreationQuest.CreationType.DRAIN_FLOODING);
-         player.sendSystemMessage(
-            Component.literal(
-                  this.requesterName
-                     + ": \"The water came back. I watched it fill up again this morning. But we bought the seedlings two more days. Some of them might make it.\""
-               )
-               .withStyle(ChatFormatting.GREEN),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName
+                     + ": \"The water came back. I watched it fill up again this morning. But we bought the seedlings two more days. Some of them might make it.\"");
       } else {
          String[] responses = new String[]{
             "Mud instead of water. That's progress.",

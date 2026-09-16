@@ -129,11 +129,7 @@ class ProfessionFetchQuest extends FetchItemQuest {
             "Wet through and you still brought it. I won't forget that.",
             "The fish are better in the rain. So are the people who bring them."
          };
-         player.sendSystemMessage(
-            Component.literal(this.requesterName + ": " + rainLines[ThreadLocalRandom.current().nextInt(rainLines.length)])
-               .withStyle(ChatFormatting.GREEN),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": " + rainLines[ThreadLocalRandom.current().nextInt(rainLines.length)]);
          ServerLevel village = player.level();
          if (village instanceof ServerLevel) {
             Village villagex = VillageQuests.getVillageManager().findNearestVillage(village, player.blockPosition());
@@ -143,13 +139,9 @@ class ProfessionFetchQuest extends FetchItemQuest {
          }
       } else {
          String[] dryLines = new String[]{
-            "Smells right. That'll sell.", "*checks the catch* Good weight. Not bad.", "The nets were empty this morning. This helps."
+            "Smells right. That'll sell.", "*looks over the catch* Good weight. Not bad.", "The nets were empty this morning. This helps."
          };
-         player.sendSystemMessage(
-            Component.literal(this.requesterName + ": " + dryLines[ThreadLocalRandom.current().nextInt(dryLines.length)])
-               .withStyle(ChatFormatting.GREEN),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": " + dryLines[ThreadLocalRandom.current().nextInt(dryLines.length)]);
       }
 
       InventoryHelper.removeItem(player.getInventory(), this.requiredItem, this.requiredAmount);
@@ -162,16 +154,11 @@ class ProfessionFetchQuest extends FetchItemQuest {
          "I've been waiting for this. There's a passage I need to cross-reference.",
          "*already reading* Hm? Oh. Yes. Set it down. Anywhere."
       };
-      player.sendSystemMessage(
-         Component.literal(this.requesterName + ": " + lines[ThreadLocalRandom.current().nextInt(lines.length)]).withStyle(ChatFormatting.GREEN),
-         true
-      );
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": " + lines[ThreadLocalRandom.current().nextInt(lines.length)]);
       if (ThreadLocalRandom.current().nextDouble() < 0.4) {
          String loreText = this.pickRandomLibrarianLore();
          if (loreText != null) {
-            VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": Since you asked... *pulls out a worn book*");
-            player.sendSystemMessage(
-               Component.literal("  \"" + loreText + "\"").withStyle(new ChatFormatting[]{ChatFormatting.DARK_AQUA, ChatFormatting.ITALIC}), true            );
+            VillagerVoice.queueBeats(player, this.villagerUuid, this.requesterName, java.util.List.of("Since you asked.", loreText));
          }
       }
 
@@ -181,14 +168,11 @@ class ProfessionFetchQuest extends FetchItemQuest {
 
    private void completeSmith(ServerPlayer player) {
       String[] lines = new String[]{
-         "*weighs it in their hand* Good quality. I can work with this.",
+         "*holds it a moment* Good quality. I can work with this.",
          "The forge has been cold for three days waiting on this. Not anymore.",
          "About time. I've got orders backed up."
       };
-      player.sendSystemMessage(
-         Component.literal(this.requesterName + ": " + lines[ThreadLocalRandom.current().nextInt(lines.length)]).withStyle(ChatFormatting.GREEN),
-         true
-      );
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": " + lines[ThreadLocalRandom.current().nextInt(lines.length)]);
       ItemStack mainHand = player.getMainHandItem();
       if (!mainHand.isEmpty() && mainHand.isDamageableItem()) {
          int maxDamage = mainHand.getMaxDamage();
@@ -196,11 +180,7 @@ class ProfessionFetchQuest extends FetchItemQuest {
          float durabilityPercent = (float)remaining / maxDamage;
          if (durabilityPercent < 0.25F) {
             String toolName = mainHand.getHoverName().getString().toLowerCase();
-            player.sendSystemMessage(
-               Component.literal(this.requesterName + ": Your " + toolName + " has seen better days. Bring it by sometime.")
-                  .withStyle(ChatFormatting.GRAY),
-               true
-            );
+            VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": Your " + toolName + " has seen better days. Bring it by sometime.");
          }
       }
 

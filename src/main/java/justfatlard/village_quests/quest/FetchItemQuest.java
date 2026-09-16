@@ -27,6 +27,7 @@ public class FetchItemQuest extends VillagerQuest {
    protected final Item requiredItem;
    protected final int requiredAmount;
    private final String weatherFlavor;
+   private String ask = null;
    private Block placeOnCompleteBlock = null;
    private UUID placeNearVillagerUuid = null;
 
@@ -50,8 +51,23 @@ public class FetchItemQuest extends VillagerQuest {
       this.weatherFlavor = weatherFlavor;
    }
 
+   /**
+    * The villager's own words for the request, shown instead of the generic
+    * ask. For a sibling mod whose line is the whole point of the errand: the
+    * flavour constructor kept adding "I could use some X if you come across
+    * any" after it, so every castle quest asked twice.
+    */
+   public FetchItemQuest withAsk(String ask) {
+      this.ask = ask;
+      return this;
+   }
+
    @Override
    public String getDescription() {
+      if (this.ask != null) {
+         return this.requesterName + ": \"" + this.ask + "\"";
+      }
+
       String itemName = this.requiredItem.getName(this.requiredItem.getDefaultInstance()).getString().toLowerCase();
       if (this.weatherFlavor != null) {
          return this.requesterName + ": \"" + this.weatherFlavor + " I could use some " + itemName + " if you come across any.\"";
@@ -59,7 +75,7 @@ public class FetchItemQuest extends VillagerQuest {
          String[] asks = new String[]{
             "I could use some " + itemName + ". Think you could manage?",
             "I'm short on " + itemName + ". Would set things right.",
-            "If you find " + itemName + " out there — it'd go a long way.",
+            "If you find " + itemName + " out there, it would go a long way.",
             "I need " + itemName + ". Nothing fancy about it.",
             "Any chance you could get me some " + itemName + "?"
          };

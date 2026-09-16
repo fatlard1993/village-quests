@@ -1,5 +1,6 @@
 package justfatlard.village_quests.quest;
 
+import justfatlard.village_quests.util.VillagerVoice;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -62,7 +63,7 @@ public class MemorialQuest extends VillagerQuest {
          this.requesterName
             + ": \""
             + this.deceasedName
-            + " is gone. I can't — I keep walking past where they used to stand. Could you put flowers there? I can't go near it yet.\"",
+            + " is gone. I can't. I keep walking past where they used to stand. Could you put flowers there? I can't go near it yet.\"",
          this.requesterName
             + ": \"*staring at nothing* "
             + this.deceasedName
@@ -79,7 +80,7 @@ public class MemorialQuest extends VillagerQuest {
       String[] variants = new String[]{
          this.requesterName + ": \"A stone. Just a stone where " + this.deceasedName + " used to work. So people remember someone stood there.\"",
          this.requesterName
-            + ": \"*voice steady but eyes aren't* "
+            + ": \"*voice steady* "
             + this.deceasedName
             + " built things. Stone and mortar. A cairn would be right. By their bench.\"",
          this.requesterName + ": \"I want to mark it. Where " + this.deceasedName + "... where it happened. Stone. Something that lasts.\""
@@ -210,22 +211,17 @@ public class MemorialQuest extends VillagerQuest {
          case CANDLE -> "light";
          default -> "memorial";
       };
-      Component actionLine = Component.literal("*" + this.requesterName + " stands at the memorial. Quiet for a long time.*")
-         .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC});
       String[] responses = new String[]{
          "I didn't think it would help. Putting something there. But it does.",
-         "*touches the " + memorialWord + "* They'd say it's too much fuss. They were like that.",
+         "They'd say it's too much fuss. They were like that.",
          "I keep coming back to look at it. I don't know why. But I keep coming back."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];
-      Component responseLine = Component.literal(this.requesterName + ": \"" + response + "\"").withStyle(ChatFormatting.GRAY);
-      Component thanksLine = Component.literal(this.requesterName + ": \"Thank you. For doing what I couldn't.\"").withStyle(ChatFormatting.GRAY);
-      Component beatLine = Component.literal("*Neither of you says anything for a while.*")
-         .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC});
-      player.sendSystemMessage(actionLine, true);
-      ScheduledMessages.schedule(player, responseLine, 60);
-      ScheduledMessages.schedule(player, thanksLine, 120);
-      ScheduledMessages.schedule(player, beatLine, 180);
+      VillagerVoice.queueBeats(player, this.villagerUuid, this.requesterName, java.util.List.of(
+         "*stands at the memorial a long while*",
+         response,
+         "Thank you. For doing what I couldn't."
+      ));
       VillagerMemory.recordMemory(this.villagerUuid, VillagerMemory.MemoryType.HOME_REBUILT);
       ServerLevel village = player.level();
       if (village instanceof ServerLevel) {

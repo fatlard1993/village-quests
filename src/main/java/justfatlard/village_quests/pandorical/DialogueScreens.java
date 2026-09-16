@@ -79,7 +79,7 @@ public final class DialogueScreens {
     /**
      * Must agree with {@code DialogueManager.FilteredResponses.rank}: an option
      * sorted as consequential and painted as small talk is worse than either
-     * choice made consistently. The two drifted once already — quest accepts and
+     * choice made consistently. The two drifted once already, quest accepts and
      * another mod's options were ranked at the top and left uncoloured, so they
      * sat above the trade button looking like chatter.
      */
@@ -290,7 +290,7 @@ public final class DialogueScreens {
      */
     public static void registerHandlers() {
         // Clean up dialogue state when the screen is closed without a button click
-        // (Escape, etc.) — including the per-player click mappings, so a dismissed
+        // (Escape, etc.), including the per-player click mappings, so a dismissed
         // screen's action ids can't be consumed by a later screen at the same index.
         PandoricalApi.screens().onClose(SCREEN_TYPE, player -> {
             DialogueStateManager.cleanupPlayerDialogues(player.getUUID());

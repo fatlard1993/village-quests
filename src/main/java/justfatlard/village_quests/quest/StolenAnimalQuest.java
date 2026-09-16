@@ -39,16 +39,16 @@ class StolenAnimalQuest extends MobEventQuest {
          this.requesterName + ": \"" + this.animalName + " is gone. There's smoke past the tree line. I heard crossbow clicks. I'm not going out there.\"",
          this.requesterName + ": \"I think someone took " + this.animalName + ". I saw grey coats dragging something. There's a fire outside the village.\"",
          this.requesterName
-            + ": \"Son of a creeper — "
+            + ": \"Son of a creeper. "
             + this.animalName
-            + "'s pen is empty. The gate wasn't opened — it was cut. There are tracks heading east.\""
+            + "'s pen is empty. The gate wasn't opened, it was cut. There are tracks heading east.\""
       };
       return descriptions[ThreadLocalRandom.current().nextInt(descriptions.length)];
    }
 
    @Override
    public String getObjective() {
-      return this.animalName + " was taken — clear the camp and bring them home";
+      return this.animalName + " was taken: clear the camp and bring them home";
    }
 
    @Override
@@ -150,12 +150,7 @@ class StolenAnimalQuest extends MobEventQuest {
                animal.discard();
             }
          }
-
-         player.sendSystemMessage(
-            Component.literal(this.animalName + " never came back. " + this.requesterName + " left the pen gate open for a week.")
-               .withStyle(ChatFormatting.AQUA),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.animalName + " never came back. I left the pen gate open a week, in case.");
          Village v = VillageQuests.getVillageManager().findNearestVillage(world, player.blockPosition());
          if (v != null) {
             VillageQuests.getReputationManager().modifyReputation(player, v, -3);
@@ -165,7 +160,7 @@ class StolenAnimalQuest extends MobEventQuest {
          boolean animalAlive = animal != null && animal.isAlive();
          if (animalAlive) {
             String[] msgs = new String[]{
-               this.requesterName + ": \"" + this.animalName + "! *kneels down* Oh, you're okay. You're okay.\"",
+               this.requesterName + ": \"" + this.animalName + "! *goes to it* Oh, you're okay. You're okay.\"",
                this.requesterName + ": \"They're shaking. But they're home. *voice breaks* Thank you.\""
             };
             VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);
@@ -178,11 +173,7 @@ class StolenAnimalQuest extends MobEventQuest {
                }
             );
          } else {
-            player.sendSystemMessage(
-               Component.literal(this.requesterName + ": \"The camp is gone. That's something. *looks at the empty pen* That's something.\"")
-                  .withStyle(ChatFormatting.YELLOW),
-               true
-            );
+            VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"The camp is gone. That's something. *looks at the empty pen* That's something.\"");
             this.scheduleAftermathLetter(player, new String[]{"The pen is still empty. " + this.requesterName + " hasn't taken the name tag down."});
          }
       }

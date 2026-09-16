@@ -1,5 +1,6 @@
 package justfatlard.village_quests.quest;
 
+import justfatlard.village_quests.util.VillagerVoice;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -44,17 +45,24 @@ public class DeepQuestDialogues {
       return variants[ThreadLocalRandom.current().nextInt(variants.length)];
    }
 
-   private static void sendSequencedDialogue(ServerPlayer player, Component[] messages, Runnable onFinish) {
+   /**
+    * Several lines said in one breath. They used to go to chat on a timer,
+    * three seconds apart, while the dialogue screen closed behind them; the
+    * confession played out in the corner of the eye as system text. They are
+    * held now and played by the manager as one screen per beat, and the pause
+    * between beats is the player choosing to stay for the next one.
+    */
+   private static void sendSequencedDialogue(UUID villagerUuid, String requesterName, ServerPlayer player, Component[] messages, Runnable onFinish) {
       if (onFinish != null) {
          onFinish.run();
       }
 
-      player.sendSystemMessage(messages[0], true);
-      int[] cumulativeDelays = new int[]{60, 120, 180};
-
-      for (int i = 0; i < Math.min(messages.length - 1, cumulativeDelays.length); i++) {
-         ScheduledMessages.schedule(player, messages[i + 1], cumulativeDelays[i]);
+      List<String> beats = new ArrayList<>();
+      for (Component message : messages) {
+         beats.add(message.getString());
       }
+
+      VillagerVoice.queueBeats(player, villagerUuid, requesterName, beats);
    }
 
    private static String getAcknowledgmentBeat() {
@@ -72,14 +80,12 @@ public class DeepQuestDialogues {
       return beats[ThreadLocalRandom.current().nextInt(beats.length)];
    }
 
+   /**
+    * The beat after the last line is the player's exit now: "*nod*", "*stay a
+    * moment*", "*say nothing*". A narrated silence in chat was captioning the
+    * thing the walk-away button already does.
+    */
    private static void scheduleAcknowledgmentBeat(ServerPlayer player, int messageCount) {
-      int lastDelay = Math.min((messageCount - 1) * 60, 180);
-      int beatDelay = lastDelay + 60 + ThreadLocalRandom.current().nextInt(21);
-      ScheduledMessages.schedule(
-         player,
-         Component.literal(getAcknowledgmentBeat()).withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-         beatDelay
-      );
    }
 
    public static boolean isContrarian(Villager villager) {
@@ -572,7 +578,7 @@ public class DeepQuestDialogues {
 
       @Override
       public String getObjective() {
-         return this.requesterName + " lost their bed and won't fight for it — place a new one for them";
+         return this.requesterName + " lost their bed and won't fight for it: place a new one for them";
       }
 
       @Override
@@ -602,8 +608,7 @@ public class DeepQuestDialogues {
 
       @Override
       protected void deliverDialogue(ServerPlayer player) {
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"You didn't have to do that.\"").withStyle(ChatFormatting.GRAY),
                Component.literal(
@@ -639,14 +644,13 @@ public class DeepQuestDialogues {
 
       @Override
       protected void deliverDialogue(ServerPlayer player) {
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
-               Component.literal(this.requesterName + ": \"*marks the egg carefully* There. Now if I put it under this one and see who sits on it.\"")
+               Component.literal(this.requesterName + ": \"There. Now if I put it under this one and see who sits on it.\"")
                   .withStyle(ChatFormatting.YELLOW),
                Component.literal(this.requesterName + ": \"It's been three days. I've drawn maps. The maps don't help. They move.\"")
                   .withStyle(ChatFormatting.GRAY),
-               Component.literal(this.requesterName + ": \"*sits on the fence* My wife used to do this. Count them. She knew every one by sight.\"")
+               Component.literal(this.requesterName + ": \"*looks at the birds* My wife used to do this. Count them. She knew every one by sight.\"")
                   .withStyle(ChatFormatting.GRAY),
                Component.literal(this.requesterName + ": \"*long pause* I don't actually care how many chickens I have.\"")
                   .withStyle(ChatFormatting.GRAY)
@@ -660,12 +664,6 @@ public class DeepQuestDialogues {
             240
          );
          int beatDelay = 300 + ThreadLocalRandom.current().nextInt(21);
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(DeepQuestDialogues.getAcknowledgmentBeat())
-               .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            beatDelay
-         );
       }
    }
 
@@ -693,8 +691,7 @@ public class DeepQuestDialogues {
             "I watched her walk to the lectern this morning. Didn't even wave.",
             "He has his own trades now. His own routine. Doesn't need me to show him the way anymore."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.GRAY),
                Component.literal(this.requesterName + ": \"I wanted to say something. 'Good choice.' 'I'm proud.' But my throat just...\"")
@@ -734,8 +731,7 @@ public class DeepQuestDialogues {
 
       @Override
       protected void deliverDialogue(ServerPlayer player) {
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"*holds the pumpkin up* See? Seeds. Right there. Fruit.\"")
                   .withStyle(ChatFormatting.GOLD),
@@ -763,12 +759,6 @@ public class DeepQuestDialogues {
             240
          );
          int beatDelay = 300 + ThreadLocalRandom.current().nextInt(21);
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(DeepQuestDialogues.getAcknowledgmentBeat())
-               .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            beatDelay
-         );
       }
    }
 
@@ -796,8 +786,7 @@ public class DeepQuestDialogues {
 
       @Override
       protected void deliverDialogue(ServerPlayer player) {
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"I used to be sure. About all of it. The fish, the gravity, everything.\"")
                   .withStyle(ChatFormatting.GRAY),
@@ -892,8 +881,7 @@ public class DeepQuestDialogues {
             "I rebuilt the workshop. Twice. I keep expecting it to happen again.",
             "The sound. That hissing. I hear it in the wind sometimes."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.GREEN),
                Component.literal(this.requesterName + ": \"It was behind my house. Just standing there. In the rain.\"")
@@ -933,8 +921,7 @@ public class DeepQuestDialogues {
             "The tall ones. The dark ones. They stand in the field at night. They take blocks and leave.",
             "I found one of those pearls in the dirt. It was warm. Dirt isn't warm."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.DARK_PURPLE),
                Component.literal(this.requesterName + ": \"You come back different. After you go wherever you go. Your eyes. Something in them changes.\"")
@@ -944,7 +931,7 @@ public class DeepQuestDialogues {
                         + ": \"I can't even look down from the church roof. You walked into a portal and came back carrying things I've never seen.\""
                   )
                   .withStyle(ChatFormatting.GRAY),
-               Component.literal(this.requesterName + ": \"What's out there? No — don't tell me. I don't think I want to know. ...No, tell me.\"")
+               Component.literal(this.requesterName + ": \"What's out there? No, don't tell me. I don't think I want to know. ...No, tell me.\"")
                   .withStyle(ChatFormatting.GRAY)
             },
             null
@@ -972,14 +959,8 @@ public class DeepQuestDialogues {
             }
          }
 
-         player.sendSystemMessage(
-            Component.literal(
-                  this.requesterName
-                     + ": \"Don't give it to me. Put it somewhere I can see it. In a frame. By a window. I want to look at it when I'm ready.\""
-               )
-               .withStyle(ChatFormatting.GRAY),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName
+                     + ": \"Don't give it to me. Put it somewhere I can see it. In a frame. By a window. I want to look at it when I'm ready.\"");
       }
 
       @Override
@@ -1031,8 +1012,7 @@ public class DeepQuestDialogues {
             "The tall ones. The dark ones. They stand in the field at night. This came from where they come from.",
             "It catches the light wrong. Like the light doesn't want to go near it."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.DARK_PURPLE),
                Component.literal(this.requesterName + ": \"You come back different. After you go wherever you go. Something in your eyes changes.\"")
@@ -1072,8 +1052,7 @@ public class DeepQuestDialogues {
             "I planted a sapling yesterday. Today there's a tree. A full tree.",
             "I put a flower on my windowsill. Every morning it's in the same position. Even when I move it."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.GRAY),
                Component.literal(
@@ -1112,7 +1091,7 @@ public class DeepQuestDialogues {
 
       @Override
       public String getObjective() {
-         return this.requesterName + " wants to talk about the accusation — bring a poppy (apology) or a golden apple (amends)";
+         return this.requesterName + " wants to talk about the accusation: bring a poppy (apology) or a golden apple (amends)";
       }
 
       @Override
@@ -1154,8 +1133,7 @@ public class DeepQuestDialogues {
       @Override
       protected void deliverDialogue(ServerPlayer player) {
          if (this.choseApology) {
-            DeepQuestDialogues.sendSequencedDialogue(
-               player,
+            DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
                new Component[]{
                   Component.literal(this.requesterName + ": \"People look at me different now. Not angry. Worse. Careful.\"")
                      .withStyle(ChatFormatting.GRAY),
@@ -1170,8 +1148,7 @@ public class DeepQuestDialogues {
             );
             DeepQuestDialogues.scheduleAcknowledgmentBeat(player, 4);
          } else {
-            DeepQuestDialogues.sendSequencedDialogue(
-               player,
+            DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
                new Component[]{
                   Component.literal(this.requesterName + ": \"People look at me different now. Not angry. Worse. Careful.\"")
                      .withStyle(ChatFormatting.GRAY),
@@ -1235,9 +1212,9 @@ public class DeepQuestDialogues {
       @Override
       public String getObjective() {
          return switch (this.stage) {
-            case 1 -> this.requesterName + " wants a poppy — just one, but it has to be fresh";
-            case 2 -> this.requesterName + " wants a blue orchid — they grow in wet places";
-            case 3 -> this.requesterName + " wants a wither rose — it only grows where something died";
+            case 1 -> this.requesterName + " wants a poppy, just one, but it has to be fresh";
+            case 2 -> this.requesterName + " wants a blue orchid, they grow in wet places";
+            case 3 -> this.requesterName + " wants a wither rose, it only grows where something died";
             default -> this.requesterName + " wants flowers";
          };
       }
@@ -1247,8 +1224,7 @@ public class DeepQuestDialogues {
          switch (this.stage) {
             case 1:
                VillagerMemory.recordMemory(this.villagerUuid, VillagerMemory.MemoryType.FLOWER_STAGE_1);
-               DeepQuestDialogues.sendSequencedDialogue(
-                  player,
+               DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
                   new Component[]{
                      Component.literal(this.requesterName + ": \"*takes it with both hands* Look at this. Look at the color.\"")
                         .withStyle(ChatFormatting.AQUA),
@@ -1263,8 +1239,7 @@ public class DeepQuestDialogues {
                break;
             case 2:
                VillagerMemory.recordMemory(this.villagerUuid, VillagerMemory.MemoryType.FLOWER_STAGE_2);
-               DeepQuestDialogues.sendSequencedDialogue(
-                  player,
+               DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
                   new Component[]{
                      Component.literal(this.requesterName + ": \"*gasps quietly* It's real. It's actually blue.\"")
                         .withStyle(ChatFormatting.BLUE),
@@ -1287,8 +1262,7 @@ public class DeepQuestDialogues {
                   this.placeFlowerDisplay(var3, player.blockPosition());
                }
 
-               DeepQuestDialogues.sendSequencedDialogue(
-                  player,
+               DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
                   new Component[]{
                      Component.literal(this.requesterName + ": \"*holds it at arm's length* It's... beautiful. In a horrible way.\"")
                         .withStyle(ChatFormatting.RED),
@@ -1297,7 +1271,7 @@ public class DeepQuestDialogues {
                         )
                         .withStyle(ChatFormatting.RED),
                      Component.literal(
-                           this.requesterName + ": \"*sits down heavily* I have a collection. A real collection. Three flowers and the whole world in them.\""
+                           this.requesterName + ": \"*exhales* I have a collection. A real collection. Three flowers and the whole world in them.\""
                         )
                         .withStyle(ChatFormatting.GRAY)
                   },
@@ -1396,15 +1370,14 @@ public class DeepQuestDialogues {
             "I watched it hand a flower to a child yesterday. We never taught it that.",
             "It walks the village at night. Every night. I can hear its footsteps from my bed."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.GRAY),
                Component.literal(this.requesterName + ": \"I talk to it sometimes. At night. It doesn't say anything. But it turns its head.\"")
                   .withStyle(ChatFormatting.GRAY),
                Component.literal(
                      this.requesterName
-                        + ": \"During the last raid, something hit it. Hard. There was something on the ground afterward — I still don't know what.\""
+                        + ": \"During the last raid, something hit it. Hard. There was something on the ground afterward. I still don't know what.\""
                   )
                   .withStyle(ChatFormatting.GRAY),
                Component.literal(this.requesterName + ": \"I caught it watching the sunset once. Just standing there. I left it alone.\"")
@@ -1472,16 +1445,8 @@ public class DeepQuestDialogues {
                Component.literal(this.deceasedName + "'s Tree").withStyle(new ChatFormatting[]{ChatFormatting.GREEN, ChatFormatting.ITALIC})
             );
             player.getInventory().add(sapling);
-            player.sendSystemMessage(
-               Component.literal(this.requesterName + " hands you a sapling. Carefully.")
-                  .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-               true
-            );
-            player.sendSystemMessage(
-               Component.literal(this.requesterName + ": \"Somewhere open. Where the sun hits. You'll know the spot.\"")
-                  .withStyle(ChatFormatting.GRAY),
-               true
-            );
+            VillagerVoice.queue(player, this.villagerUuid, this.requesterName,
+               "*hands you the sapling, carefully* Somewhere open. Where the sun hits. You'll know the spot.");
          }
       }
 
@@ -1568,8 +1533,7 @@ public class DeepQuestDialogues {
          String reflection = DeepQuestDialogues.pickVariant(
             "It's small now. Everything starts small.", "The wind's good here. It'll grow.", "I didn't think I'd cry. I was wrong."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + " stands near the tree. Quiet.")
                   .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
@@ -1602,13 +1566,12 @@ public class DeepQuestDialogues {
 
       @Override
       public String getObjective() {
-         return this.requesterName + "'s daughter stopped humming — find a music disc";
+         return this.requesterName + "'s daughter stopped humming: find a music disc";
       }
 
       @Override
       protected void deliverDialogue(ServerPlayer player) {
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"She was three when she started. Hummed through everything. Meals, storms, bedtime.\"")
                   .withStyle(ChatFormatting.GRAY),
@@ -1704,8 +1667,7 @@ public class DeepQuestDialogues {
 
       @Override
       protected void deliverDialogue(ServerPlayer player) {
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"She was three when she started. Hummed through everything. Meals, storms, bedtime.\"")
                   .withStyle(ChatFormatting.GRAY),
@@ -1748,8 +1710,7 @@ public class DeepQuestDialogues {
             "I stood close enough to feel the heat. My skin went cold. Both at the same time.",
             "Something came through last night. Didn't see it. But the crops on that side of the field are black."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.AQUA),
                Component.literal(this.requesterName + ": \"You walked through it. Carrying gold. Covered in ash. Smiling. What does that to a person?\"")
@@ -1791,8 +1752,7 @@ public class DeepQuestDialogues {
             "I tried the lectern once. The words blurred. I tried the smithy. Burned myself.",
             "The children like me. The adults tolerate me. I know the difference."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.GRAY),
                Component.literal(this.requesterName + ": \"Stood at the composter for an hour once. Pretending. Nobody corrected me. That was worse.\"")
@@ -1819,7 +1779,7 @@ public class DeepQuestDialogues {
 
       @Override
       public String getDescription() {
-         return this.requesterName + ": \"Three nights without sleep. My blanket — I tore it. In my sleep. Bring wool. Please.\"";
+         return this.requesterName + ": \"Three nights without sleep. My blanket. I tore it. In my sleep. Bring wool. Please.\"";
       }
 
       @Override
@@ -1834,8 +1794,7 @@ public class DeepQuestDialogues {
             "My blanket has claw marks in it. I made those. In my sleep.",
             "The baker asked why I look like this. I said I was fine. She didn't believe me."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.BLUE),
                Component.literal(
@@ -1877,8 +1836,7 @@ public class DeepQuestDialogues {
             "The horn. I was right next to it. My ears rang for a day.",
             "I keep checking the sky. For pillager banners. Even on clear days."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.DARK_RED),
                Component.literal(this.requesterName + ": \"My son tried to fight. With a wooden sword. Against crossbows.\"")
@@ -1919,8 +1877,7 @@ public class DeepQuestDialogues {
             "You fell off the church roof. I heard the sound. Then you were back the next morning asking for bread.",
             "I watched a skeleton shoot you three times. You stopped moving. I said a prayer."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.GRAY),
                Component.literal(this.requesterName + ": \"Then you walked back. Same clothes. Same face. No wound. Just angry about your things.\"")
@@ -1955,7 +1912,7 @@ public class DeepQuestDialogues {
 
       @Override
       public String getObjective() {
-         return this.requesterName + " wants to show you something they made — bring a torch";
+         return this.requesterName + " wants to show you something they made: bring a torch";
       }
 
       @Override
@@ -1965,8 +1922,7 @@ public class DeepQuestDialogues {
             "I know it's not much. The wood split twice and I had to work around it. But look at the joint here.",
             "I used to watch my father do this. I never thought my hands could. But they did."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.GRAY),
                Component.literal(this.requesterName + ": \"*steps back* Is it... does it look right to you?\"").withStyle(ChatFormatting.GRAY),
@@ -2020,9 +1976,9 @@ public class DeepQuestDialogues {
       @Override
       public String getObjective() {
          return switch (this.stage) {
-            case 1 -> this.requesterName + " wants to see lapis lazuli — the blue rock from underground";
-            case 2 -> this.requesterName + " is obsessed with amethyst — find a geode and bring a shard";
-            case 3 -> this.requesterName + " is dreaming about diamonds — bring one and complete the collection";
+            case 1 -> this.requesterName + " wants to see lapis lazuli, the blue rock from underground";
+            case 2 -> this.requesterName + " is obsessed with amethyst: find a geode and bring a shard";
+            case 3 -> this.requesterName + " is dreaming about diamonds: bring one and complete the collection";
             default -> this.requesterName + " wants rocks";
          };
       }
@@ -2032,8 +1988,7 @@ public class DeepQuestDialogues {
          switch (this.stage) {
             case 1:
                VillagerMemory.recordMemory(this.villagerUuid, VillagerMemory.MemoryType.ROCK_STAGE_1);
-               DeepQuestDialogues.sendSequencedDialogue(
-                  player,
+               DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
                   new Component[]{
                      Component.literal(this.requesterName + ": \"*takes it with both hands* Oh. Oh, look at it.\"")
                         .withStyle(ChatFormatting.BLUE),
@@ -2051,8 +2006,7 @@ public class DeepQuestDialogues {
                break;
             case 2:
                VillagerMemory.recordMemory(this.villagerUuid, VillagerMemory.MemoryType.ROCK_STAGE_2);
-               DeepQuestDialogues.sendSequencedDialogue(
-                  player,
+               DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
                   new Component[]{
                      Component.literal(this.requesterName + ": \"*gasps* You found one. You actually found one.\"")
                         .withStyle(ChatFormatting.LIGHT_PURPLE),
@@ -2060,7 +2014,7 @@ public class DeepQuestDialogues {
                            this.requesterName + ": \"It grew. Inside a rock. A crystal that GREW. Like a plant but stone. How does stone grow?\""
                         )
                         .withStyle(ChatFormatting.LIGHT_PURPLE),
-                     Component.literal(this.requesterName + ": \"*tapping it gently* It rings. You hear that? Like a tiny bell. I'm going to cry.\"")
+                     Component.literal(this.requesterName + ": \"It rings. You hear that? Like a tiny bell. I'm going to cry.\"")
                         .withStyle(ChatFormatting.GRAY),
                      Component.literal(
                            this.requesterName
@@ -2079,10 +2033,9 @@ public class DeepQuestDialogues {
                   this.placeRockDisplay(var3, player.blockPosition());
                }
 
-               DeepQuestDialogues.sendSequencedDialogue(
-                  player,
+               DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
                   new Component[]{
-                     Component.literal(this.requesterName + ": \"*hands shaking* Is that. Is that what I think it is.\"")
+                     Component.literal(this.requesterName + ": \"*voice shaking* Is that. Is that what I think it is.\"")
                         .withStyle(ChatFormatting.AQUA),
                      Component.literal(
                            this.requesterName
@@ -2091,7 +2044,7 @@ public class DeepQuestDialogues {
                         .withStyle(ChatFormatting.AQUA),
                      Component.literal(
                            this.requesterName
-                              + ": \"*sits down heavily* Lapis. Amethyst. Diamond. I have a collection. A real collection. I'm putting them all on display. Right now.\""
+                              + ": \"*exhales* Lapis. Amethyst. Diamond. I have a collection. A real collection. I'm putting them all on display. Right now.\""
                         )
                         .withStyle(ChatFormatting.GRAY),
                      Component.literal(
@@ -2177,22 +2130,12 @@ public class DeepQuestDialogues {
 
       @Override
       public String getObjective() {
-         return this.requesterName + " wants company — bring bread and sit with them";
+         return this.requesterName + " wants company: bring bread and sit with them";
       }
 
       @Override
       protected void deliverDialogue(ServerPlayer player) {
-         player.sendSystemMessage(
-            Component.literal(this.requesterName + " takes the bread. Sits down. Doesn't eat it.")
-               .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            true
-         );
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.requesterName + " is still sitting there when you leave.")
-               .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            180
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, "*takes the bread. Sits down. Doesn't eat it.*");
       }
    }
 
@@ -2218,11 +2161,10 @@ public class DeepQuestDialogues {
          String opener = DeepQuestDialogues.pickVariant(
             "You were right to say no. I know that now.", "I stopped. I want you to know that. I stopped.", "I don't need it anymore. Most days."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.GRAY),
-               Component.literal(this.requesterName + ": \"But the way you said it. The look on your face. Like I was — like I wasn't even a person.\"")
+               Component.literal(this.requesterName + ": \"But the way you said it. The look on your face. Like I was, like I wasn't even a person.\"")
                   .withStyle(ChatFormatting.GRAY),
                Component.literal(this.requesterName + ": \"I was already on the ground. You didn't have to push.\"")
                   .withStyle(ChatFormatting.RED),
@@ -2280,16 +2222,7 @@ public class DeepQuestDialogues {
             }
 
             this.targetLocation = bestPos;
-            player.sendSystemMessage(
-               Component.literal(this.requesterName + " points east, toward the hills.")
-                  .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-               true
-            );
-            player.sendSystemMessage(
-               Component.literal("Somewhere high. Around sunset.")
-                  .withStyle(new ChatFormatting[]{ChatFormatting.RED, ChatFormatting.ITALIC}),
-               true
-            );
+            VillagerVoice.queue(player, this.villagerUuid, this.requesterName, "*points east, toward the hills* Somewhere high. Around sunset.");
          }
       }
 
@@ -2359,8 +2292,7 @@ public class DeepQuestDialogues {
                + "'s.",
             "The sky looked like this the last time. Exactly like this."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + " sits down. Doesn't say anything for a while.")
                   .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
@@ -2395,8 +2327,7 @@ public class DeepQuestDialogues {
 
       @Override
       protected void deliverDialogue(ServerPlayer player) {
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"I was hungry. My kids were hungry. That's why I asked.\"")
                   .withStyle(ChatFormatting.GRAY),
@@ -2430,8 +2361,7 @@ public class DeepQuestDialogues {
 
       @Override
       protected void deliverDialogue(ServerPlayer player) {
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"Yeah. I was angry. Said something terrible.\"").withStyle(ChatFormatting.GRAY),
                Component.literal(this.requesterName + ": \"But I came to you because I was hurting. And you treated me like I was the monster.\"")
@@ -2470,8 +2400,7 @@ public class DeepQuestDialogues {
             "I asked where he sleeps. He said 'wherever I stop.' Like it was the simplest thing.",
             "He doesn't have a bed. No door. Nothing. He seemed fine with it."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.AQUA),
                Component.literal(this.requesterName + ": \"A house. A bed. A door that locks. And somehow I envy a man with two llamas.\"")
@@ -2536,8 +2465,7 @@ public class DeepQuestDialogues {
       @Override
       protected void deliverDialogue(ServerPlayer player) {
          if (this.broughtWrongItem) {
-            DeepQuestDialogues.sendSequencedDialogue(
-               player,
+            DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
                new Component[]{
                   Component.literal(this.requesterName + ": \"That's not... no. It's fine. Thank you for trying.\"")
                      .withStyle(ChatFormatting.GRAY),
@@ -2557,8 +2485,7 @@ public class DeepQuestDialogues {
                "I asked where he sleeps. He said 'wherever I stop.' Like it was the simplest thing.",
                "He doesn't have a bed. No door. Nothing. He seemed fine with it."
             );
-            DeepQuestDialogues.sendSequencedDialogue(
-               player,
+            DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
                new Component[]{
                   Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.AQUA),
                   Component.literal(this.requesterName + ": \"A house. A bed. A door that locks. And somehow I envy a man with two llamas.\"")
@@ -2601,11 +2528,10 @@ public class DeepQuestDialogues {
       protected void deliverDialogue(ServerPlayer player) {
          String opener = DeepQuestDialogues.pickVariant(
             "She used to bring bread to the gatherings. Now she throws potions at anyone who comes close.",
-            "I saw the lightning hit. There was a sound — not thunder. Something else.",
+            "I saw the lightning hit. There was a sound, not thunder. Something else.",
             "He's out there. In the swamp. I can still see the smoke from his roof."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.DARK_PURPLE),
                Component.literal(this.requesterName + ": \"Before, they were kind. Quiet. Fixed the fence without being asked. Shared what they grew.\"")
@@ -2641,12 +2567,11 @@ public class DeepQuestDialogues {
       @Override
       protected void deliverDialogue(ServerPlayer player) {
          String opener = DeepQuestDialogues.pickVariant(
-            "I was aware. The whole time. I could see my hands but they weren't — they were wrong.",
+            "I was aware. The whole time. I could see my hands but they weren't, they were wrong.",
             "The hunger. Not for food. For... I don't want to say it.",
             "I heard them talking about me. While I was changed. They said my name like a prayer."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.DARK_GREEN),
                Component.literal(this.requesterName + ": \"I wanted to hurt them. The people I loved. I could feel it pulling me toward them.\"")
@@ -2687,8 +2612,7 @@ public class DeepQuestDialogues {
             "I haven't told anyone else. About the bite.",
             "My hands are colder than they should be. Have been for days."
          );
-         DeepQuestDialogues.sendSequencedDialogue(
-            player,
+         DeepQuestDialogues.sendSequencedDialogue(this.villagerUuid, this.requesterName, player,
             new Component[]{
                Component.literal(this.requesterName + ": \"" + opener + "\"").withStyle(ChatFormatting.DARK_GREEN),
                Component.literal(this.requesterName + ": \"But I can feel it. The hunger. Not for bread or carrots.\"")

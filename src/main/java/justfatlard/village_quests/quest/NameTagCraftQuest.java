@@ -29,14 +29,14 @@ public class NameTagCraftQuest extends VillagerQuest {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         String[] lines = {
             requesterName + ": \"My animals all have names. Every one of them."
-                + " My father named the old cow. My mother named the chickens before she — well."
+                + " My father named the old cow. My mother named the chickens before she, well."
                 + " The name tags wore out. I can't just leave them nameless."
-                + " I heard you can make name tags now — paper and a bit of metal. Could you bring me two?\"",
+                + " I heard you can make name tags now, paper and a bit of metal. Could you bring me two?\"",
             requesterName + ": \"The children named every animal on this farm. Every single one."
                 + " Rosie. Bramble. Old Patch. The tags are gone and I am not telling them the animals forgot their names."
-                + " Paper and a metal nugget, apparently — that's how you make them now. Two would do it.\"",
+                + " Paper and a metal nugget, apparently, that's how you make them now. Two would do it.\"",
             requesterName + ": \"I lost two name tags last season. Don't ask how."
-                + " But the names matter. I heard someone say you can craft them — paper and a metal nugget."
+                + " But the names matter. I heard someone say you can craft them, paper and a metal nugget."
                 + " I'd do it myself but I've got no paper and the animals are starting to look confused. Two, please.\""
         };
         return lines[rng.nextInt(lines.length)];
@@ -69,7 +69,7 @@ public class NameTagCraftQuest extends VillagerQuest {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         String[] messages = {
             requesterName + ": \"*takes them both carefully* Rosie first. Then the rest."
-                + " The names stay. That matters more than it sounds like it does.\"",
+                + " The names stay. Nobody sells a cow called Rosie by mistake.\"",
             requesterName + ": \"*exhales* Good. Good."
                 + " The children will be relieved. So will I, honestly."
                 + " Thank you. More than you know.\"",

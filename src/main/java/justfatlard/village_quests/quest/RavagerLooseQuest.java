@@ -24,7 +24,7 @@ class RavagerLooseQuest extends MobEventQuest {
    public String getDescription() {
       String[] descriptions = new String[]{
          this.requesterName + ": \"There's something big near the path. Grey. Horns. I can hear it breathing. I can't get home.\"",
-         this.requesterName + ": \"Creepers — it's in the square. Massive. It charged the golem and the golem went down. I'm not going near it.\"",
+         this.requesterName + ": \"Creepers, it's in the square. Massive. It charged the golem and the golem went down. I'm not going near it.\"",
          this.requesterName + ": \"I saw it crush a fence like it was nothing. Just walked through it. I grabbed my kid and ran.\""
       };
       return descriptions[ThreadLocalRandom.current().nextInt(descriptions.length)];
@@ -32,7 +32,7 @@ class RavagerLooseQuest extends MobEventQuest {
 
    @Override
    public String getObjective() {
-      return "something big is loose in the village — " + this.requesterName + " can't get home";
+      return "something big is loose in the village. " + this.requesterName + " can't get home";
    }
 
    @Override

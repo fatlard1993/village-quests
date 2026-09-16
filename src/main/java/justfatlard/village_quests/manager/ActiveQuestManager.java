@@ -141,9 +141,16 @@ public class ActiveQuestManager {
       return activeQuests.computeIfAbsent(playerId, key -> new CopyOnWriteArrayList<>());
    }
 
+   /** Take this one quest off the player's slate; the others they carry stay. */
    private static void drop(ServerPlayer player, VillagerQuest quest) {
-      List<VillagerQuest> mine = activeQuests.get(player.getUUID());
-      if (mine != null) mine.remove(quest);
+      drop(player.getUUID(), quest);
+   }
+
+   private static void drop(UUID playerId, VillagerQuest quest) {
+      List<VillagerQuest> mine = activeQuests.get(playerId);
+      if (mine == null) return;
+      mine.remove(quest);
+      if (mine.isEmpty()) activeQuests.remove(playerId);
    }
 
    /**
@@ -163,10 +170,9 @@ public class ActiveQuestManager {
          if (quest.checkCompletion(player)) continue;
 
          mine.remove(quest);
-         player.sendSystemMessage(
-            Component.literal(quest.getRequesterName() + " stopped expecting you.")
-               .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            false);
+         // Said to your face next time, not announced. No blame in it.
+         justfatlard.village_quests.util.VillagerVoice.queue(player, quest.getVillagerUuid(), quest.getRequesterName(),
+            "I stopped expecting you on that thing I asked, by the way. No harm done.");
       }
    }
 
@@ -197,11 +203,8 @@ public class ActiveQuestManager {
       // walked away from; there is simply no room, and saying so is kinder and
       // truer than quietly dropping whatever was oldest.
       if (isFull(player)) {
-         player.sendSystemMessage(
-            Component.literal("You have enough on your plate already.")
-               .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            true
-         );
+         justfatlard.village_quests.util.VillagerVoice.queue(player, newQuest.getVillagerUuid(), newQuest.getRequesterName(),
+            "You've got enough on your plate already. Come back when one of them's done.");
          return false;
       }
 
@@ -278,9 +281,9 @@ public class ActiveQuestManager {
             if (rng.nextFloat() < 0.4F) {
                String vName = quest.getRequesterName();
                String[] regretLetters = new String[]{
-                  "I shouldn't have told you that. I don't know why I did. Forget it. — " + vName,
-                  "I said too much. I know I did. I'm not used to... this. Just pretend it didn't happen. — " + vName,
-                  "I keep thinking about what I told you. It's too late to take it back. But I wish I could. Some of it. — " + vName
+                  "I shouldn't have told you that. I don't know why I did. Forget it. " + vName,
+                  "I said too much. I know I did. I'm not used to... this. Just pretend it didn't happen. " + vName,
+                  "I keep thinking about what I told you. It's too late to take it back. But I wish I could. Some of it.\n\n- " + vName
                };
                ScheduledMessages.schedule(
                   player,
@@ -297,7 +300,7 @@ public class ActiveQuestManager {
             QuestRarityManager.recordQuestTypeCompletion(villageCenter, typeKey);
          }
 
-         activeQuests.remove(player.getUUID());
+         drop(player, quest);
          LoggerFactory.getLogger("VillageQuests").debug("[VQ] Quest completed and removed for {}. Type: {}", player.getName().getString(), quest.getType());
       }
    }
@@ -308,11 +311,7 @@ public class ActiveQuestManager {
             BehaviorReputationTracker.processQuestCompletion(player, quest.getQuestId(), false);
          }
 
-         player.sendSystemMessage(
-            Component.literal(quest.getRequesterName() + " watches you go.")
-               .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            true
-         );
+         justfatlard.village_quests.util.VillagerVoice.queue(player, quest.getVillagerUuid(), quest.getRequesterName(), "*watches you go*");
          if (quest instanceof MobEventQuest mobQuest) {
             ServerLevel var5 = player.level();
             if (var5 instanceof ServerLevel) {
@@ -328,7 +327,7 @@ public class ActiveQuestManager {
 
          RecentActionsMemory.recordAction(player, RecentActionsMemory.ActionType.QUEST_ABANDONED, villageCenter, quest.getRequesterName());
          DarkActionTracker.clearPlayerActions(player.getUUID());
-         activeQuests.remove(player.getUUID());
+         drop(player, quest);
       }
    }
 
@@ -345,7 +344,7 @@ public class ActiveQuestManager {
                      mobQuest.cleanupMobs(sw);
                   }
 
-                  activeQuests.remove(playerId);
+                  drop(playerId, quest);
                   if (player != null) {
                      ThreadLocalRandom rng = ThreadLocalRandom.current();
                      String[] msgs = new String[]{
@@ -362,7 +361,7 @@ public class ActiveQuestManager {
                }
 
                if (quest instanceof DialogueQuest dialogueQuest && villagerUuid.equals(dialogueQuest.getTargetVillagerUuid())) {
-                  activeQuests.remove(playerId);
+                  drop(playerId, quest);
                   if (player != null) {
                      ThreadLocalRandom rng = ThreadLocalRandom.current();
                      String targetName = dialogueQuest.getTargetVillagerName();
@@ -380,7 +379,7 @@ public class ActiveQuestManager {
                }
 
                if (quest instanceof RedirectQuest redirectQuest && villagerUuid.equals(redirectQuest.getTargetUuid())) {
-                  activeQuests.remove(playerId);
+                  drop(playerId, quest);
                   if (player != null) {
                      ThreadLocalRandom rng = ThreadLocalRandom.current();
                      String targetName = redirectQuest.getTargetName();
@@ -453,8 +452,8 @@ public class ActiveQuestManager {
     * Logging out no longer throws the quest away.
     *
     * <p>It used to: the quest was dropped on any disconnect and the villager
-    * mailed you that it had lapsed. The intent is sound — walk away and the
-    * village moves on — but the granularity was wrong, because a thirty-second
+    * mailed you that it had lapsed. The intent is sound, walk away and the
+    * village moves on, but the granularity was wrong, because a thirty-second
     * relaunch is not walking away. Anyone reloading their client to pick up a
     * mod update lost whatever they had committed to.
     *
@@ -474,14 +473,15 @@ public class ActiveQuestManager {
          activeQuests.remove(playerId);
          return;
       }
-      VillagerQuest quest = mine.get(0);
-
-      if (quest instanceof MobEventQuest mobQuest) {
-         activeQuests.remove(playerId);
+      // A mob fight cannot wait for its player: its mobs are cleaned up and it lapses now. Only
+      // that one; anything else they carry waits for them the way it always has.
+      for (VillagerQuest quest : List.copyOf(mine)) {
+         if (!(quest instanceof MobEventQuest mobQuest)) continue;
+         drop(playerId, quest);
          mobQuest.cleanupMobs(server.overworld());
          recordLapsed(server, playerId, quest);
-         return;
       }
+      if (!activeQuests.containsKey(playerId)) return;
 
       leftAt.put(playerId, System.currentTimeMillis());
    }

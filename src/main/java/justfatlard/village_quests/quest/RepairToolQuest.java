@@ -37,7 +37,7 @@ class RepairToolQuest extends CreationQuest {
 
    @Override
    public String getObjective() {
-      return this.toolName + " is falling apart — " + this.requesterName + " needs it whole again";
+      return this.toolName + " is falling apart. " + this.requesterName + " needs it whole again";
    }
 
    @Override

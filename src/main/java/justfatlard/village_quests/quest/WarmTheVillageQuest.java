@@ -30,7 +30,7 @@ class WarmTheVillageQuest extends CreationQuest {
 
       String[] descriptions = switch (var2) {
          case "desert" -> new String[]{
-            "The children are shaking. People forget — the desert freezes at night. The sand holds nothing.",
+            "The children are shaking. People forget, the desert freezes at night. The sand holds nothing.",
             "I saw my breath inside the house. The walls don't hold heat once the sun goes down.",
             "Nobody stays out after dark anymore. The cold comes fast here. Faster than you'd think.",
             "The elder hasn't come outside in three days. The cold's in their bones. We need heat.",
@@ -63,7 +63,7 @@ class WarmTheVillageQuest extends CreationQuest {
 
    @Override
    public String getObjective() {
-      return "the village needs warmth tonight — campfires would help";
+      return "the village needs warmth tonight, campfires would help";
    }
 
    @Override

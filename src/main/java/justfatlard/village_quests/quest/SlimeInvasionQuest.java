@@ -33,7 +33,7 @@ class SlimeInvasionQuest extends MobEventQuest {
 
    @Override
    public String getObjective() {
-      return "something green and bouncy is wrecking the village — deal with it";
+      return "something green and bouncy is wrecking the village, deal with it";
    }
 
    @Override
@@ -62,14 +62,10 @@ class SlimeInvasionQuest extends MobEventQuest {
          this.cleanupMobs(world);
          AABB searchBox = new AABB(this.eventLocation).inflate(40.0);
          world.getEntities(EntityTypeTest.forClass(Slime.class), searchBox, s -> true).forEach(Entity::discard);
-         player.sendSystemMessage(
-            Component.literal("The green thing split into smaller green things. They bounced away eventually. My cart's still wrecked, though.")
-               .withStyle(ChatFormatting.YELLOW),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, "The green thing split into smaller green things. They bounced away eventually. My cart's still wrecked, though.");
       } else {
          String[] msgs = new String[]{
-            this.requesterName + ": \"It's gone? All of it? Even the little ones? *checks shoes* There's slime everywhere.\"",
+            this.requesterName + ": \"It's gone? All of it? Even the little ones? *looks at your shoes* There's slime everywhere.\"",
             this.requesterName + ": \"I'm going to be cleaning green goo off my walls for a week. But at least it stopped bouncing.\""
          };
          VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgs[ThreadLocalRandom.current().nextInt(msgs.length)]);

@@ -54,7 +54,7 @@ class BuildHomeQuest extends CreationQuest {
          };
          case "jungle" -> new String[]{
             "There's a family sleeping under leaves. The rot gets into everything without real walls. They need a dry place off the ground.",
-            "The new arrivals have nowhere. The humidity ruins anything that isn't sheltered. Door, bed, roof — raised if you can.",
+            "The new arrivals have nowhere. The humidity ruins anything that isn't sheltered. Door, bed, roof, raised if you can.",
             "Nobody can stay healthy sleeping in the open here. The damp and the insects. Someone needs to build."
          };
          case "swamp" -> new String[]{
@@ -64,7 +64,7 @@ class BuildHomeQuest extends CreationQuest {
          };
          case "savanna" -> new String[]{
             "There's a family sleeping in the open. Wind all night, sun all day, no shade anywhere. They need walls.",
-            "The new arrivals have nowhere. The dry wind strips everything. Door, bed, roof — something to break the wind.",
+            "The new arrivals have nowhere. The dry wind strips everything. Door, bed, roof, something to break the wind.",
             "Nobody wants to say it, but we're out of room. The heat takes people if they can't get out of it."
          };
          default -> new String[]{
@@ -78,7 +78,7 @@ class BuildHomeQuest extends CreationQuest {
 
    @Override
    public String getObjective() {
-      return "someone needs a place to live — door, bed, roof, nothing fancy";
+      return "someone needs a place to live, door, bed, roof, nothing fancy";
    }
 
    @Override
@@ -321,18 +321,14 @@ class BuildHomeQuest extends CreationQuest {
 
       String anticipation = this.getAnticipationLine();
       if (anticipation != null) {
-         player.sendSystemMessage(
-            Component.literal(this.requesterName + ": " + anticipation)
-               .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": " + anticipation);
       }
 
       this.scheduleAftermathLetter(
          player,
          new String[]{
             "The children drew on the walls already. I hope you don't mind.",
-            "It's small. But it's theirs. They left the door open all day — just because they could.",
+            "It's small. But it's theirs. They left the door open all day, just because they could.",
             "Someone put flowers by the door. I don't know who."
          }
       );

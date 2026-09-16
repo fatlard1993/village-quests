@@ -1,5 +1,6 @@
 package justfatlard.village_quests.quest;
 
+import justfatlard.village_quests.util.VillagerVoice;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -70,13 +71,13 @@ public class SpecimenRetrievalQuest extends VillagerQuest {
          return this.requesterName
             + " wants a "
             + this.specimen.getDisplayName()
-            + " — they're near "
+            + ", they're near "
             + this.specimen.getBiomeHint()
             + ", you'll need a bucket";
       } else {
          return !this.specimen.isBucketType()
-            ? this.requesterName + " wants a " + this.specimen.getDisplayName() + " — check near " + this.specimen.getBiomeHint() + " and bring it back alive"
-            : this.requesterName + " is after a " + this.specimen.getDisplayName() + " — somewhere near " + this.specimen.getBiomeHint();
+            ? this.requesterName + " wants a " + this.specimen.getDisplayName() + ": check near " + this.specimen.getBiomeHint() + " and bring it back alive"
+            : this.requesterName + " is after a " + this.specimen.getDisplayName() + ", somewhere near " + this.specimen.getBiomeHint();
       }
    }
 
@@ -122,7 +123,7 @@ public class SpecimenRetrievalQuest extends VillagerQuest {
          };
       } else if (!this.specimen.isBucketType()) {
          responses = new String[]{
-            "*crouches down to look* Well hello there. Welcome to the village.",
+            "*looks closely* Well hello there. Welcome to the village.",
             "It followed you all the way here? That's... actually impressive.",
             "*laughs quietly* Look at it. The kids are going to lose their minds.",
             "You brought it. I owe you one. Maybe more than one."
@@ -135,8 +136,7 @@ public class SpecimenRetrievalQuest extends VillagerQuest {
          };
       }
 
-      player.sendSystemMessage(
-         Component.literal(this.requesterName + ": \"" + responses[rng.nextInt(responses.length)] + "\"").withStyle(ChatFormatting.GREEN), true      );
+      VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"" + responses[rng.nextInt(responses.length)] + "\"");
       this.completed = true;
    }
 

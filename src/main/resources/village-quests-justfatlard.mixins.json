@@ -9,6 +9,7 @@
     "BlockBreakMixin",
     "ContainerAccessMixin",
     "SlotTakeMixin",
+    "SlotPutMixin",
     "FireUseMixin",
     "ZombieDoorBreakMixin",
     "ZombieVillagerCureMixin"

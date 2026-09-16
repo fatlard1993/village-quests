@@ -118,7 +118,7 @@ public class QuestCompletionMailSystem {
          case 5 -> "Lighter load today.\n\nThat was you.\n\n" + villagerName;
          case 6 -> "Woke up this morning and the worry was gone.\n\nSmall thing. Big difference.\n\n" + villagerName;
          case 7 -> "Could have gone without. Glad I didn't have to.\n\n" + villagerName;
-         case 8 -> "One less thing.\n\nThat matters more than it sounds.\n\n" + villagerName;
+         case 8 -> "One less thing. I slept through to the rooster for the first time in a week.\n\n" + villagerName;
          case 9 -> "The rain came early. But everything was stored.\n\n" + villagerName;
          case 10 -> "I ate well tonight. First time in a while. Just thought you should know.\n\n" + villagerName;
          case 11 -> "My grandmother used to do this. When someone helped, she'd write.\n\nI don't have much. But I have this.\n\n" + villagerName;

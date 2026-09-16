@@ -70,7 +70,7 @@ public class ApprenticeQuest extends VillagerQuest {
 
    @Override
    public String getObjective() {
-      return this.requesterName + " needs a " + this.requiredItem.getName(this.requiredItem.getDefaultInstance()).getString().toLowerCase() + " — wants to set up a station for the kid";
+      return this.requesterName + " needs a " + this.requiredItem.getName(this.requiredItem.getDefaultInstance()).getString().toLowerCase() + ", wants to set up a station for the kid";
    }
 
    @Override
@@ -423,12 +423,7 @@ public class ApprenticeQuest extends VillagerQuest {
             this.requesterName + ": \"Perfect. *sets them on the workbench* " + this.childName + " won't know what to do at first. That's the point.\""
          };
          VillagerVoice.queue(player, this.villagerUuid, this.requesterName, msgsx[rng.nextInt(msgsx.length)]);
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.requesterName + ": '*watching from across the room* They broke two already. That's normal. I broke four my first day.'")
-               .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            200
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": '*watching from across the room* They broke two already. That's normal. I broke four my first day.'");
          this.completed = true;
       }
 
@@ -493,23 +488,9 @@ public class ApprenticeQuest extends VillagerQuest {
       @Override
       public void onComplete(ServerPlayer player) {
          String detail = getCreationDetail(this.professionName);
-         player.sendSystemMessage(
-            Component.literal(this.requesterName + ": '*holds something out carefully* They made this. Their first one.'")
-               .withStyle(ChatFormatting.GREEN),
-            true
-         );
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.requesterName + ": '*turns it over* It's rough. The " + detail + " is wrong. But it holds.'")
-               .withStyle(ChatFormatting.GREEN),
-            60
-         );
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.requesterName + ": '*quiet* They said to give it to you. Said you're the reason they got to try.'")
-               .withStyle(ChatFormatting.GREEN),
-            140
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": 'They made this. Their first one. *holds it out*'");
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": '*looks it over* It's rough. The " + detail + " is wrong. But it holds.'");
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": '*quiet* They said to give it to you. Said you're the reason they got to try.'");
          ScheduledMessages.schedule(
             player,
             Component.literal(""),

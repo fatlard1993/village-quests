@@ -35,10 +35,10 @@ public class CarpetShortageQuest extends VillagerQuest {
             requesterName + ": \"I need carpet for the new room floor. Used to be any child could weave one from wool,"
                 + " but nobody in the village knows the right technique anymore."
                 + " If you bring me four white wool, I know someone who can have them woven by the week's end.\"",
-            requesterName + ": \"The weaver in the next settlement does carpets now — it's not something you can just do yourself anymore."
+            requesterName + ": \"The weaver in the next settlement does carpets now, it's not something you can just do yourself anymore."
                 + " Four white wool and she'll make enough for the floor."
                 + " I hate that it's become this complicated. It used to be so simple.\"",
-            requesterName + ": \"I just need carpet. Four white wool — I'll take them to the weaver."
+            requesterName + ": \"I just need carpet. Four white wool. I'll take them to the weaver."
                 + " She's the only one left around here who knows how to set it up right."
                 + " The old way of doing it from scratch at home, that knowledge is just... gone.\""
         };
@@ -47,7 +47,7 @@ public class CarpetShortageQuest extends VillagerQuest {
 
     @Override
     public String getObjective() {
-        return "Bring " + requesterName + " white wool ×" + REQUIRED_AMOUNT + " — for carpet weaving";
+        return "Bring " + requesterName + " white wool ×" + REQUIRED_AMOUNT + ", for carpet weaving";
     }
 
     @Override
@@ -74,8 +74,8 @@ public class CarpetShortageQuest extends VillagerQuest {
             requesterName + ": \"*takes the wool* Good. The weaver will have this done within a few days."
                 + " Strange that something so simple needs a specialist now. But here we are.\"",
             requesterName + ": \"Thank you. Four good white ones. I'll drop these off this afternoon."
-                + " The floor's been bare stone all winter — it'll be good to have something soft finally.\"",
-            requesterName + ": \"*folds them neatly* These are perfect. My grandmother would have made carpet from these herself,"
+                + " The floor's been bare stone all winter, it'll be good to have something soft finally.\"",
+            requesterName + ": \"*sets them down* These are perfect. My grandmother would have made carpet from these herself,"
                 + " on a quiet evening. Now it takes a trip and a trade. Times change, I suppose.\""
         };
         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, messages[rng.nextInt(messages.length)]);

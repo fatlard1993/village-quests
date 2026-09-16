@@ -36,7 +36,7 @@ class AskTraderQuest extends TimeSensitiveQuest {
 
    @Override
    public String getObjective() {
-      return "the trader's here — " + this.requesterName + " wants to know " + this.question;
+      return "the trader's here. " + this.requesterName + " wants to know " + this.question;
    }
 
    @Override
@@ -82,9 +82,9 @@ class AskTraderQuest extends TimeSensitiveQuest {
          if (this.question.contains("brother")) {
             completion = this.requesterName + ": \"Maybe. *stares at the road* Maybe is better than nothing.\"";
          } else if (this.question.contains("grey llama")) {
-            completion = this.requesterName + ": \"Alone. *sits down heavily* I was afraid of that.\"";
+            completion = this.requesterName + ": \"Alone. *exhales* I was afraid of that.\"";
          } else if (this.question.contains("sister")) {
-            completion = this.requesterName + ": \"Copper. She always was resourceful. *almost smiles* Thank you.\"";
+            completion = this.requesterName + ": \"Copper. She always was resourceful. Thank you.\"";
          } else {
             String[] defaults = new String[]{
                this.requesterName + ": \"Right. Good to know.\"",

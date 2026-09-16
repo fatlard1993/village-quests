@@ -81,11 +81,11 @@ class PlantFlowersQuest extends CreationQuest {
       String var1 = this.biome;
       switch (var1) {
          case "desert":
-            return "even the cactus stopped blooming — flowers might bring the bees back";
+            return "even the cactus stopped blooming, flowers might bring the bees back";
          case "jungle":
-            return "the overgrowth is choking the pollinators — clear space and plant flowers";
+            return "the overgrowth is choking the pollinators: clear space and plant flowers";
          default:
-            return "the bees are gone — flowers might bring them back";
+            return "the bees are gone, flowers might bring them back";
       }
    }
 
@@ -133,15 +133,11 @@ class PlantFlowersQuest extends CreationQuest {
       if (ThreadLocalRandom.current().nextFloat() < 0.1F) {
          this.gracefulFailure = true;
          VillagerQuest.recordGracefulFailure(this.villagerUuid, CreationQuest.CreationType.PLANT_FLOWERS);
-         player.sendSystemMessage(
-            Component.literal(this.requesterName + ": \"The bees came. For a day. Then they left again. I don't know what we're doing wrong.\"")
-               .withStyle(ChatFormatting.GREEN),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"The bees came. For a day. Then they left again. I don't know what we're doing wrong.\"");
       } else {
          String[] responses = new String[]{
             "I heard buzzing this morning. First time in weeks.",
-            "There's a bee on the sunflower. Just sitting there. *quiet smile*",
+            "There's a bee on the sunflower. Just sitting there. *quiet*",
             "The crops look better already. Or maybe I just feel better. Hard to tell.",
             "Color everywhere. I forgot what that looked like."
          };

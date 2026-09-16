@@ -33,7 +33,7 @@ public class PoplarSaplingQuest extends VillagerQuest {
                 + " they've passed through. Poplar ones, from that autumn forest to the east."
                 + " I want to plant a row of them near the gate. Three should start me off.\"",
             requesterName + ": \"I've been asking every wandering trader who comes through."
-                + " They only grow in the Dappled Forest — all orange and red leaves, strange quiet place."
+                + " They only grow in the Dappled Forest, all orange and red leaves, strange quiet place."
                 + " If you can find three poplar saplings, I'll pay you well.\"",
             requesterName + ": \"Someone told me there's a forest where the leaves look like fire all year."
                 + " I want one of those trees near the village. The traders carry the saplings sometimes."
@@ -74,7 +74,7 @@ public class PoplarSaplingQuest extends VillagerQuest {
             requesterName + ": \"Three. Perfect. I already know exactly where they're going."
                 + " In twenty years this whole end of the road will be orange and red every season.\"",
             requesterName + ": \"*wraps them carefully* These didn't come easy, did they. I appreciate the trouble."
-                + " The village is going to look different — better — with a few of these around.\""
+                + " The village is going to look different, better, with a few of these around.\""
         };
         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, messages[rng.nextInt(messages.length)]);
         this.completed = true;

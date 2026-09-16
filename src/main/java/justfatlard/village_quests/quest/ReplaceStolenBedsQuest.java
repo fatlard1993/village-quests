@@ -34,7 +34,7 @@ class ReplaceStolenBedsQuest extends CreationQuest {
 
    @Override
    public String getObjective() {
-      return "people are sleeping on the floor — the pillagers took their beds";
+      return "people are sleeping on the floor, the pillagers took their beds";
    }
 
    @Override

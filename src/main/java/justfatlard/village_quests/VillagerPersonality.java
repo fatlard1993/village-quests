@@ -31,11 +31,6 @@ public class VillagerPersonality {
       }
    }
 
-   public static String getDialogueModifier(UUID villagerUuid, String baseGreeting) {
-      String prefix = getPersonalityGreetingPrefix(villagerUuid);
-      return prefix == null ? baseGreeting : prefix + " " + baseGreeting;
-   }
-
    public static enum Trait {
       WARM,
       GUARDED,

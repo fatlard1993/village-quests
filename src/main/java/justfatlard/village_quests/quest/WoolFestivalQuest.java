@@ -33,7 +33,7 @@ public class WoolFestivalQuest extends VillagerQuest {
         String[] descriptions = new String[]{
             requesterName + ": \"The festival is soon and we need colored wool for decorations."
                 + " Can you bring me two white, two red, and two blue?\"",
-            requesterName + ": \"We're setting up banners for the festival. I need wool — two white, two red, two blue."
+            requesterName + ": \"We're setting up banners for the festival. I need wool, two white, two red, two blue."
                 + " It'll go up all around the square.\"",
             requesterName + ": \"The decorating committee asked me to find someone. Festival's coming up."
                 + " Two white wool, two red, two blue. For the streamers. Can you manage that?\""
@@ -66,7 +66,7 @@ public class WoolFestivalQuest extends VillagerQuest {
 
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         String[] messages = new String[]{
-            requesterName + ": \"Perfect. These colors together — it's going to look wonderful. Thank you.\"",
+            requesterName + ": \"Perfect. These colors together, it's going to look wonderful. Thank you.\"",
             requesterName + ": \"*holds them up* Red, white, blue. Just like I imagined. This festival is going to be something.\"",
             requesterName + ": \"Thank you. The square is going to look completely different by evening.\""
         };

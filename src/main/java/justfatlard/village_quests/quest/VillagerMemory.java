@@ -200,7 +200,7 @@ public class VillagerMemory {
             return null;
          } else if (count >= 10) {
             String[] lines = new String[]{
-               "I don't have to explain, do I? You already know.", "*smiles without speaking*", "You've been here more than some who were born here."
+               "I don't have to explain, do I? You already know.", "*says nothing*", "You've been here more than some who were born here."
             };
             return lines[rng.nextInt(lines.length)];
          } else if (count >= 5) {
@@ -246,7 +246,16 @@ public class VillagerMemory {
       }
    }
 
+   /** A greeting a villager gives because of what they remember, and which memory it is. */
+   public record Remembered(VillagerMemory.MemoryType type, String text) {
+   }
+
    public static String getDialogueModifier(UUID villagerUuid, VillagerMemory.DialogueContext context) {
+      VillagerMemory.Remembered remembered = getRemembered(villagerUuid, context);
+      return remembered == null ? null : remembered.text();
+   }
+
+   public static VillagerMemory.Remembered getRemembered(UUID villagerUuid, VillagerMemory.DialogueContext context) {
       Set<VillagerMemory.MemoryType> memories = getMemories(villagerUuid);
       if (memories.isEmpty()) {
          return null;
@@ -259,7 +268,7 @@ public class VillagerMemory {
                   referencedMemory = VillagerMemory.MemoryType.VULNERABILITY_HANGOVER;
                   if (hasStrongMemory(villagerUuid, VillagerMemory.MemoryType.VULNERABILITY_HANGOVER)) {
                      String[] strongLines = new String[]{
-                        "*won't quite look at you* ...Hey.", "*shorter than usual* Hi.", "*something behind their eyes* Don't ask how I'm doing."
+                        "*won't quite look at you* ...Hey.", "*shorter than usual* Hi.", "Don't ask how I'm doing."
                      };
                      result = strongLines[ThreadLocalRandom.current().nextInt(strongLines.length)];
                   } else if (isFadingMemory(villagerUuid, VillagerMemory.MemoryType.VULNERABILITY_HANGOVER)) {
@@ -364,7 +373,7 @@ public class VillagerMemory {
                   referencedMemory = VillagerMemory.MemoryType.CARETAKING_RECEIVED;
                   result = isFadingMemory(villagerUuid, VillagerMemory.MemoryType.CARETAKING_RECEIVED)
                      ? "You were kind to me once. I think about that."
-                     : "*quiet look* ...I remember what you did. When things were bad.";
+                     : "*looks at you* ...I remember what you did. When things were bad.";
                } else if (memories.contains(VillagerMemory.MemoryType.UNSEEN_PROTECTION) && ThreadLocalRandom.current().nextFloat() < 0.05F) {
                   referencedMemory = VillagerMemory.MemoryType.UNSEEN_PROTECTION;
                   result = isFadingMemory(villagerUuid, VillagerMemory.MemoryType.UNSEEN_PROTECTION)
@@ -451,7 +460,7 @@ public class VillagerMemory {
             resurfaceMemory(villagerUuid, referencedMemory);
          }
 
-         return result;
+         return result == null ? null : new VillagerMemory.Remembered(referencedMemory, result);
       }
    }
 

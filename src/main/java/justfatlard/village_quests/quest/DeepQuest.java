@@ -67,26 +67,15 @@ public abstract class DeepQuest extends VillagerQuest {
 
       @Override
       public String getObjective() {
-         return this.requesterName + " wants to sit and talk — bring bread";
+         return this.requesterName + " wants to sit and talk: bring bread";
       }
 
       @Override
       protected void deliverDialogue(ServerPlayer player) {
          VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"I never thanked you properly.\"");
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.requesterName + ": \"I was angry. At you. At myself. At the world.\"").withStyle(ChatFormatting.GRAY),
-            40
-         );
-         ScheduledMessages.schedule(
-            player, Component.literal(this.requesterName + ": \"The house can be rebuilt. They can't be.\"").withStyle(ChatFormatting.GRAY), 160
-         );
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.requesterName + ": \"I needed to say that. To someone.\"")
-               .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            200
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"I was angry. At you. At myself. At the world.\"");
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"The house can be rebuilt. They can't be.\"");
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"I needed to say that. To someone.\"");
       }
    }
 
@@ -132,10 +121,10 @@ public abstract class DeepQuest extends VillagerQuest {
          String var1 = this.topic;
 
          return switch (var1) {
-            case "loneliness" -> this.requesterName + " is lonely — bring a flower";
-            case "regret" -> this.requesterName + " needs to write something — bring paper";
-            case "fear" -> this.requesterName + " is afraid of the dark — bring torches";
-            default -> this.requesterName + " wants to sit and talk — bring bread";
+            case "loneliness" -> this.requesterName + " is lonely: bring a flower";
+            case "regret" -> this.requesterName + " needs to write something: bring paper";
+            case "fear" -> this.requesterName + " is afraid of the dark: bring torches";
+            default -> this.requesterName + " wants to sit and talk: bring bread";
          };
       }
 
@@ -144,66 +133,25 @@ public abstract class DeepQuest extends VillagerQuest {
          String var2 = this.topic;
          switch (var2) {
             case "loneliness":
-               player.sendSystemMessage(
-                  Component.literal(this.requesterName + ": \"Sometimes the village feels empty even when it's full.\"")
-                     .withStyle(ChatFormatting.GRAY),
-                  true
-               );
-               ScheduledMessages.schedule(
-                  player,
-                  Component.literal(this.requesterName + ": \"Everyone has their work. Their trades. I just stand in the square.\"")
-                     .withStyle(ChatFormatting.GRAY),
-                  80
-               );
-               ScheduledMessages.schedule(
-                  player,
-                  Component.literal(this.requesterName + ": \"...That's why I asked you here.\"")
-                     .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-                  240
-               );
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"Sometimes the village feels empty even when it's full.\"");
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"Everyone has their work. Their trades. I just stand in the square.\"");
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"...That's why I asked you here.\"");
                break;
             case "regret":
                VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"I should have been kinder.\"");
-               ScheduledMessages.schedule(
-                  player,
-                  Component.literal(this.requesterName + ": \"There was a moment. I knew what to say. I didn't say it.\"")
-                     .withStyle(ChatFormatting.GRAY),
-                  60
-               );
-               ScheduledMessages.schedule(
-                  player,
-                  Component.literal(this.requesterName + ": \"They moved to the other side of the village after that.\"")
-                     .withStyle(ChatFormatting.GRAY),
-                  120
-               );
-               ScheduledMessages.schedule(
-                  player,
-                  Component.literal(this.requesterName + ": \"It's too late now. ...I just wanted someone to know.\"")
-                     .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-                  180
-               );
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"There was a moment. I knew what to say. I didn't say it.\"");
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"They moved to the other side of the village after that.\"");
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"It's too late now. ...I just wanted someone to know.\"");
                break;
             case "fear":
                VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"I'm scared.\"");
-               ScheduledMessages.schedule(
-                  player, Component.literal(this.requesterName + ": \"Every night. The window. I count.\"").withStyle(ChatFormatting.GRAY), 30
-               );
-               ScheduledMessages.schedule(
-                  player,
-                  Component.literal(this.requesterName + ": \"The walls are thick. I know. I know that.\"").withStyle(ChatFormatting.GRAY),
-                  60
-               );
-               ScheduledMessages.schedule(player, Component.literal(this.requesterName + ": \"I know.\"").withStyle(ChatFormatting.GRAY), 80);
-               ScheduledMessages.schedule(
-                  player,
-                  Component.literal(this.requesterName + ": \"...Saying it helps. I think.\"")
-                     .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-                  200
-               );
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"Every night. The window. I count.\"");
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"The walls are thick. I know. I know that.\"");
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"I know.\"");
+               VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"...Saying it helps. I think.\"");
                break;
             default:
                VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"I don't even know what I wanted to say.\"");
-               ScheduledMessages.schedule(player, Component.literal(this.requesterName + ": \"...\"").withStyle(ChatFormatting.GRAY), 120);
          }
       }
    }
@@ -223,26 +171,15 @@ public abstract class DeepQuest extends VillagerQuest {
 
       @Override
       public String getObjective() {
-         return this.requesterName + " wants to talk about what happened — bring a torch";
+         return this.requesterName + " wants to talk about what happened: bring a torch";
       }
 
       @Override
       protected void deliverDialogue(ServerPlayer player) {
          VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"Was I wrong to ask?\"");
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.requesterName + ": \"I keep going over it. What I said. What you did.\"").withStyle(ChatFormatting.GRAY),
-            60
-         );
-         ScheduledMessages.schedule(
-            player, Component.literal(this.requesterName + ": \"I don't know anymore.\"").withStyle(ChatFormatting.GRAY), 120
-         );
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.requesterName + ": \"...I still don't know. I don't think I will.\"")
-               .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            180
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"I keep going over it. What I said. What you did.\"");
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"I don't know anymore.\"");
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"...I still don't know. I don't think I will.\"");
       }
    }
 
@@ -261,7 +198,7 @@ public abstract class DeepQuest extends VillagerQuest {
 
       @Override
       public String getObjective() {
-         return this.requesterName + " wants proof you understand what trust costs — bring an emerald";
+         return this.requesterName + " wants proof you understand what trust costs: bring an emerald";
       }
 
       @Override
@@ -275,21 +212,9 @@ public abstract class DeepQuest extends VillagerQuest {
          }
 
          VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"I keep going back and forth.\"");
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.requesterName + ": \"One minute I hate you. The next I remember what you did.\"")
-               .withStyle(ChatFormatting.GRAY),
-            60
-         );
-         ScheduledMessages.schedule(
-            player, Component.literal(this.requesterName + ": \"I'm not forgiving you.\"").withStyle(ChatFormatting.GRAY), 120
-         );
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.requesterName + ": \"But I'm not forgetting the good either.\"")
-               .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-            180
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"One minute I hate you. The next I remember what you did.\"");
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"I'm not forgiving you.\"");
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"But I'm not forgetting the good either.\"");
       }
    }
 
@@ -308,19 +233,13 @@ public abstract class DeepQuest extends VillagerQuest {
 
       @Override
       public String getObjective() {
-         return this.requesterName + " wants to make something in their grandfather's memory — bring iron";
+         return this.requesterName + " wants to make something in their grandfather's memory: bring iron";
       }
 
       @Override
       protected void deliverDialogue(ServerPlayer player) {
          VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"He would have liked you.\"");
-         ScheduledMessages.schedule(
-            player,
-            Component.literal(this.requesterName + ": \"Always said tools outlive their makers. Guess he was right.\"")
-               .withStyle(ChatFormatting.GRAY),
-            80
-         );
-         ScheduledMessages.schedule(player, Component.literal(this.requesterName + ": \"...\"").withStyle(ChatFormatting.GRAY), 200);
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"Always said tools outlive their makers. Guess he was right.\"");
       }
    }
 }

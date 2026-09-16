@@ -27,7 +27,7 @@ class RepairDoorQuest extends CreationQuest {
 
    @Override
    public String getObjective() {
-      return this.victimName + "'s door got broken in last night — they need a new one";
+      return this.victimName + "'s door got broken in last night, they need a new one";
    }
 
    @Override

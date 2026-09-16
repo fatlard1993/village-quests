@@ -33,7 +33,7 @@ class VillageDevelopmentQuest extends VillagerQuest {
 
    @Override
    public String getObjective() {
-      return "find a spot and build — someone needs a place to sleep tonight";
+      return "find a spot and build, someone needs a place to sleep tonight";
    }
 
    @Override
@@ -66,7 +66,7 @@ class VillageDevelopmentQuest extends VillagerQuest {
       String[] responses = new String[]{
          "There's room now. That's what matters.",
          "I can hear them moving in already. The walls aren't even dry.",
-         "More people means more noise. *almost smiles* I've missed noise.",
+         "More people means more noise. I've missed noise.",
          "She came by to look at it. Didn't say anything. Just stood in the doorway. That was enough."
       };
       String response = responses[ThreadLocalRandom.current().nextInt(responses.length)];

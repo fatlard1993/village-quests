@@ -30,7 +30,7 @@ class JockeyHarassmentQuest extends MobEventQuest {
    public String getDescription() {
       String[] descriptions = new String[]{
          this.requesterName
-            + ": \"Enderman's eyes — the animals are panicking. Something's out by the fields. I saw bones riding spiders. I'm not making that up.\"",
+            + ": \"Enderman's eyes, the animals are panicking. Something's out by the fields. I saw bones riding spiders. I'm not making that up.\"",
          this.requesterName + ": \"There's clicking from the farm. And rattling. Like bones on bones. The sheep are screaming.\"",
          this.requesterName + ": \"I went to check on the livestock and there were skeletons. On spiders. By the fence. I came straight here.\""
       };
@@ -39,7 +39,7 @@ class JockeyHarassmentQuest extends MobEventQuest {
 
    @Override
    public String getObjective() {
-      return "skeleton jockeys by the farm — the animals are panicking";
+      return "skeleton jockeys by the farm, the animals are panicking";
    }
 
    @Override

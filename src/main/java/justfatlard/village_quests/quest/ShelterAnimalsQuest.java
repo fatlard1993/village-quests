@@ -31,27 +31,27 @@ class ShelterAnimalsQuest extends CreationQuest {
 
       String[] descriptions = switch (var2) {
          case "desert" -> new String[]{
-            "I can hear them from here. The chickens, the sheep — just baking in it. No shade anywhere.",
+            "I can hear them from here. The chickens, the sheep, just baking in it. No shade anywhere.",
             "They're pressed against the wall where the shadow falls. By noon there's no shadow left.",
             "The goats won't drink. Too hot. They need shade before the heat takes them."
          };
          case "taiga", "snowy" -> new String[]{
-            "I can hear them from here. The chickens, the sheep — just standing in the snow. Shivering.",
+            "I can hear them from here. The chickens, the sheep, just standing in the snow. Shivering.",
             "They're huddled together for warmth. No pen, no windbreak. The frost will take the young ones first.",
             "The goats keep pressing against the wall. The wind cuts through everything out in the open."
          };
          case "swamp" -> new String[]{
-            "I can hear them from here. The chickens, the sheep — standing in the mud up to their knees.",
+            "I can hear them from here. The chickens, the sheep, standing in the mud up to their knees.",
             "They need dry ground. The damp rots their hooves. A raised pen would save them.",
             "The goats keep climbing on anything above the waterline. There's not enough dry ground for all of them."
          };
          case "jungle" -> new String[]{
-            "I can hear them from here. The chickens, the sheep — the humidity is hard on them. Insects everywhere.",
+            "I can hear them from here. The chickens, the sheep, the humidity is hard on them. Insects everywhere.",
             "They're huddled under the leaves but it's not enough. The damp gets into everything.",
             "The goats keep trying to get under the overhang. The jungle floor is no place for livestock."
          };
          case "savanna" -> new String[]{
-            "I can hear them from here. The chickens, the sheep — just standing in the open heat. No shade for miles.",
+            "I can hear them from here. The chickens, the sheep, just standing in the open heat. No shade for miles.",
             "They're pressed against the one tree we have. The dry wind is wearing them down.",
             "The goats stopped eating. Too hot. They need cover from the sun before we lose them."
          };
@@ -70,14 +70,14 @@ class ShelterAnimalsQuest extends CreationQuest {
       switch (var1) {
          case "desert":
          case "savanna":
-            return "the animals need shade from the heat — fences would do";
+            return "the animals need shade from the heat, fences would do";
          case "taiga":
          case "snowy":
-            return "the animals need shelter from the cold — fences would do";
+            return "the animals need shelter from the cold, fences would do";
          case "swamp":
-            return "the animals need dry ground — fences would do";
+            return "the animals need dry ground, fences would do";
          default:
-            return "the animals need shelter from the rain — fences would do";
+            return "the animals need shelter from the rain, fences would do";
       }
    }
 

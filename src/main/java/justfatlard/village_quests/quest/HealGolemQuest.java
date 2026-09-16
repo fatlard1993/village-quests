@@ -37,7 +37,7 @@ class HealGolemQuest extends CreationQuest {
 
    @Override
    public String getObjective() {
-      return "the golem is cracked and hurting — bring iron ingots and heal it";
+      return "the golem is cracked and hurting: bring iron ingots and heal it";
    }
 
    @Override
@@ -100,11 +100,7 @@ class HealGolemQuest extends CreationQuest {
       if (ThreadLocalRandom.current().nextFloat() < 0.15F) {
          this.gracefulFailure = true;
          VillagerQuest.recordGracefulFailure(this.villagerUuid, CreationQuest.CreationType.HEAL_GOLEM);
-         player.sendSystemMessage(
-            Component.literal(this.requesterName + ": \"You tried. We both did. ...It's not holding. The cracks came back overnight.\"")
-               .withStyle(ChatFormatting.GREEN),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": \"You tried. We both did. ...It's not holding. The cracks came back overnight.\"");
       } else {
          String[] responses = new String[]{
             "It's standing straighter. I can see it from here. The cracks are closed.",
@@ -115,11 +111,7 @@ class HealGolemQuest extends CreationQuest {
          VillagerVoice.queue(player, this.villagerUuid, this.requesterName, response);
          String anticipation = this.getAnticipationLine();
          if (anticipation != null) {
-            player.sendSystemMessage(
-               Component.literal(this.requesterName + ": " + anticipation)
-                  .withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}),
-               true
-            );
+            VillagerVoice.queue(player, this.villagerUuid, this.requesterName, this.requesterName + ": " + anticipation);
          }
       }
 

@@ -28,14 +28,14 @@ public class DappledForestHarvestQuest extends VillagerQuest {
     public String getDescription() {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         String[] lines = {
-            requesterName + ": \"The autumn forest to the east — the one with the orange and red leaves —"
+            requesterName + ": \"The autumn forest to the east, the one with the orange and red leaves..."
                 + " has those mushrooms I need. The flat ones that grow on logs. Shelf mushrooms."
                 + " Four of them if you can manage.\"",
             requesterName + ": \"I've been trying to get shelf mushrooms for weeks."
                 + " They only grow in the dappled forest, on fallen trees."
                 + " The leaves there look like they're always on fire. Bring me four?\"",
             requesterName + ": \"You've seen the forest with the copper and gold leaves? Strange place."
-                + " Strange mushrooms too — flat ones, growing out of logs. I need four of those.\""
+                + " Strange mushrooms too, flat ones, growing out of logs. I need four of those.\""
         };
         return lines[rng.nextInt(lines.length)];
     }
@@ -69,11 +69,11 @@ public class DappledForestHarvestQuest extends VillagerQuest {
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         String[] messages = {
             requesterName + ": \"*looks them over carefully* Four. Perfect. You actually went into that forest."
-                + " Most people find it unsettling — all those colors at once.\"",
+                + " Most people find it unsettling, all those colors at once.\"",
             requesterName + ": \"*takes them* Did you see the trees? Reds and oranges together."
                 + " Some folk won't go near it. I've always thought it was beautiful.\"",
             requesterName + ": \"These are fresh. You didn't have to go far then."
-                + " The forest is closer than most people think — they just don't look for it.\""
+                + " The forest is closer than most people think, they just don't look for it.\""
         };
         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, messages[rng.nextInt(messages.length)]);
         this.completed = true;

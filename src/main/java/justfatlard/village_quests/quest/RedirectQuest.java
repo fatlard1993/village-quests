@@ -41,7 +41,7 @@ public class RedirectQuest extends VillagerQuest {
       ThreadLocalRandom rng = ThreadLocalRandom.current();
       String[] descriptions = new String[]{
          this.requesterName + ": \"I don't have anything for you, but " + this.who() + " was looking for a hand. Go ask them.\"",
-         this.requesterName + ": \"Nothing from me today. But try " + this.who() + " — I think they could use someone.\"",
+         this.requesterName + ": \"Nothing from me today. But try " + this.who() + ". I think they could use someone.\"",
          this.requesterName + ": \"I'm all set, but " + this.who() + " mentioned needing help earlier. Go talk to them.\""
       };
       return descriptions[rng.nextInt(descriptions.length)];

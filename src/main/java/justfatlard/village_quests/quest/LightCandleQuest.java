@@ -27,7 +27,7 @@ class LightCandleQuest extends CreationQuest {
    public String getDescription() {
       String[] descriptions = new String[]{
          "Will you light one? By the bell. For " + this.deceasedName + ". Just... one.",
-         this.deceasedName + " is gone. I can't — my hands won't stop shaking. Could you put a candle by the bell?",
+         this.deceasedName + " is gone. I can't, my hands won't stop shaking. Could you put a candle by the bell?",
          "We used to light candles by the bell for the ones we lost. Nobody's done it in a long time. " + this.deceasedName + " would want someone to.",
          "I watched it happen. To " + this.deceasedName + ". I can't go near the bell yet. But someone should light a candle there."
       };

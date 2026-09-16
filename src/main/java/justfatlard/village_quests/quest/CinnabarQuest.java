@@ -31,14 +31,14 @@ public class CinnabarQuest extends VillagerQuest {
             requesterName + ": \"The miners who've been going deep have been talking about a red stone."
                 + " Cinnabar, they call it. Polishes like marble but it's red as iron ore."
                 + " I want six blocks for the new hearth. The color would be remarkable."
-                + " It comes from the yellow caves — the sulfur ones, deep down."
+                + " It comes from the yellow caves, the sulfur ones, deep down."
                 + " Dangerous, from what they say. But the stone is beautiful.\"",
             requesterName + ": \"I've only heard of cinnabar from miners. None of them will bring it up."
                 + " Deep red. From the sulfur caves underground. The yellow ones that smell wrong."
-                + " I want to work with it — stonework, finishing, that kind of thing."
+                + " I want to work with it, stonework, finishing, that kind of thing."
                 + " Six pieces would be enough to start. Six, if you're willing to go that far down.\"",
             requesterName + ": \"There's a red stone being found in the sulfur caves."
-                + " Cinnabar. The miners won't go near those caves if they can help it — something about the gas."
+                + " Cinnabar. The miners won't go near those caves if they can help it, something about the gas."
                 + " But the stone. Six pieces of it and I can do something worth seeing."
                 + " Polishes beautifully. It's deep down, below the sulfur springs. Worth the trouble.\""
         };
@@ -71,11 +71,11 @@ public class CinnabarQuest extends VillagerQuest {
 
         ThreadLocalRandom rng = ThreadLocalRandom.current();
         String[] messages = {
-            requesterName + ": \"*turns one over in their hands slowly*"
+            requesterName + ": \"*looks one over slowly*"
                 + " Look at that. The color goes all the way through."
                 + " I've been building walls for twenty years. This is something different."
                 + " Thank you for going down there. I know it wasn't easy.\"",
-            requesterName + ": \"*lines them up on the work table*"
+            requesterName + ": \"*sets them on the work table*"
                 + " Six. Good. The hearth is going to look like something."
                 + " I'll start cutting tomorrow. People are going to ask where it came from."
                 + " I'll tell them. Maybe they'll understand why I sent you.\"",

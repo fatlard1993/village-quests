@@ -39,68 +39,96 @@ public class RecentActionsMemory {
       }
    }
 
-   public static float getToneModifier(ServerPlayer player) {
+   /**
+    * The one recent thing this player did that a villager would bring up first:
+    * the action with the most weight, whichever way it cuts. Null when the
+    * village has nothing to say about the last few minutes.
+    */
+   public static RecentActionsMemory.PlayerAction mostSignificant(ServerPlayer player) {
       List<RecentActionsMemory.PlayerAction> actions = getRecentActions(player);
-      if (actions.isEmpty()) {
-         return 0.0F;
-      } else {
-         float totalModifier = 0.0F;
+      return actions.stream()
+         .filter(a -> !a.addressed && openingFor(a) != null)
+         .max(Comparator.comparing(a -> Math.abs(a.type.getToneModifier())))
+         .orElse(null);
+   }
 
+   /**
+    * The line a villager opens with about that action. Null for the actions
+    * nobody remarks on (a trade, a pearl in your pocket).
+    */
+   public static String openingFor(RecentActionsMemory.PlayerAction action) {
+      return switch (action.type) {
+         case QUEST_COMPLETED -> "I heard you helped " + action.details + ". That was good of you.";
+         case QUEST_ABANDONED -> "Word travels. " + action.details + " won't say your name today.";
+         case VILLAGER_HARMED -> "*steps back* After what you did to " + action.details + ". Don't.";
+         case VILLAGER_SAVED -> "*quietly* What you did for " + action.details + ". We noticed.";
+         case THEFT -> "*cold* We know what you took from " + action.details + ".";
+         case DEFENDED_VILLAGE -> "Quieter today. Because of last night, I think. Because of you.";
+         case HELPED_BUILD -> "The new " + action.details + " looks solid. Your work?";
+         case DESTROYED_PROPERTY -> "That " + action.details + " wasn't yours to break.";
+         case KILLED_ZOMBIE -> "Fewer groans in the dark tonight. Your doing?";
+         case KILLED_IRON_GOLEM -> "*won't come closer* The golem. We saw.";
+         case SURVIVED_NIGHT -> "You stayed through the night. Most don't.";
+         case DIED_AND_RETURNED -> "*stares* You look different. Like you've been somewhere far away.";
+         case RETURNED_GOODS -> "*nods* You put it back. That's the end of it, then, as far as I'm concerned.";
+         default -> null;
+      };
+   }
+
+   /**
+    * The player owned it to somebody's face. The village heard, and the rest of
+    * it stops raising the same thing at every door: word travels both ways.
+    * Denying it leaves the chorus going.
+    */
+   public static void markAddressed(ServerPlayer player, RecentActionsMemory.ActionType type) {
+      List<RecentActionsMemory.PlayerAction> actions = recentActions.get(player.getUUID());
+      if (actions == null) {
+         return;
+      }
+
+      synchronized (actions) {
          for (RecentActionsMemory.PlayerAction action : actions) {
-            float recencyFactor = 1.0F - (float)(System.currentTimeMillis() - action.timestamp) / 300000.0F;
-            totalModifier += action.type.getToneModifier() * recencyFactor;
+            if (action.type == type) {
+               action.addressed = true;
+            }
          }
-
-         totalModifier /= actions.size();
-         return Math.max(-2.0F, Math.min(2.0F, totalModifier));
       }
    }
 
-   public static String getContextualGreeting(String villagerName, ServerPlayer player) {
-      List<RecentActionsMemory.PlayerAction> actions = getRecentActions(player);
-      if (actions.isEmpty()) {
-         return null;
-      } else {
-         RecentActionsMemory.PlayerAction mostRecent = actions.get(actions.size() - 1);
-         RecentActionsMemory.PlayerAction mostSignificant = actions.stream()
-            .max(Comparator.comparing(a -> Math.abs(a.type.getToneModifier())))
-            .orElse(mostRecent);
+   /**
+    * "I'll put it back", said to somebody's face. Kept for a day; a promise
+    * nobody acts on lapses quietly, which is the mod's rule for everything
+    * that goes cold.
+    */
+   private static final long PROMISE_MS = 86400000L;
+   private static final Map<UUID, Long> returnPromises = new ConcurrentHashMap<>();
 
-         return switch (mostSignificant.type) {
-            case QUEST_COMPLETED -> "I heard you helped " + mostSignificant.details + ". That was good of you.";
-            case QUEST_ABANDONED -> "Word travels. " + mostSignificant.details + " won't say your name today.";
-            case VILLAGER_HARMED -> "*steps back* After what you did to " + mostSignificant.details + "... don't.";
-            case VILLAGER_SAVED -> "*quietly* What you did for " + mostSignificant.details + "... we noticed.";
-            default -> null;
-            case THEFT -> "*cold* We know what you took from " + mostSignificant.details + ".";
-            case DEFENDED_VILLAGE -> "Quieter today. Because of last night, I think. Because of you.";
-            case HELPED_BUILD -> "The new " + mostSignificant.details + " looks solid. Your work?";
-            case DESTROYED_PROPERTY -> "That " + mostSignificant.details + " wasn't yours to break.";
-            case KILLED_ZOMBIE -> "Fewer groans in the dark tonight. Your doing?";
-            case SURVIVED_NIGHT -> "You stayed through the night. Most don't.";
-            case DIED_AND_RETURNED -> "*stares* You look... different. Like you've been somewhere far away.";
-         };
-      }
+   public static void promiseReturn(ServerPlayer player) {
+      returnPromises.put(player.getUUID(), System.currentTimeMillis());
    }
 
-   public static String modifyDialogueTone(String baseDialogue, float toneModifier) {
-      if (toneModifier > 1.0F) {
-         return baseDialogue + " ...glad you're here.";
-      } else if (toneModifier > 0.5F) {
-         return baseDialogue + " Mm. Good day.";
-      } else if (toneModifier < -1.0F) {
-         return baseDialogue + " That's all I'll say.";
-      } else {
-         return toneModifier < -0.5F ? baseDialogue + " Hmph." : baseDialogue;
+   public static boolean hasReturnPromise(UUID playerId) {
+      Long made = returnPromises.get(playerId);
+      if (made == null) return false;
+      if (System.currentTimeMillis() - made > PROMISE_MS) {
+         returnPromises.remove(playerId);
+         return false;
       }
+      return true;
+   }
+
+   public static void keepReturnPromise(ServerPlayer player) {
+      returnPromises.remove(player.getUUID());
    }
 
    public static void clearMemory(UUID playerId) {
       recentActions.remove(playerId);
+      returnPromises.remove(playerId);
    }
 
    public static void onServerStopping() {
       recentActions.clear();
+      returnPromises.clear();
    }
 
    public static void onPlayerDisconnect(UUID playerId) {
@@ -127,7 +155,8 @@ public class RecentActionsMemory {
       SURVIVED_NIGHT("survived the night outside", 0.3F),
       USED_REDSTONE("used redstone", 0.0F),
       HELD_ENDER_PEARL("held an ender pearl", 0.0F),
-      DIED_AND_RETURNED("died and respawned", -0.3F);
+      DIED_AND_RETURNED("died and respawned", -0.3F),
+      RETURNED_GOODS("put back what they took", 1.2F);
 
       private final String description;
       private final float toneModifier;
@@ -151,6 +180,7 @@ public class RecentActionsMemory {
       public final long timestamp;
       public final BlockPos location;
       public final String details;
+      boolean addressed;
 
       public PlayerAction(RecentActionsMemory.ActionType type, BlockPos location, String details) {
          this.type = type;

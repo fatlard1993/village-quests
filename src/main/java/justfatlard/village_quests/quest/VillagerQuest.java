@@ -182,7 +182,7 @@ public abstract class VillagerQuest {
             return prefixes[rng.nextInt(prefixes.length)] + originalDescription;
          } else {
             String[] trustLines = new String[]{
-               "*nods at you* The usual.", "*doesn't need to explain* You know what I need.", "*just looks at you and you already know*"
+               "*nods at you* The usual.", "You know what I need.", "*just looks at you*"
             };
             return trustLines[rng.nextInt(trustLines.length)];
          }
@@ -726,11 +726,11 @@ public abstract class VillagerQuest {
             List<WanderingTrader> traders = world.getEntities(EntityTypeTest.forClass(WanderingTrader.class), new AABB(village.getCenter()).inflate(100.0), t -> true);
             if (!traders.isEmpty()) {
                String[] questions = new String[]{
-                  "if the road past the swamp is still passable — I sent someone that way last month",
-                  "if they've seen my brother — tall, quiet, walks with a limp",
-                  "if there's a village with a broken well to the east — my sister lives there",
-                  "what happened to the last trader who came through — the one with the grey llama",
-                  "if anyone out there is buying wool — we have more than we can store"
+                  "if the road past the swamp is still passable. I sent someone that way last month",
+                  "if they've seen my brother, tall, quiet, walks with a limp",
+                  "if there's a village with a broken well to the east, my sister lives there",
+                  "what happened to the last trader who came through, the one with the grey llama",
+                  "if anyone out there is buying wool, we have more than we can store"
                };
                String[] responses = new String[]{
                   "Swamp road's flooded. Has been for weeks. There's a longer path around, through the birch forest.",
@@ -960,9 +960,9 @@ public abstract class VillagerQuest {
    private static Object[][] getPersonalRequests(String profession, String biome, Random random) {
       return switch (profession) {
          case "farmer" -> new Object[][]{
-            {Items.BONE_MEAL, 4, "The east field isn't growing. Bone meal might wake it up. Skeletons drop bones — you can grind those down."},
+            {Items.BONE_MEAL, 4, "The east field isn't growing. Bone meal might wake it up. Skeletons drop bones, you can grind those down."},
             {Items.BUCKET, 1, "My bucket rusted through. Can't water anything without it."},
-            {Items.HONEY_BOTTLE, 1, "My wife's been coughing all week. Honey helps. There's bee nests in the flower forests — use a bottle under one."},
+            {Items.HONEY_BOTTLE, 1, "My wife's been coughing all week. Honey helps. There's bee nests in the flower forests, use a bottle under one."},
             {Items.APPLE, 3, "The kids want apple pie. I don't have a tree."},
             {Items.COOKIE, 4, "My daughter's birthday is tomorrow. I promised her cookies."},
             {Items.PUMPKIN, 1, "Need a pumpkin for the stew. Ours got eaten by something."},
@@ -982,7 +982,7 @@ public abstract class VillagerQuest {
          };
          case "butcher" -> new Object[][]{
             {Items.SWEET_BERRIES, 8, "Trying a new glaze. Berries, if you've got them."},
-            {Items.HONEY_BOTTLE, 1, "Honey-smoked pork. Trust me. Just bring me a bottle. Bee nests in the flower woods — bottle under the hive."},
+            {Items.HONEY_BOTTLE, 1, "Honey-smoked pork. Trust me. Just bring me a bottle. Bee nests in the flower woods, bottle under the hive."},
             {Items.COAL, 4, "Smoker's running low. Coal keeps the temperature even."},
             {Items.RABBIT, 2, "Someone ordered rabbit stew. I'm a butcher, not a hunter."},
             {Items.MUSHROOM_STEW, 1, "The wife's sick. Could you bring mushroom stew? I'm no cook."},
@@ -997,18 +997,18 @@ public abstract class VillagerQuest {
             {
                   Items.GLOW_INK_SAC,
                   1,
-                  "Glow ink. For the maps. The cartographer won't share theirs. Those glowing squid deep underground — that's where it comes from."
+                  "Glow ink. For the maps. The cartographer won't share theirs. Those glowing squid deep underground, that's where it comes from."
             },
             {Items.CHISELED_BOOKSHELF, 1, "The reading room is bare. A chiseled bookshelf would give it some character."}
          };
          case "cleric" -> new Object[][]{
             {Items.NETHER_WART, 2, "I'm running low on wart. Don't ask what it's for. It only grows in that other place. The hot one. Near the dark brick."},
             {Items.GLASS_BOTTLE, 3, "Broke three bottles this week. Clumsy hands."},
-            {Items.SPIDER_EYE, 1, "I need a spider eye. Yes, it's disgusting. Yes, I need it. They come out after dark — the big ones, outside the walls."},
+            {Items.SPIDER_EYE, 1, "I need a spider eye. Yes, it's disgusting. Yes, I need it. They come out after dark, the big ones, outside the walls."},
             {
                   Items.GLISTERING_MELON_SLICE,
                   1,
-                  "Someone's hurt. Glistering melon for a healing potion. Gold nuggets around a melon slice — you know how to make one? Quickly."
+                  "Someone's hurt. Glistering melon for a healing potion. Gold nuggets around a melon slice, you know how to make one? Quickly."
             },
             {Items.REDSTONE, 4, "The brewing stand's acting up. Redstone might fix the timing."},
             {Items.BLAZE_POWDER, 1, "I need blaze powder. I know it's hard to get. Those fire things in the dark brick fortress. That's why I'm asking."},
@@ -1044,7 +1044,7 @@ public abstract class VillagerQuest {
             {
                   Items.HONEYCOMB,
                   2,
-                  "Beeswax. For waterproofing the boots. Trust me, it works. Shears on a bee nest — but light a fire underneath first or they get angry."
+                  "Beeswax. For waterproofing the boots. Trust me, it works. Shears on a bee nest, but light a fire underneath first or they get angry."
             },
             {Items.DYE.pick(DyeColor.RED), 2, "Red dye. Someone wants red boots. I don't judge."},
             {Items.DYE.pick(DyeColor.BROWN), 2, "Brown dye for the saddle. The horse doesn't care but the owner does."}
@@ -1253,9 +1253,9 @@ public abstract class VillagerQuest {
             );
          } else {
             if (ctx.isThundering) {
-               flavor = "The storm stirs something. I need pearls for a ward. The tall dark ones that vanish when you look at them.";
+               flavor = "The tall ones come closer in a storm. I need what they carry. For a ward, if you must know.";
             } else if (ctx.phase == VillagerQuest.WorldContext.TimePhase.NIGHT) {
-               flavor = "The veil's thinnest at night. I need ender pearls. The tall dark ones carry them. Don't look them in the eye.";
+               flavor = "They come out after dark, the tall ones. I need what they carry. Don't look them in the eye, and don't ask me what I want it for.";
             }
 
             return new ProfessionFetchQuest(
@@ -1292,7 +1292,7 @@ public abstract class VillagerQuest {
             {
                   Items.BONE_MEAL,
                   16,
-                  "The whole south field is dead. I need bone meal — enough for every row. Bones from the dead things at night. Grind them up."
+                  "The whole south field is dead. I need bone meal, enough for every row. Bones from the dead things at night. Grind them up."
             },
             {Items.COMPOSTER, 4, "The composters rotted through. Four new ones and I can start the cycle again."}
          };
@@ -1338,7 +1338,7 @@ public abstract class VillagerQuest {
          case "fletcher" -> new Object[][]{
             {Items.FEATHER, 16, "Sixteen feathers. The guard's been through their quiver twice this week."},
             {Items.FLINT, 8, "Eight flint. Arrowheads for the stockpile. We're running dangerously low."},
-            {Items.BAMBOO, 16, "Bamboo shafts. Sixteen. Light arrows for the scouts. The warm forests with the tall trees — bamboo grows thick there."}
+            {Items.BAMBOO, 16, "Bamboo shafts. Sixteen. Light arrows for the scouts. The warm forests with the tall trees, bamboo grows thick there."}
          };
          case "cartographer" -> new Object[][]{
             {Items.PAPER, 12, "Twelve sheets. I'm mapping the whole eastern ridge."},
@@ -1371,15 +1371,15 @@ public abstract class VillagerQuest {
       if (rng.nextDouble() >= 0.2) {
          return null;
       } else if (ctx.isThundering) {
-         String[] stormPrefixes = new String[]{"Harder to find in this weather, but", "Storm's no excuse —"};
+         String[] stormPrefixes = new String[]{"Harder to find in this weather, but", "Storm's no excuse..."};
          return stormPrefixes[rng.nextInt(stormPrefixes.length)];
       } else if (ctx.isRaining) {
-         String[] rainPrefixes = new String[]{"The rain won't wait —", "Harder to find in this weather, but"};
+         String[] rainPrefixes = new String[]{"The rain won't wait...", "Harder to find in this weather, but"};
          return rainPrefixes[rng.nextInt(rainPrefixes.length)];
       } else if (!ctx.isRaining && ctx.timeOfDay >= 6000L && ctx.timeOfDay < 8000L) {
          return "Hot day for errands. But";
       } else if (ctx.timeOfDay >= 12000L) {
-         String[] nightPrefixes = new String[]{"I know it's late. But", "Can't sleep anyway. Might as well ask —"};
+         String[] nightPrefixes = new String[]{"I know it's late. But", "Can't sleep anyway. Might as well ask..."};
          return nightPrefixes[rng.nextInt(nightPrefixes.length)];
       } else {
          return ctx.timeOfDay < 2000L ? "Early, I know. But" : null;

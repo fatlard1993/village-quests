@@ -44,7 +44,7 @@ class AnimalSwarmQuest extends MobEventQuest {
 
    @Override
    public String getObjective() {
-      return this.animalWord + " have taken over the village — round them up or wait them out";
+      return this.animalWord + " have taken over the village, round them up or wait them out";
    }
 
    @Override
@@ -98,11 +98,7 @@ class AnimalSwarmQuest extends MobEventQuest {
    public void onComplete(ServerPlayer player) {
       ServerLevel world = player.level();
       if (this.expired) {
-         player.sendSystemMessage(
-            Component.literal("The " + this.animalWord + " eventually wandered off. Most of them. There's still one in the library.")
-               .withStyle(ChatFormatting.YELLOW),
-            true
-         );
+         VillagerVoice.queue(player, this.villagerUuid, this.requesterName, "The " + this.animalWord + " wandered off in the end. Most of them. There's still one in the library.");
       } else {
          String[] msgs = new String[]{
             this.requesterName + ": \"Is that all of them? *looks around suspiciously* I swear I can still hear clucking.\"",

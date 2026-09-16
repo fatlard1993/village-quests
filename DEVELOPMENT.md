@@ -24,10 +24,11 @@ All dialogue is hardcoded in Java inside `DialogueContent.java` and individual q
 | `VillageQuests.java` | Entry point, event registration, tick scheduling |
 | `DialogueManager.java` | Dialogue flow, reputation-based response filtering, quest presentation, work requests |
 | `DialogueContent.java` | Every dialogue line, hardcoded in Java; no external data files |
+| `Openings.java` | The generated openers (held reactions, accusations, callbacks, oddities) and the replies that answer them; one opening per conversation |
 | `ReputationManager.java` | The 8 bands, percentage scaling, persistence. High trust is fragile; redemption stays open |
 | `VillageManager.java` | Village discovery via POI bed clusters, center tracking, caching |
 | `ActiveQuestManager.java` | Quest lifecycle |
-| `VillagerQuest.java` | Quest base class and generation; 9 concrete types |
+| `VillagerQuest.java` | Quest base class and generation; the 10 quest types |
 | `MisnomerQuest.java` | Ethical test quests |
 | `PresenceTracker.java` | Per-player, per-village presence density and behavior |
 | `ContextualLoreManager.java` | Item-triggered, biome-aware, reputation-gated lore |
