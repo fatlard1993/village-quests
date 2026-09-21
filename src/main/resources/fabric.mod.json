@@ -30,5 +30,10 @@
 		"herobrine": "*",
 		"village-builder": "*",
 		"village-mail": "*"
+	},
+	"contact": {
+		"homepage": "https://github.com/fatlard1993/village-quests",
+		"sources": "https://github.com/fatlard1993/village-quests",
+		"issues": "https://github.com/fatlard1993/village-quests/issues"
 	}
 }
