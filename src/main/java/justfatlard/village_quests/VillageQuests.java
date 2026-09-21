@@ -152,18 +152,25 @@ public class VillageQuests implements ModInitializer {
    }
 
    /**
-    * A key that opens your quests as a book, because a command needs a keyboard
-    * and a controller has none. Claimed from Pandorical's pooled slots with no
-    * preferred key, so it takes the first free one and appears in the client's
-    * controls screen as "Quest Status" for players to bind where they like.
+    * The quest book, as a button rather than a key.
+    *
+    * <p>It had a keybind of its own, which claimed one of Pandorical's eight pooled slots and
+    * arrived unbound, so it cost a slot and did nothing until somebody went looking for it in the
+    * controls screen. An action-menu button says what it is, carries a picture, and reaches a
+    * controller without a key at all - and opening your quests is exactly the occasional thing an
+    * action menu is for.
     *
     * <p>It used to print to chat, which worked for one quest and stopped working
     * at three: the reminder scrolled away and could not be asked for again.
     */
-   private void registerQuestStatusKeybind() {
-      justfatlard.pandorical.api.PandoricalApi.keybinds().register(
-         "village-quests:status", 0, "Quest Status",
-         justfatlard.village_quests.util.QuestBook::open);
+   private void registerQuestButton() {
+      justfatlard.pandorical.api.PandoricalApi.actionMenus().suggestButton(
+         justfatlard.pandorical.api.ActionMenuApi.Button.runs(
+            "minecraft:written_book", "Quests", "quest"));
+      justfatlard.pandorical.api.PandoricalApi.commandHelp().describe("/quest",
+         "Your quest book: what you have been asked for, and by whom.");
+      justfatlard.pandorical.api.PandoricalApi.commandHelp().describe("/quest abandon",
+         "Give up your oldest quest. Asks first.");
    }
 
    /** Fired when a quest is finished; see {@link QuestCompleteCriterion}. */
@@ -196,7 +203,8 @@ public class VillageQuests implements ModInitializer {
       workRequestManager = new WorkRequestManager();
       VillageQuestsNetworking.registerServerPackets();
       VillageQuestsCommands.register();
-      registerQuestStatusKeybind();
+      VillageQuestsCommands.listen();
+      registerQuestButton();
       justfatlard.village_quests.shop.BrewingKitDialogue.register();
       justfatlard.village_quests.quest.BrewingLessons.register();
       this.registerEntityEvents();
