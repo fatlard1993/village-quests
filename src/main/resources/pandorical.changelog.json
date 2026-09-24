@@ -5,12 +5,20 @@
 	],
 	"versions": {
 		"1.1.0": [
-			"A villager now opens with one thing and the buttons answer that thing, rather than several remarks glued in front of each other with replies that only answered the last. What they say is heard in conversation or read on paper, never in chat, and a theft can be owned, denied, or put right by putting the goods back in the chest.",
-			"Your quest book is a button in the action menu now, instead of a key that arrived unbound and had to be found in the controls screen, and giving up a quest asks you in the notice tray rather than naming a command to retype."
+			"A villager opens with one thing, and the buttons answer that thing.",
+			"What they say is heard in conversation or read on paper, never in chat.",
+			"A theft can be owned, denied, or put right by returning the goods.",
+			"Your quest book is a button in the action menu, not an unbound key.",
+			"Giving up a quest asks you in the notice tray."
 		],
 		"1.0.0": [
-			"The first release: dialogue that answers the time, the weather and what you have done, eight bands of reputation kept per village, three commitments at a time, quests that ask for something worth going for, and misnomer quests where refusing is the right answer.",
-			"Some quests leave the village lit or flagged afterwards, plots can be granted to a player the village trusts, and a village's own chests wear a nose at the clasp so the rule can be seen before it is broken."
+			"Dialogue that answers the time, the weather and what you have done.",
+			"Eight bands of reputation, kept per village.",
+			"Three commitments at a time, and quests worth going for.",
+			"Misnomer quests, where refusing is the right answer.",
+			"Some quests leave the village lit or flagged afterwards.",
+			"Plots can be granted to a player the village trusts.",
+			"A village's chests wear a nose at the clasp, so the rule shows before it is broken."
 		]
 	}
 }
