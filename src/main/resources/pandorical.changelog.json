@@ -4,6 +4,9 @@
 		"Standing in a village is earned by being there and behaving, and is never shown to you as a number."
 	],
 	"versions": {
+		"1.1.1": [
+			"Release notes rewritten to read plainly; nothing in play changes."
+		],
 		"1.1.0": [
 			"A villager opens with one thing, and the buttons answer that thing.",
 			"What they say is heard in conversation or read on paper, never in chat.",
