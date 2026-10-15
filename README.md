@@ -91,13 +91,10 @@ The mod creates `config/village-quests.properties` on first run with commented d
 | `gathering_max_days` | 7 | Gathering, most days (1-60) |
 | `reputation_decay_threshold` | 100 | Reputation decays above (0-1000) |
 | `reputation_decay_rate` | 0.01 | |
-| `quest_reminder_interval_ticks` | 1200 | |
 | `presence_tracking_interval_ticks` | 200 | |
 | `boss_bar_update_interval_ticks` | 20 | |
 | `mail_per_player_per_day` | 2 | Mail per player a day (0-20) |
 | `mail_base_per_village` | 5 | Mail per village a day (0-50) |
-
-`quest_reminder_interval_ticks` is still read, but nothing uses it: quests are no longer reminded on the action bar, and `/quest` is where to look.
 
 ## Development
 
