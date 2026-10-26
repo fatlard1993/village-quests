@@ -35,5 +35,12 @@
 		"homepage": "https://github.com/fatlard1993/village-quests",
 		"sources": "https://github.com/fatlard1993/village-quests",
 		"issues": "https://github.com/fatlard1993/village-quests/issues"
+	},
+	"custom": {
+		"modmenu": {
+			"links": {
+				"modmenu.donate": "https://github.com/sponsors/fatlard1993"
+			}
+		}
 	}
 }
