@@ -1,0 +1,45 @@
+{
+  "demo": {
+    "name": "Village Quests",
+    "icon": "minecraft:bell",
+    "about": [
+      "Villagers with names, moods and things on their minds: talk to them, take on their requests, and earn a village's trust slowly.",
+      "Start a small village of your own: set down the bell, beds and job blocks, let the villagers out, and right-click one to talk. Sneak and right-click to trade instead."
+    ]
+  },
+  "pvp_preset": 1,
+  "needs": ["village-quests-justfatlard"],
+  "preset": {
+    "name": "Village Quests",
+    "icon": "minecraft:bell",
+    "pvp": false,
+    "game_mode": "survival",
+    "entry_kit": [
+      {"slot": 0, "item": {"id": "minecraft:villager_spawn_egg", "count": 4}},
+      {"slot": 1, "item": {"id": "minecraft:bell", "count": 1}},
+      {"slot": 2, "item": {"id": "minecraft:white_bed", "count": 4}},
+      {"slot": 3, "item": {"id": "minecraft:lectern", "count": 1}},
+      {"slot": 4, "item": {"id": "minecraft:composter", "count": 1}},
+      {"slot": 5, "item": {"id": "minecraft:smoker", "count": 1}},
+      {"slot": 6, "item": {"id": "minecraft:cartography_table", "count": 1}},
+      {"slot": 7, "item": {"id": "minecraft:oak_planks", "count": 64}},
+      {"slot": 8, "item": {"id": "minecraft:cooked_beef", "count": 8}},
+      {"slot": 9, "item": {"id": "minecraft:oak_door", "count": 2}},
+      {"slot": 10, "item": {"id": "minecraft:torch", "count": 16}},
+      {"slot": 11, "item": {"id": "minecraft:emerald", "count": 16}},
+      {"slot": 12, "item": {"id": "minecraft:wheat", "count": 16}},
+      {"slot": 13, "item": {"id": "minecraft:oak_log", "count": 16}},
+      {"slot": 14, "item": {"id": "minecraft:poppy", "count": 8}},
+      {"slot": 15, "item": {"id": "minecraft:dandelion", "count": 8}}
+    ],
+    "respawn_kit": "entry",
+    "goal": "time",
+    "mobs": "off",
+    "life": 15,
+    "size": 3,
+    "world": "overworld",
+    "shape": "natural",
+    "biome": "minecraft:plains",
+    "weather": "clear"
+  }
+}
