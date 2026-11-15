@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,6 +16,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.RandomizableContainer;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.saveddata.SavedData;
@@ -96,6 +98,25 @@ public final class VillageLootChests {
 		return out;
 	}
 
+	/** The chests remembered in one chunk. */
+	public static List<BlockPos> inChunk(ServerLevel world, int chunkX, int chunkZ) {
+		Set<Long> inChunk = data(world).byChunk.get(ChunkPos.pack(chunkX, chunkZ));
+		if (inChunk == null || inChunk.isEmpty()) return List.of();
+		List<BlockPos> out = new ArrayList<>(inChunk.size());
+		for (long packed : inChunk) out.add(BlockPos.of(packed));
+		return out;
+	}
+
+	/** The chests remembered in every chunk that passes {@code chunkFilter}, given packed chunk positions. */
+	public static List<BlockPos> inChunks(ServerLevel world, java.util.function.LongPredicate chunkFilter) {
+		List<BlockPos> out = new ArrayList<>();
+		for (Map.Entry<Long, Set<Long>> entry : data(world).byChunk.entrySet()) {
+			if (!chunkFilter.test(entry.getKey())) continue;
+			for (long packed : entry.getValue()) out.add(BlockPos.of(packed));
+		}
+		return out;
+	}
+
 	/**
 	 * Visit every remembered chest within {@code radius} of a point.
 	 *
@@ -133,10 +154,16 @@ public final class VillageLootChests {
 		return true;
 	}
 
-	/** Forget a chest that no longer exists, so its position cannot brand a later one. */
-	public static void forget(ServerLevel world, BlockPos pos) {
+	/**
+	 * Forget a chest that no longer exists, so its position cannot brand a later one.
+	 *
+	 * @return true when this position was a remembered chest
+	 */
+	public static boolean forget(ServerLevel world, BlockPos pos) {
 		VillageLootChests.Data data = data(world);
-		if (data.remove(pos)) data.setDirty();
+		if (!data.remove(pos)) return false;
+		data.setDirty();
+		return true;
 	}
 
 	private static class Data extends SavedData {
@@ -146,16 +173,28 @@ public final class VillageLootChests {
 		);
 
 		private final Set<Long> positions = ConcurrentHashMap.newKeySet();
+		/** The same positions grouped by packed chunk, so a chunk's chests are found without walking the world's. */
+		private final Map<Long, Set<Long>> byChunk = new ConcurrentHashMap<>();
 		private boolean added;
 
 		public boolean add(BlockPos pos) {
 			boolean isNew = this.positions.add(pos.asLong());
-			if (isNew) this.added = true;
+			if (isNew) {
+				this.added = true;
+				this.byChunk.computeIfAbsent(ChunkPos.pack(pos), k -> ConcurrentHashMap.newKeySet()).add(pos.asLong());
+			}
 			return isNew;
 		}
 
 		public boolean remove(BlockPos pos) {
-			return this.positions.remove(pos.asLong());
+			if (!this.positions.remove(pos.asLong())) return false;
+			long chunk = ChunkPos.pack(pos);
+			Set<Long> inChunk = this.byChunk.get(chunk);
+			if (inChunk != null) {
+				inChunk.remove(pos.asLong());
+				if (inChunk.isEmpty()) this.byChunk.remove(chunk, inChunk);
+			}
+			return true;
 		}
 
 		public boolean isEmpty() {
@@ -197,8 +236,9 @@ public final class VillageLootChests {
 		public static VillageLootChests.Data fromNbt(CompoundTag nbt) {
 			VillageLootChests.Data data = new VillageLootChests.Data();
 			nbt.getLongArray("Positions").ifPresent(raw -> {
-				for (long value : raw) data.positions.add(value);
+				for (long value : raw) data.add(BlockPos.of(value));
 			});
+			data.added = false;
 			return data;
 		}
 	}

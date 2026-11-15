@@ -546,8 +546,9 @@ public class VillageQuests implements ModInitializer {
 
       PlayerBlockBreakEvents.AFTER.register((After)(world, player, pos, state, blockEntity) -> {
          if (!world.isClientSide() && player instanceof ServerPlayer serverPlayer) {
-            VillageLootChests.forget((ServerLevel)world, pos);
-            VillageChestSkins.onForgotten((ServerLevel)world, pos);
+            if (VillageLootChests.forget((ServerLevel)world, pos)) {
+               VillageChestSkins.onForgotten((ServerLevel)world, pos);
+            }
             Block block = state.getBlock();
             Village village = getCachedVillage(serverPlayer);
             // 128 to match every other village-bounds check (murder, golem,
@@ -933,6 +934,7 @@ public class VillageQuests implements ModInitializer {
          QuestChainSeeds.clearAll();
          QuestImpactTracker.clear();
          MemorialQuest.clearMemorials();
+         VillageChestSkins.onServerStopping();
       });
    }
 

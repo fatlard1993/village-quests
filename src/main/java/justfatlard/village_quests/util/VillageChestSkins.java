@@ -8,12 +8,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import justfatlard.pandorical.api.PandoricalApi;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import justfatlard.village_quests.VillageQuests;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ChunkTrackingView;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
 /**
@@ -46,17 +49,33 @@ public final class VillageChestSkins {
 	/** Chests found during chunk loading, waiting for a tick that can safely act. */
 	private static final Map<ResourceKey<Level>, Set<BlockPos>> pending = new HashMap<>();
 
-	/** State the whole set, for a player whose client remembers nothing. */
+	/**
+	 * State the set within this player's view, for a client that remembers nothing.
+	 * Chunks that reach them later bring their own chests, through {@link #onChunkSent}.
+	 */
 	public static void onJoin(ServerPlayer player) {
 		ServerLevel world = player.level();
-		List<BlockPos> known = VillageLootChests.all(world);
+		ChunkTrackingView view = player.getChunkTrackingView();
+		List<BlockPos> known = VillageLootChests.inChunks(world,
+			chunk -> view.contains(ChunkPos.getX(chunk), ChunkPos.getZ(chunk)));
 
 		// A join is an ordinary tick, so this is a safe moment to notice that a
-		// remembered chest is gone. Only the loaded ones can be judged, which over
-		// enough joins is all of the ones that matter.
+		// remembered chest is gone. Only the loaded ones can be judged.
 		for (BlockPos pos : known) VillageContainers.healIfGone(world, pos);
 
 		PandoricalApi.chestOverlays().replace(player, TEXTURE, visibleTo(world, player, known));
+	}
+
+	/**
+	 * A chunk has just been sent to this player: mark the village chests in it.
+	 * Called from the player's chunk sending, which is an ordinary tick, never
+	 * from chunk loading.
+	 */
+	public static void onChunkSent(ServerPlayer player, ServerLevel world, int chunkX, int chunkZ) {
+		List<BlockPos> inChunk = VillageLootChests.inChunk(world, chunkX, chunkZ);
+		if (inChunk.isEmpty()) return;
+
+		PandoricalApi.chestOverlays().add(player, TEXTURE, visibleTo(world, player, inChunk));
 	}
 
 	/** Called from chunk loading. Records only; sends nothing. */
@@ -66,22 +85,41 @@ public final class VillageChestSkins {
 		pending.computeIfAbsent(world.dimension(), key -> new HashSet<>()).addAll(discovered);
 	}
 
-	/** Called from the server tick, where touching the world is allowed again. */
+	/**
+	 * Called from the server tick, where touching the world is allowed again.
+	 * Only players who can see a chest's chunk are told; anyone else hears of it
+	 * when that chunk is sent to them.
+	 */
 	public static void flush(ServerLevel world) {
 		Set<BlockPos> queued = pending.remove(world.dimension());
 		if (queued == null || queued.isEmpty()) return;
 
-		for (ServerPlayer player : world.players()) {
-			PandoricalApi.chestOverlays().add(player, TEXTURE, visibleTo(world, player, queued));
+		Map<ServerPlayer, List<BlockPos>> byWatcher = new HashMap<>();
+		for (BlockPos pos : queued) {
+			for (ServerPlayer player : PlayerLookup.tracking(world, ChunkPos.containing(pos))) {
+				byWatcher.computeIfAbsent(player, p -> new ArrayList<>()).add(pos);
+			}
+		}
+
+		for (Map.Entry<ServerPlayer, List<BlockPos>> entry : byWatcher.entrySet()) {
+			PandoricalApi.chestOverlays().add(entry.getKey(), TEXTURE, visibleTo(world, entry.getKey(), entry.getValue()));
 		}
 	}
 
-	/** Drop a chest that is no longer there. */
+	/**
+	 * Drop a chest that is no longer there. Told to the whole dimension, not only
+	 * to who can see it: a client keeps a mark after walking away, and a stale one
+	 * would brand whatever chest is set down there next.
+	 */
 	public static void onForgotten(ServerLevel world, BlockPos pos) {
 		List<BlockPos> one = List.of(pos);
 		for (ServerPlayer player : world.players()) {
 			PandoricalApi.chestOverlays().remove(player, one);
 		}
+	}
+
+	public static void onServerStopping() {
+		pending.clear();
 	}
 
 	private static List<BlockPos> visibleTo(ServerLevel world, ServerPlayer player, Collection<BlockPos> candidates) {
