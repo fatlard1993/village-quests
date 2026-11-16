@@ -71,13 +71,13 @@ public final class ChestTheftWatch {
 		if (slot.container == player.getInventory()) return;
 		if (!(player.level() instanceof ServerLevel world)) return;
 
-		Village village = VillageQuests.getVillageManager().findNearestVillage(world, watch.pos());
-		if (village == null) return;
-
 		String cooldownKey = player.getUUID() + ":" + watch.pos().getX() + ":" + watch.pos().getY() + ":" + watch.pos().getZ();
 		long currentTime = System.currentTimeMillis();
 		Long lastCharge = CHEST_COOLDOWNS.get(cooldownKey);
 		if (lastCharge != null && currentTime - lastCharge < VillageQuestsConfig.getChestPenaltyCooldownMs()) return;
+
+		Village village = VillageQuests.getVillageManager().findNearestVillage(world, watch.pos());
+		if (village == null) return;
 
 		CHEST_COOLDOWNS.put(cooldownKey, currentTime);
 		CHEST_COOLDOWNS.entrySet().removeIf(entry -> currentTime - entry.getValue() > VillageQuestsConfig.getChestPenaltyCooldownMs() * 10L);
@@ -94,7 +94,10 @@ public final class ChestTheftWatch {
 	 * they took. Then it is the promise kept, and the village says so.
 	 *
 	 * <p>The slot hook has no player on it, so the player is whoever holds a
-	 * live watch on a chest menu, which the watch remembers from arming.
+	 * live watch on a chest menu, which the watch remembers from arming, and
+	 * whose open menu the slot is part of. The hook also fires for the client's
+	 * own copies of slots, on the client thread, which in single player shares
+	 * this map with the server; those slots belong to no server menu.
 	 */
 	public static void onSlotPut(Slot slot, ItemStack stack) {
 		if (stack == null || stack.isEmpty() || WATCHES.isEmpty()) return;
@@ -102,11 +105,13 @@ public final class ChestTheftWatch {
 		for (Map.Entry<UUID, Watch> entry : WATCHES.entrySet()) {
 			Watch watch = entry.getValue();
 			if (!watch.menuOpen()) continue;
-			if (!RecentActionsMemory.hasReturnPromise(entry.getKey())) continue;
 
 			ServerPlayer player = watch.player();
 			if (player == null || player.hasDisconnected()) continue;
+			if (!player.level().getServer().isSameThread()) return;
+			if (!RecentActionsMemory.hasReturnPromise(entry.getKey())) continue;
 			if (slot.container == player.getInventory()) continue;
+			if (!player.containerMenu.slots.contains(slot)) continue;
 			if (!(player.level() instanceof ServerLevel world)) continue;
 
 			Village village = VillageQuests.getVillageManager().findNearestVillage(world, watch.pos());
