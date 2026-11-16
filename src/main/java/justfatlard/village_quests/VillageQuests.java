@@ -935,6 +935,7 @@ public class VillageQuests implements ModInitializer {
          QuestImpactTracker.clear();
          MemorialQuest.clearMemorials();
          VillageChestSkins.onServerStopping();
+         villageManager.onServerStopping();
       });
    }
 

@@ -6,16 +6,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
-import java.util.WeakHashMap;
 import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
 import justfatlard.village_quests.Village;
@@ -31,10 +28,14 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.datafix.DataFixTypes;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.ai.village.poi.PoiManager;
+import net.minecraft.world.entity.ai.village.poi.PoiRecord;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.entity.ai.village.poi.PoiManager.Occupancy;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
 import net.minecraft.world.level.storage.SavedDataStorage;
@@ -47,9 +48,14 @@ public class VillageManager {
    private static final int VILLAGE_SEARCH_RADIUS = 256;
    private static final int BED_CLUSTER_GRID_SIZE = 500;
    private final Map<UUID, Village> villages = new HashMap<>();
-   private record BedClusterSnapshot(List<BlockPos> clusters, long refreshedAt) {}
-   private final Map<ServerLevel, BedClusterSnapshot> bedClusterCache = new WeakHashMap<>();
-   private static final long BED_CACHE_DURATION_MS = 300000L;
+   private record PositionKey(ResourceKey<Level> dimension, long packed) {}
+   private record CachedPositions(List<BlockPos> positions, long at) {}
+   private static final long POSITION_CACHE_TTL_TICKS = 100L;
+   private final Map<PositionKey, CachedPositions> bellCache = new HashMap<>();
+   private static final long BED_CACHE_DURATION_TICKS = 6000L;
+   private static final int BED_REGION_SHIFT = 2;
+   private static final int BED_SEARCH_HEIGHT = 16;
+   private final Map<PositionKey, CachedPositions> bedClusterCache = new HashMap<>();
    private static final SavedDataType<VillageManager.VillageData> VILLAGE_STATE_TYPE = new SavedDataType<>(
       Identifier.parse(STORAGE_KEY), VillageManager.VillageData::new, VillageManager.VillageData.CODEC, DataFixTypes.LEVEL
    );
@@ -672,16 +678,25 @@ public class VillageManager {
     * already accounted for by the time this reads it.
     *
     * <p>A village with no structure behind it (hand-built, or one whose centre
-    * drifted off the structure) keeps the {@link Village#MIN_RADIUS} floor
-    * rather than shrinking to nothing.
+    * drifted off the structure) is measured at the {@link Village#MIN_RADIUS}
+    * floor, once, rather than shrinking to nothing or being asked again on
+    * every lookup.
+    *
+    * <p>Measured only while the centre's chunk is loaded: the structure lookup
+    * would otherwise load it on the spot. An unmeasured village is measured the
+    * next time it is resolved with its centre loaded.
     *
     * @return true if the radius changed and the caller should persist
     */
    private boolean sizeToBuildings(ServerLevel world, Village village) {
+      if (!world.isLoaded(village.getCenter())) {
+         return false;
+      }
+
       StructureStart start = world.structureManager()
          .getStructureWithPieceAt(village.getCenter(), StructureTags.VILLAGE);
       if (start == null || !start.isValid()) {
-         return false;
+         return village.growRadiusTo(Village.MIN_RADIUS);
       }
 
       BoundingBox box = start.getBoundingBox();
@@ -716,51 +731,120 @@ public class VillageManager {
    private BlockPos findNearestBell(ServerLevel world, BlockPos pos) {
       this.ensureRegistryLoaded(world);
 
+      List<BlockPos> bells = this.bellsAround(world, pos);
+      BlockPos nearest = null;
+      double nearestDistSqr = Double.MAX_VALUE;
+      for (BlockPos bell : bells) {
+         if (!bell.closerThan(pos, 128.0)) continue;
+         double distSqr = bell.distSqr(pos);
+         if (distSqr < nearestDistSqr) {
+            nearestDistSqr = distSqr;
+            nearest = bell;
+         }
+      }
+      return nearest;
+   }
+
+   /**
+    * Every bell that could be the nearest to anywhere in {@code pos}'s chunk,
+    * remembered per chunk for {@link #POSITION_CACHE_TTL_TICKS}.
+    *
+    * <p>The village lookup is asked from about ninety places, most of them every
+    * few seconds and several per player, and the POI scan behind it walks a
+    * 128-block square that can wait on disk. Asking once per chunk and answering
+    * each position from the list gives every caller the answer they would have
+    * got, at most a few seconds old.
+    */
+   private List<BlockPos> bellsAround(ServerLevel world, BlockPos pos) {
+      long now = world.getGameTime();
+      PositionKey key = new PositionKey(world.dimension(), ChunkPos.pack(pos));
+      CachedPositions cached = this.bellCache.get(key);
+      if (cached != null && now - cached.at() < POSITION_CACHE_TTL_TICKS) {
+         return cached.positions();
+      }
+
+      List<BlockPos> bells;
       try {
-         Optional<BlockPos> nearest = world.getPoiManager()
-            .findAll(entry -> entry.is(PoiTypes.MEETING), candidate -> candidate.closerThan(pos, 128.0), pos, 128, Occupancy.ANY)
-            .min(Comparator.comparingDouble(p -> p.distSqr(pos)));
-         return nearest.orElse(null);
+         ChunkPos chunk = ChunkPos.containing(pos);
+         BlockPos chunkMiddle = new BlockPos(chunk.getMiddleBlockX(), pos.getY(), chunk.getMiddleBlockZ());
+         // Reaches 128 blocks past every column of the chunk, not just its middle.
+         bells = world.getPoiManager()
+            .getInSquare(entry -> entry.is(PoiTypes.MEETING), chunkMiddle, 128 + 16, Occupancy.ANY)
+            .map(PoiRecord::getPos)
+            .toList();
       } catch (Exception var4) {
          LOGGER.warn("Failed to find bell POI: {}", var4.getMessage());
-         return null;
+         bells = List.of();
       }
+
+      remember(this.bellCache, key, new CachedPositions(bells, now), POSITION_CACHE_TTL_TICKS);
+      return bells;
    }
 
    private BlockPos findNearestBedCluster(ServerLevel world, BlockPos pos) {
       List<BlockPos> clusters = this.getCachedBedClusters(world, pos);
-      return clusters.isEmpty()
-         ? null
-         : clusters.stream().filter(c -> c.closerThan(pos, 256.0)).min(Comparator.comparingDouble(c -> c.distSqr(pos))).orElse(null);
+      BlockPos nearest = null;
+      double nearestDistSqr = Double.MAX_VALUE;
+      for (BlockPos cluster : clusters) {
+         if (Math.abs(cluster.getY() - pos.getY()) > BED_SEARCH_HEIGHT || !cluster.closerThan(pos, 256.0)) continue;
+         double distSqr = cluster.distSqr(pos);
+         if (distSqr < nearestDistSqr) {
+            nearestDistSqr = distSqr;
+            nearest = cluster;
+         }
+      }
+      return nearest;
    }
 
+   /**
+    * Groups of three or more beds near {@code searchCenter}, for a village with
+    * no bell. Read from the home POIs every bed registers, in loaded chunks only,
+    * and remembered per region four chunks a side, so each part of the world is
+    * asked about on its own.
+    */
    private List<BlockPos> getCachedBedClusters(ServerLevel world, BlockPos searchCenter) {
-      BedClusterSnapshot snapshot = this.bedClusterCache.get(world);
-      if (snapshot != null && System.currentTimeMillis() - snapshot.refreshedAt() < BED_CACHE_DURATION_MS) {
-         return snapshot.clusters();
-      } else {
-         Map<BlockPos, Integer> bedClusters = new HashMap<>();
+      long now = world.getGameTime();
+      int regionX = (searchCenter.getX() >> 4) >> BED_REGION_SHIFT;
+      int regionZ = (searchCenter.getZ() >> 4) >> BED_REGION_SHIFT;
+      PositionKey key = new PositionKey(world.dimension(), ChunkPos.pack(regionX, regionZ));
+      CachedPositions cached = this.bedClusterCache.get(key);
+      if (cached != null && now - cached.at() < BED_CACHE_DURATION_TICKS) {
+         return cached.positions();
+      }
 
-         for (int x = -256; x <= 256; x += 4) {
-            for (int z = -256; z <= 256; z += 4) {
-               int cx = (searchCenter.getX() + x) >> 4;
-               int cz = (searchCenter.getZ() + z) >> 4;
-               // Skip unloaded chunks: getBlockState forces chunk generation otherwise,
-               // causing 15-20 second freezes on join when no village is nearby.
-               if (world.getChunkSource().getChunkNow(cx, cz) == null) continue;
-               for (int y = -16; y <= 16; y += 4) {
-                  BlockPos checkPos = searchCenter.offset(x, y, z);
-                  if (world.getBlockState(checkPos).getBlock() instanceof BedBlock) {
-                     BlockPos clusterCenter = new BlockPos(checkPos.getX() / 500 * 500, checkPos.getY(), checkPos.getZ() / 500 * 500);
-                     bedClusters.merge(clusterCenter, 1, Integer::sum);
-                  }
-               }
-            }
+      // Covers 256 blocks past every corner of the region.
+      int reachChunks = 256 / 16 + 1;
+      int minChunkX = (regionX << BED_REGION_SHIFT) - reachChunks;
+      int maxChunkX = ((regionX + 1) << BED_REGION_SHIFT) - 1 + reachChunks;
+      int minChunkZ = (regionZ << BED_REGION_SHIFT) - reachChunks;
+      int maxChunkZ = ((regionZ + 1) << BED_REGION_SHIFT) - 1 + reachChunks;
+
+      Map<BlockPos, Integer> bedClusters = new HashMap<>();
+      PoiManager pois = world.getPoiManager();
+      for (int cx = minChunkX; cx <= maxChunkX; cx++) {
+         for (int cz = minChunkZ; cz <= maxChunkZ; cz++) {
+            // Unloaded chunks are skipped: asking about one reads its POIs from disk.
+            if (world.getChunkSource().getChunkNow(cx, cz) == null) continue;
+            pois.getInChunk(entry -> entry.is(PoiTypes.HOME), new ChunkPos(cx, cz), Occupancy.ANY).forEach(record -> {
+               BlockPos bed = record.getPos();
+               BlockPos clusterCenter = new BlockPos(bed.getX() / BED_CLUSTER_GRID_SIZE * BED_CLUSTER_GRID_SIZE, bed.getY(),
+                  bed.getZ() / BED_CLUSTER_GRID_SIZE * BED_CLUSTER_GRID_SIZE);
+               bedClusters.merge(clusterCenter, 1, Integer::sum);
+            });
          }
+      }
 
-         List<BlockPos> result = bedClusters.entrySet().stream().filter(e -> e.getValue() >= 3).map(Entry::getKey).toList();
-         this.bedClusterCache.put(world, new BedClusterSnapshot(result, System.currentTimeMillis()));
-         return result;
+      List<BlockPos> result = bedClusters.entrySet().stream().filter(e -> e.getValue() >= 3).map(Entry::getKey).toList();
+      remember(this.bedClusterCache, key, new CachedPositions(result, now), BED_CACHE_DURATION_TICKS);
+      return result;
+   }
+
+   /** Store an answer, dropping expired ones now and then so the map holds only recent places. */
+   private static void remember(Map<PositionKey, CachedPositions> cache, PositionKey key, CachedPositions value, long ttl) {
+      cache.put(key, value);
+      if (cache.size() > 256) {
+         long now = value.at();
+         cache.values().removeIf(v -> now - v.at() >= ttl);
       }
    }
 
@@ -844,6 +928,7 @@ public class VillageManager {
 
    public void onServerStopping() {
       this.villages.clear();
+      this.bellCache.clear();
       this.bedClusterCache.clear();
    }
 
