@@ -18,6 +18,7 @@ import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.datafix.DataFixTypes;
@@ -183,10 +184,15 @@ public class PresenceTracker {
       }
    }
 
-   public static void cleanup(ServerLevel world, long currentWorldTime) {
+   /**
+    * Drop what is held for players no longer online, anywhere on the server.
+    * An online player's history is unsaved until they disconnect, so dropping
+    * it loses it.
+    */
+   public static void cleanup(MinecraftServer server) {
       Set<UUID> onlinePlayers = new HashSet<>();
 
-      for (ServerPlayer player : world.players()) {
+      for (ServerPlayer player : server.getPlayerList().getPlayers()) {
          onlinePlayers.add(player.getUUID());
       }
 
@@ -199,6 +205,7 @@ public class PresenceTracker {
          }
       });
       TOURIST_PATTERNS.keySet().removeIf(id -> !onlinePlayers.contains(id));
+      loadedPlayers.removeIf(id -> !onlinePlayers.contains(id));
    }
 
    private static void saveAndClear(UUID playerId, ServerLevel world) {

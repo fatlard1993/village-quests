@@ -94,6 +94,8 @@ import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.phys.AABB;
@@ -136,6 +138,9 @@ public class VillageQuests implements ModInitializer {
       "Wonder if %s still needs that help."
    };
    private int reminderRotation = 0;
+   private static final int VILLAGE_HEALTH_REACH = 96;
+   private static final int HEALTH_CHECKS_PER_TICK = 2;
+   private final java.util.ArrayDeque<Village> pendingHealthChecks = new java.util.ArrayDeque<>();
 
    public static Village getCachedVillage(ServerPlayer player) {
       UUID playerId = player.getUUID();
@@ -635,8 +640,22 @@ public class VillageQuests implements ModInitializer {
                }
             }, "quest-decay");
          }
-         if (tick % 24000L == 0L) {
-            safeTick(() -> this.processDailyEvents(server), "daily");
+         // The daily jobs, a second apart rather than all on one tick.
+         long dayTick = tick % 24000L;
+         if (dayTick == 0L) {
+            safeTick(() -> this.processDailyCleanups(server), "daily");
+         } else if (dayTick == 20L) {
+            safeTick(() -> PresenceTracker.cleanup(server), "daily-presence");
+         } else if (dayTick == 40L) {
+            safeTick(VillagerMemory::processMemoryDecay, "daily-memory");
+         } else if (dayTick == 60L) {
+            safeTick(() -> reputationManager.applyDailyDecay(server.overworld()), "daily-reputation");
+         } else if (dayTick == 80L) {
+            this.pendingHealthChecks.addAll(villageManager.getAllVillages());
+         }
+
+         if (!this.pendingHealthChecks.isEmpty()) {
+            safeTick(() -> this.checkVillageHealth(server), "village-health");
          }
 
          if (tick % 1200L == 0L) {
@@ -728,30 +747,53 @@ public class VillageQuests implements ModInitializer {
       }
    }
 
-   private void processDailyEvents(MinecraftServer server) {
+   private void processDailyCleanups(MinecraftServer server) {
       long worldTime = server.overworld().getGameTime();
       BehaviorReputationTracker.cleanup(server);
       InteractionLimiter.resetDailyInteractions();
       SocialBehaviorManager.cleanup(worldTime);
       QuestRarityManager.cleanup();
       QuestExpirationMailSystem.cleanupOldData();
-
-      for (ServerLevel w : server.getAllLevels()) {
-         PresenceTracker.cleanup(w, worldTime);
-      }
-
-      VillagerMemory.processMemoryDecay();
-      reputationManager.applyDailyDecay(server.overworld());
-      this.checkVillageHealth(server);
    }
 
+   /**
+    * A few villages a tick from the day's queue.
+    *
+    * <p>A village nobody is near has its villagers unloaded, and a search there
+    * finds no one; that is not the same as finding it empty. A day only counts
+    * toward depopulation when every chunk around the village had its entities
+    * loaded and still no adult villager was there.
+    */
    private void checkVillageHealth(MinecraftServer server) {
       ServerLevel world = server.overworld();
 
-      for (Village village : villageManager.getAllVillages()) {
-         AABB searchBox = new AABB(village.getCenter()).inflate(96.0);
+      for (int i = 0; i < HEALTH_CHECKS_PER_TICK && !this.pendingHealthChecks.isEmpty(); i++) {
+         Village village = this.pendingHealthChecks.poll();
+         AABB searchBox = new AABB(village.getCenter()).inflate(VILLAGE_HEALTH_REACH);
+         int minChunkX = Mth.floor(searchBox.minX) >> 4;
+         int maxChunkX = Mth.floor(searchBox.maxX) >> 4;
+         int minChunkZ = Mth.floor(searchBox.minZ) >> 4;
+         int maxChunkZ = Mth.floor(searchBox.maxZ) >> 4;
+         boolean anyLoaded = false;
+         boolean allLoaded = true;
+         for (int cx = minChunkX; cx <= maxChunkX; cx++) {
+            for (int cz = minChunkZ; cz <= maxChunkZ; cz++) {
+               if (world.areEntitiesLoaded(ChunkPos.pack(cx, cz))) {
+                  anyLoaded = true;
+               } else {
+                  allLoaded = false;
+               }
+            }
+         }
+         if (!anyLoaded) {
+            continue;
+         }
+
          List<Villager> villagers = world.getEntities(EntityTypeTest.forClass(Villager.class), searchBox, v -> !v.isBaby());
          if (villagers.isEmpty()) {
+            if (!allLoaded) {
+               continue;
+            }
             village.setConsecutiveEmptyDays(village.getConsecutiveEmptyDays() + 1);
             if (village.getConsecutiveEmptyDays() >= 3 && !village.isDepopulated()) {
                village.setDepopulated(true);
@@ -908,6 +950,7 @@ public class VillageQuests implements ModInitializer {
          bossBarManager.onServerStopping();
          villageCenterCache.clear();
          survivedNightCooldowns.clear();
+         this.pendingHealthChecks.clear();
          MisnomerQuest.onServerStopping(server);
          ChestTheftWatch.onServerStopping();
          QuestRarityManager.onServerStopping();
