@@ -50,6 +50,7 @@ import justfatlard.village_quests.util.ChestTheftWatch;
 import justfatlard.village_quests.util.VillageLootChests;
 import justfatlard.village_quests.util.ReputationHelper;
 import justfatlard.village_quests.util.ScheduledMessages;
+import justfatlard.village_quests.util.VillagerVoice;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AfterDamage;
@@ -238,6 +239,11 @@ public class VillageQuests implements ModInitializer {
       ServerEntityEvents.ENTITY_LOAD.register((Load)(entity, world) -> {
          if (entity instanceof Villager villager && !world.isClientSide()) {
             nameManager.assignNameIfNeeded(villager);
+         }
+      });
+      ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> {
+         if (entity instanceof Villager villager) {
+            nameManager.onUnload(villager);
          }
       });
       UseEntityCallback.EVENT
@@ -661,6 +667,7 @@ public class VillageQuests implements ModInitializer {
 
          if (tick % 1200L == 0L) {
             safeTick(DarkActionTracker::cleanupExpiredActions, "dark-action-cleanup");
+            safeTick(WitnessedDeathTracker::cleanup, "grief-cleanup");
          }
 
          if (tick % 100L == 0L) {
@@ -930,6 +937,7 @@ public class VillageQuests implements ModInitializer {
          ConversationMemory.onPlayerDisconnect(playerId);
          ScheduledMessages.onPlayerDisconnect(playerId);
          MessagePacer.onPlayerDisconnect(playerId);
+         VillagerVoice.clear(playerId);
       });
       ServerPlayerEvents.AFTER_RESPAWN
          .register(
@@ -983,6 +991,8 @@ public class VillageQuests implements ModInitializer {
          QuestImpactTracker.clear();
          MemorialQuest.clearMemorials();
          VillageChestSkins.onServerStopping();
+         VillagerVoice.clearAll();
+         ReputationMailSystem.onServerStopping();
          villageManager.onServerStopping();
       });
    }

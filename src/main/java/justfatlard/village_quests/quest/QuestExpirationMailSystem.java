@@ -2,12 +2,11 @@ package justfatlard.village_quests.quest;
 
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 import justfatlard.village_quests.VillageQuests;
 import justfatlard.village_quests.integration.MailSystemIntegration;
+import justfatlard.village_quests.util.ScheduledMessages;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -16,14 +15,14 @@ public class QuestExpirationMailSystem {
 
    public static void onQuestExpired(MinecraftServer server, UUID playerId, String villagerName, String questType) {
       recentlyExpiredQuests.put(UUID.randomUUID(), new QuestExpirationMailSystem.ExpiredQuestData(villagerName, questType));
-      long delay = (6 + ThreadLocalRandom.current().nextInt(18)) * 60 * 1000;
-      CompletableFuture.delayedExecutor(delay, TimeUnit.MILLISECONDS).execute(() -> server.execute(() -> {
+      long delayMinutes = 6 + ThreadLocalRandom.current().nextInt(18);
+      ScheduledMessages.scheduleServerAction(server, delayMinutes * 60L * 20L, () -> {
          ServerPlayer player = server.getPlayerList().getPlayer(playerId);
          if (player != null) {
             String letter = generateExpirationLetter(villagerName, questType);
             MailSystemIntegration.sendLetterFromVillager(server, playerId, villagerName, "Just wanted you to know", letter);
          }
-      }));
+      });
    }
 
    private static String generateExpirationLetter(String villagerName, String questType) {

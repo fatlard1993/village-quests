@@ -141,4 +141,8 @@ public final class VillagerVoice {
 	public static void clear(UUID playerId) {
 		pending.remove(playerId);
 	}
+
+	public static void clearAll() {
+		pending.clear();
+	}
 }

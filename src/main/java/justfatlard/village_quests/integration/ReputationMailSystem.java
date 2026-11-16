@@ -5,13 +5,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 import justfatlard.village_quests.Village;
 import justfatlard.village_quests.VillageQuests;
 import justfatlard.village_quests.manager.PlotManager;
 import justfatlard.village_quests.manager.ReputationManager;
+import justfatlard.village_quests.util.ScheduledMessages;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -162,7 +161,7 @@ public class ReputationMailSystem {
 
    public static void sendDelayedGratitude(MinecraftServer server, UUID playerId, String villagerName, String villagerUuidStr, String reason) {
       long delayMinutes = 24 + ThreadLocalRandom.current().nextInt(48);
-      CompletableFuture.delayedExecutor(delayMinutes, TimeUnit.MINUTES).execute(() -> server.execute(() -> {
+      ScheduledMessages.scheduleServerAction(server, delayMinutes * 60L * 20L, () -> {
          String message = switch (ThreadLocalRandom.current().nextInt(5)) {
             case 0 -> "Been thinking about what you did.\n\n" + reason + "\n\nFound this. Thought you might like it.\n\n" + villagerName;
             case 1 -> "Thank you.\n\nThat's all. Just... thank you.\n\n(Found this in my storage)\n\n" + villagerName;
@@ -196,7 +195,11 @@ public class ReputationMailSystem {
          }
 
          MailSystemIntegration.sendQuestThankYouLetter(server, playerId, villagerName, senderUuid, message, gift);
-      }));
+      });
+   }
+
+   public static void onServerStopping() {
+      lastQuestMailTick.clear();
    }
 
    private static String generateHumanLetter(String profession, int reputation, String villagerName) {

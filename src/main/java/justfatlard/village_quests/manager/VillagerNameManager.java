@@ -615,7 +615,19 @@ public class VillagerNameManager {
    }
 
    public String getName(Villager villager) {
-      return this.villagerNames.getOrDefault(villager.getUUID(), "Unnamed Villager");
+      String name = this.villagerNames.get(villager.getUUID());
+      if (name != null) {
+         return name;
+      }
+      return villager.hasCustomName() ? villager.getCustomName().getString() : "Unnamed Villager";
+   }
+
+   /**
+    * Forget a villager that has left the world. Its name lives on as its custom
+    * name, and loading it again reads it back from there.
+    */
+   public void onUnload(Villager villager) {
+      this.villagerNames.remove(villager.getUUID());
    }
 
    public void setName(Villager villager, String name) {

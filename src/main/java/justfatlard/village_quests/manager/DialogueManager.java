@@ -14,10 +14,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 import justfatlard.village_quests.Village;
 import justfatlard.village_quests.VillageQuests;
 import justfatlard.village_quests.VillagerPersonality;
@@ -3357,21 +3355,16 @@ public class DialogueManager {
          String itemDesc = getItemDescription(careItem);
          MinecraftServer server = world.getServer();
          UUID playerId = player.getUUID();
-         CompletableFuture.delayedExecutor(delayMinutes, TimeUnit.MINUTES)
-            .execute(
-               () -> server.execute(
-                  () -> {
-                     ThreadLocalRandom mailRng = ThreadLocalRandom.current();
-                     String[] mailMessages = new String[]{
-                        "I didn't ask for that. I'm glad you brought it anyway.\n\n- " + villagerName,
-                        "The " + itemDesc + " helped more than you know. I keep it by my bed.\n\n- " + villagerName,
-                        "Nobody else noticed. You did.\n\n- " + villagerName
-                     };
-                     String message = mailMessages[mailRng.nextInt(mailMessages.length)];
-                     MailSystemIntegration.sendLetterFromVillager(server, playerId, villagerName, "A note", message);
-                  }
-               )
-            );
+         justfatlard.village_quests.util.ScheduledMessages.scheduleServerAction(server, delayMinutes * 60L * 20L, () -> {
+            ThreadLocalRandom mailRng = ThreadLocalRandom.current();
+            String[] mailMessages = new String[]{
+               "I didn't ask for that. I'm glad you brought it anyway.\n\n- " + villagerName,
+               "The " + itemDesc + " helped more than you know. I keep it by my bed.\n\n- " + villagerName,
+               "Nobody else noticed. You did.\n\n- " + villagerName
+            };
+            String message = mailMessages[mailRng.nextInt(mailMessages.length)];
+            MailSystemIntegration.sendLetterFromVillager(server, playerId, villagerName, "A note", message);
+         });
       }
    }
 
