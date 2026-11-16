@@ -118,6 +118,7 @@ public class VillageQuests implements ModInitializer {
    private static final Map<String, Long> survivedNightCooldowns = new ConcurrentHashMap<>();
    // player:village -> last MC day VILLAGE_DEFENSE was credited (see AFTER_DEATH)
    private static final Map<String, Long> villageDefenseCredits = new ConcurrentHashMap<>();
+   private static final Map<Raid, java.util.Set<UUID>> raidVictoryCredits = new java.util.WeakHashMap<>();
    // The one village boundary. The boss bar showing the village's name and
    // every consequence check (property damage, defense credit, golem kills,
    // overnight stays) read this same number, so what the bar teaches - "you
@@ -738,7 +739,10 @@ public class VillageQuests implements ModInitializer {
             Village village = getCachedVillage(player);
             if (village != null) {
                Raid raid = world.getRaidAt(village.getCenter());
-               if (raid != null && raid.isVictory()) {
+               // A won raid lingers for its celebration, through several of these
+               // checks; each player is credited for it once.
+               if (raid != null && raid.isVictory()
+                  && raidVictoryCredits.computeIfAbsent(raid, r -> new java.util.HashSet<>()).add(player.getUUID())) {
                   QuestRarityManager.recordRaidNearby(village);
                   reputationManager.applyReputationEvent(player, village, ReputationEvent.RAID_VICTORY);
                }
@@ -951,6 +955,7 @@ public class VillageQuests implements ModInitializer {
          villageCenterCache.clear();
          survivedNightCooldowns.clear();
          this.pendingHealthChecks.clear();
+         raidVictoryCredits.clear();
          MisnomerQuest.onServerStopping(server);
          ChestTheftWatch.onServerStopping();
          QuestRarityManager.onServerStopping();
