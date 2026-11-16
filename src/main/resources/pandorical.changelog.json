@@ -4,6 +4,17 @@
 		"Standing in a village is earned by being there and behaving, and is never shown to you as a number."
 	],
 	"versions": {
+		"1.1.5": [
+			"Village chests are marked as their chunks reach a player instead of all at once on join, and breaking a block only says so when it was a village chest.",
+			"Finding the nearest village asks the world once per chunk every few seconds, measures a village without a structure once, and a bell-less village is found from its beds near whoever is asking; a world's villages no longer carry into the next one opened.",
+			"The day's village upkeep runs a second apart instead of all on one tick, a village nobody is near is no longer counted as emptied, and the daily cleanup keeps the presence history of players in other dimensions.",
+			"Winning a raid raises your standing once, not again every ten seconds while the village celebrates.",
+			"Putting things back into a village chest counts only for the player whose chest it is, and a single player client no longer reaches into the server to check.",
+			"Villagers' names, unspoken remarks and grief are let go once they can no longer matter, and letters a villager sends later wait on the server's clock and end with the world instead of keeping a closed one alive.",
+			"The cheap checks go first: no villager search for a misnamed quest nobody has, no dialogue lookups while nobody is talking, and plot and standing lookups allocate nothing.",
+			"A village whose centre moves while nobody is near it is measured again once someone is.",
+			"A village chest found gone on a join is unmarked for everyone still showing it, as a broken one is."
+		],
 		"1.1.4": [
 			"A demo to play in PvP Dimensions' onboarding."
 		],
