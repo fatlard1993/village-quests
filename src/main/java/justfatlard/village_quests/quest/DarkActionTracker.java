@@ -28,29 +28,20 @@ public class DarkActionTracker {
    }
 
    public static void recordWorkstationBreak(ServerPlayer player, BlockPos pos, Block block) {
-      if (isWorkstationBlock(block) && isNearVillage(player.level(), pos)) {
-         VillagerQuest quest = ActiveQuestManager.getQuestOfType(player, MisnomerQuest.class);
-         if (quest instanceof MisnomerQuest) {
-            RECENT_WORKSTATION_BREAKS.put(player.getUUID(), System.currentTimeMillis());
-         }
+      if (isWorkstationBlock(block) && hasMisnomerQuest(player) && isNearVillage(player.level(), pos)) {
+         RECENT_WORKSTATION_BREAKS.put(player.getUUID(), System.currentTimeMillis());
       }
    }
 
    public static void recordChestAccess(ServerPlayer player, BlockPos chestPos) {
-      if (isNearVillage(player.level(), chestPos)) {
-         VillagerQuest quest = ActiveQuestManager.getQuestOfType(player, MisnomerQuest.class);
-         if (quest instanceof MisnomerQuest) {
-            RECENT_CHEST_ACCESS.put(player.getUUID(), System.currentTimeMillis());
-         }
+      if (hasMisnomerQuest(player) && isNearVillage(player.level(), chestPos)) {
+         RECENT_CHEST_ACCESS.put(player.getUUID(), System.currentTimeMillis());
       }
    }
 
    public static void recordFireUse(ServerPlayer player, BlockPos pos) {
-      if (isNearVillage(player.level(), pos)) {
-         VillagerQuest quest = ActiveQuestManager.getQuestOfType(player, MisnomerQuest.class);
-         if (quest instanceof MisnomerQuest) {
-            RECENT_FIRE_USE.put(player.getUUID(), System.currentTimeMillis());
-         }
+      if (hasMisnomerQuest(player) && isNearVillage(player.level(), pos)) {
+         RECENT_FIRE_USE.put(player.getUUID(), System.currentTimeMillis());
       }
    }
 
@@ -80,6 +71,11 @@ public class DarkActionTracker {
       // which no villager works at, so breaking a furnace read as sabotage
       // while never reading as property damage.
       return justfatlard.village_quests.util.JobBlockHelper.isJobBlock(block);
+   }
+
+   /** Only a misnamed quest reads these, so nobody else is worth the villager search. */
+   private static boolean hasMisnomerQuest(ServerPlayer player) {
+      return ActiveQuestManager.getQuestOfType(player, MisnomerQuest.class) instanceof MisnomerQuest;
    }
 
    private static boolean isNearVillage(ServerLevel world, BlockPos pos) {

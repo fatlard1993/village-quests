@@ -301,7 +301,12 @@ public class PlotManager {
       }
 
       public PlotManager.Plot getPlotAt(BlockPos pos) {
-         return this.plots.values().stream().filter(plot -> plot.contains(pos)).findFirst().orElse(null);
+         for (PlotManager.Plot plot : this.plots.values()) {
+            if (plot.contains(pos)) {
+               return plot;
+            }
+         }
+         return null;
       }
 
       public CompoundTag writeNbt(CompoundTag nbt, Provider lookup) {

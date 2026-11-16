@@ -160,7 +160,8 @@ public class ReputationManager {
       }
 
       public int getReputation(UUID playerUuid, UUID villageId) {
-         return this.reputations.getOrDefault(playerUuid, new ConcurrentHashMap<>()).getOrDefault(villageId, 0);
+         Map<UUID, Integer> byVillage = this.reputations.get(playerUuid);
+         return byVillage == null ? 0 : byVillage.getOrDefault(villageId, 0);
       }
 
       public void setReputation(UUID playerUuid, UUID villageId, int reputation) {

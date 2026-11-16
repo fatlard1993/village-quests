@@ -28,6 +28,11 @@ public class DialogueStateManager {
    }
 
    public static boolean isInDialogue(Villager villager) {
+      // Asked by every villager every tick; almost always nobody is talking.
+      if (villagersInDialogue.isEmpty()) {
+         return false;
+      }
+
       UUID villagerUuid = villager.getUUID();
       Long startTime = dialogueStartTimes.get(villagerUuid);
       if (startTime != null && System.currentTimeMillis() - startTime > 30000L) {
