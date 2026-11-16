@@ -57,12 +57,12 @@ public final class VillageContainers {
 	 * places nobody has enumerated.
 	 *
 	 * <p>Call only from an ordinary tick, and only for a loaded position.
+	 *
+	 * @return true when the chest was remembered and is now forgotten
 	 */
-	public static void healIfGone(ServerLevel world, BlockPos pos) {
-		if (!world.isLoaded(pos)) return;
+	public static boolean healIfGone(ServerLevel world, BlockPos pos) {
+		if (!world.isLoaded(pos)) return false;
 
 		Block block = world.getBlockState(pos).getBlock();
-		if (!(block instanceof ChestBlock) && !(block instanceof BarrelBlock)) {
-			VillageLootChests.forget(world, pos);
-		}
+		return !(block instanceof ChestBlock) && !(block instanceof BarrelBlock) && VillageLootChests.forget(world, pos);
 	}}

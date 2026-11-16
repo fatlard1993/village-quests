@@ -60,8 +60,11 @@ public final class VillageChestSkins {
 			chunk -> view.contains(ChunkPos.getX(chunk), ChunkPos.getZ(chunk)));
 
 		// A join is an ordinary tick, so this is a safe moment to notice that a
-		// remembered chest is gone. Only the loaded ones can be judged.
-		for (BlockPos pos : known) VillageContainers.healIfGone(world, pos);
+		// remembered chest is gone. Only the loaded ones can be judged. Anyone else
+		// still holding its mark is told, as they would be of a broken chest.
+		for (BlockPos pos : known) {
+			if (VillageContainers.healIfGone(world, pos)) onForgotten(world, pos);
+		}
 
 		PandoricalApi.chestOverlays().replace(player, TEXTURE, visibleTo(world, player, known));
 	}
