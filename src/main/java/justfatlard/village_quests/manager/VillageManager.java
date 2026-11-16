@@ -56,6 +56,8 @@ public class VillageManager {
    private static final int BED_REGION_SHIFT = 2;
    private static final int BED_SEARCH_HEIGHT = 16;
    private final Map<PositionKey, CachedPositions> bedClusterCache = new HashMap<>();
+   /** Villages whose centre moved while it was unloaded, still to be measured against the new one. */
+   private final Set<UUID> movedUnmeasured = new HashSet<>();
    private static final SavedDataType<VillageManager.VillageData> VILLAGE_STATE_TYPE = new SavedDataType<>(
       Identifier.parse(STORAGE_KEY), VillageManager.VillageData::new, VillageManager.VillageData.CODEC, DataFixTypes.LEVEL
    );
@@ -626,12 +628,17 @@ public class VillageManager {
          boolean moved = !existing.getCenter().equals(detectedCenter);
          if (moved) {
             existing.updateCenter(detectedCenter);
+            this.movedUnmeasured.add(existing.getId());
          }
 
          // Re-measure when the centre moves (the extent it was measured against
          // moved with it) and when it has never been measured at all, which is
          // every village saved before villages had a size.
-         boolean resized = (moved || existing.needsSizing()) && this.sizeToBuildings(world, existing);
+         boolean resized = false;
+         if ((this.movedUnmeasured.contains(existing.getId()) || existing.needsSizing()) && world.isLoaded(existing.getCenter())) {
+            this.movedUnmeasured.remove(existing.getId());
+            resized = this.sizeToBuildings(world, existing);
+         }
 
          if (moved || resized) {
             VillageManager.VillageData data = this.getVillageData(world);
@@ -683,8 +690,8 @@ public class VillageManager {
     * every lookup.
     *
     * <p>Measured only while the centre's chunk is loaded: the structure lookup
-    * would otherwise load it on the spot. An unmeasured village is measured the
-    * next time it is resolved with its centre loaded.
+    * would otherwise load it on the spot. A village left unmeasured, or whose
+    * centre moved, is measured the next time it is resolved with its centre loaded.
     *
     * @return true if the radius changed and the caller should persist
     */
@@ -930,6 +937,7 @@ public class VillageManager {
       this.villages.clear();
       this.bellCache.clear();
       this.bedClusterCache.clear();
+      this.movedUnmeasured.clear();
    }
 
    public Collection<Village> getAllVillages() {
