@@ -110,6 +110,7 @@ public class VillageQuests implements ModInitializer {
    private static DialogueManager dialogueManager;
    private static VillageManager villageManager;
    private static VillageBossBarManager bossBarManager;
+   private static volatile boolean worldStateLoaded;
    private static PlotManager plotManager;
    private static WorkRequestManager workRequestManager;
    private static final Map<String, Long> interactionCooldowns = new ConcurrentHashMap<>();
@@ -956,8 +957,12 @@ public class VillageQuests implements ModInitializer {
          ActiveQuestManager.processInterruptedQuests(server);
          MisnomerQuest.loadDelayedRecognitions(server);
          VillagerGatheringSystem.loadGatheringSchedules(server);
+         worldStateLoaded = true;
       });
       ServerLifecycleEvents.SERVER_STOPPING.register((ServerStopping)server -> {
+         // A server that never started loaded nothing: saving would write empty state over the world's
+         if (!worldStateLoaded) return;
+         worldStateLoaded = false;
          ActiveQuestManager.saveInterruptedQuests(server);
          bossBarManager.onServerStopping();
          villageCenterCache.clear();
