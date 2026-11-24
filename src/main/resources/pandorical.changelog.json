@@ -4,6 +4,9 @@
 		"Standing in a village is earned by being there and behaving, and is never shown to you as a number."
 	],
 	"versions": {
+		"1.1.7": [
+			"A server that crashes while starting shuts down instead of hanging, and no longer saves empty quest state over the world's."
+		],
 		"1.1.6": [
 			"Describes itself in one short line of what it adds."
 		],
